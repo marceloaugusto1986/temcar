@@ -1,0 +1,208 @@
+<!-- <style>
+	/* NAV-BAR */
+	.box-filtros {
+		background-color: white;
+		box-shadow: 2px 2px 2px 2px rgba(95, 93, 93, 0.185);
+		border-bottom-left-radius: 10px;
+		border-bottom-right-radius: 10px;
+		border-top-right-radius: 10px;
+	}
+
+	.nav-menu {
+		position: sticky;
+		top: 0;
+		box-shadow: 2px 2px 2px 2px rgba(43, 42, 42, 0.26) !important;
+		z-index: 10;
+	}
+
+	.custom-box {
+		background: #fff;
+		border-radius: 8px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+		padding: 18px;
+	}
+
+	/* Navbar */
+	.btn-anuncie {
+		background: #C90B0C;
+		color: white;
+		padding: 8px 18px;
+		border-radius: 6px;
+	}
+
+	.btn-anuncie:hover {
+		opacity: 0.9;
+		color: white;
+		background: #f00d0d;
+	}
+</style> -->
+
+<!-- ESTILOS DA NAVBAR -->
+<link rel="stylesheet" href="/css/site-modern.css">
+
+<style>
+	.nav-menu {
+		position: sticky;
+		top: -1px;
+		z-index: 1000;
+		box-shadow: 2px 2px 2px 2px rgba(43, 42, 42, 0.26) !important;
+		padding: 5px !important;
+	}
+
+	.btn-anuncie {
+		background: #C90B0C;
+		color: #fff;
+		padding: 8px 18px;
+		border-radius: 6px;
+	}
+
+	.btn-anuncie:hover {
+		background: #f00d0d;
+		color: #fff;
+		opacity: 0.9;
+	}
+</style>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm py-0 nav-menu">
+	<div class="container" style="display: flex; flex-direction: row;">
+
+		<!-- LOGO -->
+		<!-- LOGO -->
+		<a class="navbar-brand fw-bold" href="/">
+			<img class="site-logo" style="width: 200px;" src="/images/logo-default.png">
+		</a>
+
+		<script src="/js/site-config.js" defer></script>
+
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-label="Abrir menu">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+
+		<div class="collapse navbar-collapse justify-content-end" id="menu">
+			<ul class="navbar-nav align-items-center gap-3">
+
+				<li class="nav-item">
+					<a class="nav-link" href="/carros">Carros</a>
+				</li>
+
+				<li class="nav-item">
+					<a class="nav-link" href="/motos">Motos</a>
+				</li>
+
+				<li class="nav-item">
+					<a class="nav-link" href="/buscar-revendas">Revenda</a>
+				</li>
+
+				<li class="nav-item">
+					<a class="nav-link" href="/particular">Particular</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="/buscar-cidades">Cidades</a>
+				</li>
+
+				<li class="nav-item">
+					<select id="tipoPlano" class="form-select">
+						<option value="">Planos</option>
+						<option value="planosParticular">Particular</option>
+						<option value="planosRevenda">Revenda</option>
+					</select>
+				</li>
+
+				<script>
+					document.getElementById("tipoPlano").addEventListener("change", function () {
+						const valor = this.value;
+
+						if (valor === "planosParticular") {
+							window.location.href = "/planos-particular";
+						} else if (valor === "planosRevenda") {
+							window.location.href = "/planos-revenda";
+						}
+					});
+				</script>
+
+				<li class="nav-item">
+					<a class="nav-link" href="https://veiculos.fipe.org.br/#carro" target="_blank"
+						rel="noopener noreferrer">
+						Fipe
+					</a>
+				</li>
+
+				<li class="nav-item">
+					<a class="nav-link" href="/login">Minha Conta</a>
+				</li>
+
+
+
+				<!-- Serviços - SELECT -->
+				<li class="nav-item">
+					<select id="selectServicos" class="form-select">
+						<option value="">Serviços Automotivos</option>
+					</select>
+				</li>
+
+				<!-- Botão Anuncie -->
+				<li class="nav-item">
+					<a class="btn btn-anuncie" href="/anunciar">Anuncie</a>
+				</li>
+
+			</ul>
+		</div>
+	</div>
+</nav>
+
+<script>
+	(function () {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+		document.addEventListener('DOMContentLoaded', function () {
+			const items = document.querySelectorAll('.card, .bg-white, .filtro-revendas, .home-models-section');
+			if (!items.length || !('IntersectionObserver' in window)) return;
+
+			const observer = new IntersectionObserver(function (entries) {
+				entries.forEach(function (entry) {
+					if (!entry.isIntersecting) return;
+					entry.target.classList.add('temcar-reveal');
+					observer.unobserve(entry.target);
+				});
+			}, { threshold: 0.08 });
+
+			items.forEach(function (item) {
+				observer.observe(item);
+			});
+		});
+	})();
+
+	async function carregarSelectServicos() {
+		try {
+			const res = await fetch('/api/servicos-select/ativos');
+
+			if (!res.ok) {
+				throw new Error('Erro ao buscar serviços');
+			}
+
+			const opcoes = await res.json();
+			const select = document.getElementById('selectServicos');
+
+			opcoes.forEach(op => {
+				const option = document.createElement('option');
+				option.value = op.url;
+				option.textContent = op.nome;
+				select.appendChild(option);
+			});
+
+			// 🔥 abre em nova guia
+			select.addEventListener('change', function () {
+				if (this.value) {
+					window.open(this.value, '_blank');
+					this.selectedIndex = 0; // volta para "Serviços"
+				}
+			});
+
+		} catch (erro) {
+			console.error('Erro ao carregar serviços:', erro);
+		}
+	}
+
+	carregarSelectServicos();
+</script>

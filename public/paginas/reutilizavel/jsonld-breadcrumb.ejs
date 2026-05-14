@@ -1,0 +1,16 @@
+<% if (typeof breadcrumbs !== 'undefined' && breadcrumbs.length > 0) { %>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    <%- breadcrumbs.map((item, i) => JSON.stringify({
+      "@type": "ListItem",
+      "position": i + 1,
+      "name": item.name,
+      "item": item.url
+    })).join(',\n    ') %>
+  ]
+}
+</script>
+<% } %>

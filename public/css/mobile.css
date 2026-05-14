@@ -1,0 +1,35 @@
+/* ======== MOBILE RESPONSIVO ======== */
+@media (max-width: 768px) {
+    /* Accordion ocupa 100% da largura */
+    .accordion {
+        width: 100% !important;
+    }
+
+    .accordion-item,
+    .accordion-body {
+        width: 100% !important;
+        padding: 0 !important;
+    }
+
+    /* Card 2 ocupa 100% do accordion */
+    .card {
+        width: 100% !important;
+        padding: 15px !important;
+        margin-bottom: 20px;
+    }
+
+    /* Inputs e botões em coluna única */
+    .row.g-3.mb-3 > div {
+        width: 100% !important;
+    }
+
+    /* Botão de adicionar custo alinhado */
+    #btnAdicionarCusto {
+        width: 100% !important;
+        margin-top: 5px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+}

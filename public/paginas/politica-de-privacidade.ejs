@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('reutilizavel/seo-head', { seo: typeof seo !== 'undefined' ? seo : {} }) %>
+  <script src="./../js/site-config.js" defers></script>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f5f5f5;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: auto;
+  }
+
+  /* SECTION 1 */
+  .two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 60px;
+  }
+
+  .text h2 {
+    margin-bottom: 15px;
+  }
+
+  .accordion {
+    margin-top: 20px;
+  }
+
+  .accordion-item {
+    border-bottom: 1px solid #ccc;
+  }
+
+  .accordion-header {
+    cursor: pointer;
+    padding: 15px;
+    background: #eee;
+    font-weight: bold;
+  }
+
+  .accordion-content {
+    display: none;
+    padding: 15px;
+    background: #fff;
+  }
+
+  .image {
+    display: flex;
+    justify-content: center;
+  }
+
+  .image img {
+    width: 100%;
+    border-radius: 10px;
+  }
+
+  /* SECTION 2 */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+
+  .card h3 {
+    margin-bottom: 10px;
+  }
+
+  /* RESPONSIVO */
+  @media (max-width: 768px) {
+    .two-columns {
+      grid-template-columns: 1fr;
+    }
+
+    .cards {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<body>
+  <%- include('./reutilizavel/header-public') %>
+
+    <h1
+      style="width: 100%; padding: 40px 0 40px 0; background-color: #c90b0c; text-align: center; font-weight: bold; color: white; font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
+      POLÍTICA DE PRIVACIDADE</h1>
+    <main class="container my-5">
+      <!-- <section id="regrasGeraisContainer"></section> -->
+
+      <div class="container">
+
+        <!-- SECTION 1 -->
+        <section class="two-columns">
+
+          <!-- COLUNA ESQUERDA -->
+          <div class="text">
+
+            <style>
+              .accordion-content {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease;
+                background: #fff;
+                padding: 0 15px;
+              }
+
+              .accordion-item.active .accordion-content {
+                max-height: 300px;
+                /* suficiente pro conteúdo */
+                padding: 15px;
+              }
+
+              .accordion-header {
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                padding: 15px;
+                background: #eee;
+                font-weight: bold;
+              }
+
+              .icon {
+                color: red;
+                margin-right: 10px;
+                font-size: 18px;
+              }
+
+              .title {
+                flex: 1;
+              }
+
+              .arrow {
+                transition: transform 0.3s ease;
+              }
+
+              /* seta girando */
+              .accordion-item.active .arrow {
+                transform: rotate(90deg);
+              }
+            </style>
+
+            <div class="accordion">
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">1. Introdução e Objetivo da Política</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  Esta Política de Privacidade do Temcar.com.br descreve as práticas de tratamento de dados pessoais dos
+                  usuários, automatizadas ou não, com o objetivo de respeitar e preservar o direito ao sigilo de
+                  identidade.
+                  Contém diretrizes sobre como o Temcar coleta, utiliza, armazena e protege as informações pessoais dos
+                  clientes/usuários, conforme as Leis nº 12.965/2014 (Marco Civil da Internet) e nº 13.709/2018 (Lei
+                  Geral de Proteção de Dados Pessoais – LGPD).
+                  Pode ser atualizada a qualquer momento para adequação à legislação vigente.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">2. Privacidade dos Conteúdos (Usuários)</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  O site pode permitir o envio de conteúdos (comentários, mensagens, imagens, vídeos, textos etc.) por
+                  usuários ou anunciantes.
+                  Ao publicar esses conteúdos, o usuário autoriza o Temcar e demais visitantes a visualizá-los,
+                  isentando o Temcar de qualquer responsabilidade sobre tais materiais.
+                  Os dados pessoais são armazenados em servidores seguros, mas o Temcar não se responsabiliza por
+                  prejuízos decorrentes de ações de terceiros que burlarem sistemas de segurança.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">3. Captura de Dados</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  Ao se cadastrar ou utilizar os serviços do site, podem ser solicitadas informações como:
+
+                  Identificação individual do cliente;
+
+                  Veículo(s) ofertado(s), pesquisado(s) ou de propriedade do internauta;
+
+                  Preferências de busca;
+
+                  Formas de pagamento e dados relacionados a compras ou serviços.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">4. Direitos do Usuário</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  O site cumpre os princípios da LGPD, assegurando:
+
+                  Tratamento lícito, leal e transparente dos dados;
+
+                  Coleta apenas para finalidades específicas e legítimas;
+
+                  Minimização e exatidão dos dados;
+
+                  Armazenamento pelo tempo necessário;
+
+                  Segurança, integridade e confidencialidade das informações.
+
+                  Direitos garantidos:
+
+                  Confirmação e acesso aos dados;
+
+                  Retificação;
+
+                  Eliminação (direito ao esquecimento);
+
+                  Limitação de tratamento;
+
+                  Oposição ao uso dos dados;
+
+                  Portabilidade dos dados.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">5. Tipo de Dados Coletados</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  Dados de cadastro:
+
+                  Nome, data de nascimento, e-mail, endereço, CPF/CNPJ.
+
+                  Dados de contato:
+
+                  Informações enviadas via formulários de contato.
+
+                  Dados contratuais:
+
+                  Informações necessárias para execução de contratos e comunicações.
+
+                  Registros de acesso:
+
+                  Armazenados por no mínimo 6 meses, conforme o Marco Civil da Internet.
+
+                  Newsletter e Publicidade:
+
+                  E-mails cadastrados são armazenados até o descadastro.
+
+                  Mensagens publicitárias incluem opção de cancelamento.
+
+                  Dados de abertura e cliques são coletados apenas de forma estatística e anônima.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">6. Proteção dos Dados Transacionais e Dados Sensíveis</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  Dados de cadastro:
+
+                  Nome, data de nascimento, e-mail, endereço, CPF/CNPJ.
+
+                  Dados de contato:
+
+                  Informações enviadas via formulários de contato.
+
+                  Dados contratuais:
+
+                  Informações necessárias para execução de contratos e comunicações.
+
+                  Registros de acesso:
+
+                  Armazenados por no mínimo 6 meses, conforme o Marco Civil da Internet.
+
+                  Newsletter e Publicidade:
+
+                  E-mails cadastrados são armazenados até o descadastro.
+
+                  Mensagens publicitárias incluem opção de cancelamento.
+
+                  Dados de abertura e cliques são coletados apenas de forma estatística e anônima.
+                </div>
+              </div>
+
+            </div>
+
+            <script>
+              const items = document.querySelectorAll(".accordion-item");
+
+              items.forEach(item => {
+                const header = item.querySelector(".accordion-header");
+                const icon = item.querySelector(".icon");
+
+                header.addEventListener("click", () => {
+
+                  const isActive = item.classList.contains("active");
+
+                  // fecha todos
+                  items.forEach(i => {
+                    i.classList.remove("active");
+                    i.querySelector(".icon").textContent = "+";
+                  });
+
+                  // abre o clicado
+                  if (!isActive) {
+                    item.classList.add("active");
+                    icon.textContent = "-";
+                  }
+                });
+              });
+            </script>
+          </div>
+
+          <!-- COLUNA DIREITA -->
+          <div class="image">
+            <img src="./../icones/img-privacidade.jpeg" style="max-width: 400px;" alt="Imagem exemplo">
+          </div>
+
+        </section>
+
+      </div>
+
+      <script>
+        const headers = document.querySelectorAll(".accordion-header");
+
+        headers.forEach(header => {
+          header.addEventListener("click", () => {
+            const content = header.nextElementSibling;
+
+            content.style.display =
+              content.style.display === "block" ? "none" : "block";
+          });
+        });
+      </script>
+    </main>
+
+    <script>
+      async function carregarPoliticaPrivacidade() {
+        try {
+          const res = await fetch('/api/admin/politica-privacidade');
+          const blocos = await res.json();
+
+          const container = document.getElementById('politicaPrivacidadeContainer');
+
+          if (!blocos.length) {
+            container.innerHTML = '<p class="text-muted">Conteúdo em breve.</p>';
+            return;
+          }
+
+          container.innerHTML = blocos.map(b => `
+      <div class="mb-5">
+        ${b.titulo ? `<h2>${b.titulo}</h2>` : ''}
+        ${b.subtitulo ? `<h5 class="text-muted">${b.subtitulo}</h5>` : ''}
+        <p>${formatarTexto(b.texto)}</p>
+      </div>
+    `).join('');
+
+        } catch (erro) {
+          console.error(erro);
+          politicaPrivacidadeContainer.innerHTML = '<p class="text-danger">Erro ao carregar conteúdo.</p>';
+        }
+      }
+
+      function formatarTexto(texto) {
+        return texto ? texto.replace(/\n/g, '<br>') : '';
+      }
+
+      carregarPoliticaPrivacidade();
+    </script>
+    <%- include('./reutilizavel/footer-public') %>
+</body>
+
+</html>

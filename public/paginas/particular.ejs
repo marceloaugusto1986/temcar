@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('reutilizavel/seo-head', { seo: typeof seo !== 'undefined' ? seo : {} }) %>
+  <script src="./../js/site-config.js" defers></script>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" href="./../css/revenda.css">
+
+    <style>
+        .descricao-card {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            /* número de linhas */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .vehicle-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 280px;
+        }
+
+        .vehicle-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        .badge-status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+        }
+
+        .vehicle-card {
+		max-width: 320px;
+
+		border-radius: 6px;
+	}
+
+	.vehicle-img {
+		height: 180px;
+		object-fit: cover;
+	}
+
+
+	@media(max-width: 576px) {
+		.vehicle-card {
+			max-width: 100%;
+		}
+
+		.vehicle-img {
+			height: 200px;
+		}
+	}
+    </style>
+</head>
+
+<body>
+    <%- include('./reutilizavel/header-public') %>
+
+        <% if (typeof seo !== 'undefined' && seo.texto_h1) { %>
+        <h1 class="visually-hidden"><%= seo.texto_h1 %></h1>
+        <% } else { %>
+        <h1 class="visually-hidden">Veículos de Particulares - TemCar</h1>
+        <% } %>
+
+        <div class="d-lg-none">
+            <button class="btn btn-danger btn-abrir-filtro" onclick="toggleFiltro()">
+                <i class="bi bi-funnel"></i> Filtrar resultados
+            </button>
+        </div>
+
+        <div class="layout">
+
+            <!-- SIDEBAR -->
+            <aside class="barra_lateral" id="sidebar">
+
+                <div class="sidebar-header">
+                    <h5 class="m-0">Filtros</h5>
+                    <button class="btn btn-sm btn-outline-dark" onclick="toggleFiltro()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="sidebar-body">
+
+                    <!-- BUSCA -->
+                    <strong>Barra de pesquisa</strong>
+                    <input id="filtroBusca" class="form-control mb-3" placeholder="Ex.: Chevrolet Tracker">
+
+                    <!-- REGIÃO (não usado no JS ainda, mas pronto) -->
+                    <strong>Regiões e Cidades</strong>
+                    <input id="filtroLocal" class="form-control mb-3" placeholder="Digite seu estado ou cidade">
+
+                    <!-- DISTÂNCIA (placeholder para futuro backend) -->
+                    <!-- <strong>Distância</strong>
+                    <select id="filtroDistancia" class="form-select mb-3">
+                        <option value="">Selecione a distância</option>
+                    </select> -->
+
+                    <!-- MARCAS DINÂMICAS -->
+                    <strong>Marcas</strong>
+                    <div id="filtroMarcas" class="mb-3"></div>
+
+                    <!-- MODELO -->
+                    <strong>Modelo / Versão</strong>
+                    <select id="filtroModelo" class="form-select mb-3">
+                        <option value="">Todos</option>
+                    </select>
+
+                    <!-- VERSÃO -->
+                    <!-- <strong>Versão</strong>
+                    <select id="filtroVersao" class="form-select mb-3">
+                        <option value="">Todas</option>
+                    </select> -->
+
+                    <!-- ANO -->
+                    <strong>Ano</strong>
+                    <div class="d-flex gap-2 mb-3">
+                        <select id="filtroAnoMin" class="form-select">
+                            <option value="">Min.</option>
+                        </select>
+                        <select id="filtroAnoMax" class="form-select">
+                            <option value="">Max.</option>
+                        </select>
+                    </div>
+
+                    <!-- PREÇO -->
+                    <strong>Faixa de preço</strong>
+                    <input id="filtroPrecoMin" class="form-control mb-2" placeholder="Min">
+                    <input id="filtroPrecoMax" class="form-control mb-3" placeholder="Max">
+
+                    <!-- KM -->
+                    <strong>Quilometragem</strong>
+                    <input id="filtroKmMin" class="form-control mb-2" placeholder="Min">
+                    <input id="filtroKmMax" class="form-control mb-3" placeholder="Max">
+
+                    <!-- CAMBIO -->
+                    <strong>Câmbio</strong>
+                    <select id="filtroCambio" class="form-select mb-3">
+                        <option value="">Todos</option>
+                    </select>
+
+                    <!-- COMBUSTIVEL -->
+                    <strong>Combustível</strong>
+                    <select id="filtroCombustivel" class="form-select mb-3">
+                        <option value="">Todos</option>
+                    </select>
+
+                    <!-- TIPO ANUNCIANTE -->
+                    <!-- <strong>Tipo de anunciante</strong>
+                    <div class="mb-3">
+                        <label><input type="checkbox" id="filtroParticular"> Particular</label><br>
+                        <label><input type="checkbox" id="filtroRevenda"> Revenda</label>
+                    </div> -->
+
+                    <!-- ESTADO VEICULO -->
+                    <strong>Estado do veículo</strong>
+                    <div class="mb-3">
+                        <label><input type="checkbox" id="filtroNovo"> Novo</label><br>
+                        <label><input type="checkbox" id="filtroUsado"> Usado</label>
+                    </div>
+
+                    <!-- BLINDAGEM -->
+                    <strong>Blindagem</strong>
+                    <div class="mb-3">
+                        <label><input type="checkbox" id="filtroBlindado"> Com blindagem</label><br>
+                        <label><input type="checkbox" id="filtroNaoBlindado"> Sem blindagem</label>
+                    </div>
+
+                    <!-- CARROCERIA -->
+                    <strong>Carroceria</strong>
+                    <select id="filtroCarroceria" class="form-select mb-3">
+                        <option value="">Todas</option>
+                    </select>
+
+                    <!-- CORES -->
+                    <strong>Cores</strong>
+                    <div class="mb-3" id="filtroCores">
+                        <label><input type="checkbox" value="branco"> Branco</label><br>
+                        <label><input type="checkbox" value="prata"> Prata</label><br>
+                        <label><input type="checkbox" value="preto"> Preto</label><br>
+                        <label><input type="checkbox" value="cinza"> Cinza</label>
+                    </div>
+
+                    <!-- OPCIONAIS -->
+                    <strong>Opcionais</strong>
+                    <div class="mb-3" id="filtroOpcionais">
+                        <label><input type="checkbox" value="ar-condicionado"> Ar-condicionado</label><br>
+                        <label><input type="checkbox" value="vidro elétrico"> Vidro elétrico</label><br>
+                        <label><input type="checkbox" value="alarme"> Alarme</label><br>
+                        <label><input type="checkbox" value="air-bag"> Air-Bag</label>
+                    </div>
+
+                </div>
+
+                <div class="sidebar-footer d-flex gap-2">
+                    <button onclick="limparFiltros()" class="btn btn-outline-secondary w-50">
+                        Limpar
+                    </button>
+                    <button onclick="aplicarFiltros()" class="btn btn-danger w-50">
+                        Aplicar filtros
+                    </button>
+                </div>
+
+
+            </aside>
+
+
+            <div class="overlay" id="overlay" onclick="toggleFiltro()"></div>
+
+            <!-- CONTEÚDO -->
+            <main class="conteudo">
+
+                <!-- CARDS -->
+                <section class="cards" id="listaCards"></section>
+
+                <!-- PAGINAÇÃO -->
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center" id="paginacao"></ul>
+                </nav>
+
+            </main>
+        </div>
+
+        <%- include('./reutilizavel/footer-public') %>
+
+            <script src="./../js/particular.js"></script>
+</body>
+
+</html>

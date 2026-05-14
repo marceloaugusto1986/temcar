@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('reutilizavel/seo-head', { seo: typeof seo !== 'undefined' ? seo : {} }) %>
+    <script src="/js/site-config.js" defer></script>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+
+<style>
+    .filtro-revendas {
+        max-width: 1200px;
+        margin: 20px auto 20px;
+        padding: 20px;
+        background: #f8f8f8;
+        border-radius: 10px;
+        border: 1px solid #e1e1e1;
+    }
+
+    .cidade-search {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .cidade-search input,
+    .filtro-revendas select {
+        padding: 10px 12px;
+        font-size: 14px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        background: #fff;
+    }
+
+    .cidade-search input {
+        width: 100%;
+    }
+
+    .cidade-search button {
+        border: 0;
+        border-radius: 6px;
+        background: #C90B0C;
+        color: #fff;
+        font-weight: 700;
+        padding: 10px 22px;
+    }
+
+    .cidade-sugestoes {
+        position: absolute;
+        left: 0;
+        right: 110px;
+        top: calc(100% + 6px);
+        z-index: 20;
+        display: none;
+        max-height: 260px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, .12);
+    }
+
+    .cidade-sugestao {
+        display: block;
+        width: 100%;
+        border: 0;
+        background: #fff;
+        padding: 11px 14px;
+        text-align: left;
+        color: #222;
+    }
+
+    .cidade-sugestao:hover,
+    .cidade-sugestao:focus {
+        background: rgba(201, 11, 12, .08);
+        outline: none;
+    }
+
+    .cidade-ajuda {
+        color: #666;
+        font-size: .92rem;
+        margin-bottom: 12px;
+    }
+
+    .filtro-revendas form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .filtro-revendas select {
+        flex: 1 1 200px;
+    }
+
+    .cidade-select-label {
+        color: #555;
+        font-size: .9rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .cidade-select-wrap {
+        width: 100%;
+    }
+
+    .filtro-revendas select:focus {
+        outline: none;
+        border-color: #C90B0C;
+    }
+
+    @media (max-width: 576px) {
+        .cidade-search {
+            grid-template-columns: 1fr;
+        }
+
+        .cidade-sugestoes {
+            right: 0;
+        }
+    }
+</style>
+
+<body>
+    <%- include('./reutilizavel/header-public') %>
+
+        <section style="
+        width: 100%;
+        height: 150px;
+        background: linear-gradient(to right,#C90B0C, #a53c3c);
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+        flex-direction: column;
+        gap: 10px;
+        " class="text-white mt-0 sm:mt-4 max-sm:text-center max-sm:text-[1.8rem] max-sm:pt-8 text-4xl font-bold">
+            <div style="
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        ">
+                <a href="/"
+                    style="color: white; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: 700; letter-spacing: 1px;"><svg
+                        xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 22">
+                        <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2">
+                            <path data-name="Path 38007" d="m1 8 9-7 9 7v11a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2Z"></path>
+                            <path data-name="Path 38008" d="M7 21V11h6v10"></path>
+                        </g>
+                    </svg> Início</a> <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"
+                    viewBox="0 0 8.414 14.829">
+                    <path d="m1.414 13.414 6-6-6-6" fill="none" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="2"></path>
+                </svg> <a href="/buscar-cidades"
+                    style="color: white; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: 700; letter-spacing: 1px;">Buscar
+                    Cidades</a>
+            </div>
+            <h1><span style="
+  text-decoration: underline;
+  text-decoration-thickness: 8px;
+  text-underline-offset: 25px;
+">Busque</span> por cidades</h1>
+        </section>
+
+        <section class="filtro-revendas" style="min-height: 70vh;">
+            <h2>Cidades</h2>
+            <p class="cidade-ajuda">Digite o nome da cidade ou selecione uma opção da lista.</p>
+
+            <div class="cidade-search">
+                <input id="input-cidade" type="search" autocomplete="off" placeholder="Digite o nome da cidade">
+                <button type="button" id="btn-buscar-cidade">Buscar</button>
+                <div id="cidade-sugestoes" class="cidade-sugestoes"></div>
+            </div>
+
+            <form id="filtro-form">
+                <div class="cidade-select-wrap">
+                    <div class="cidade-select-label">Ou escolha na lista completa</div>
+                    <select id="select-cidades">
+                        <option value="">Selecione uma cidade</option>
+                    </select>
+                </div>
+            </form>
+        </section>
+
+        <%- include('./reutilizavel/footer-public') %>
+
+            <script src="/js/buscar-cidades.js?v=3"></script>
+
+</body>
+
+</html>

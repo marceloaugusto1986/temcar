@@ -1,0 +1,86 @@
+<style>
+    .site-footer {
+        background: linear-gradient(135deg, #C90B0C, #930708);
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .site-footer::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 15% 10%, rgba(255, 255, 255, .16), transparent 30%);
+        pointer-events: none;
+    }
+
+    .site-footer .container {
+        position: relative;
+    }
+
+    .footer-link {
+        color: rgba(255, 255, 255, .82);
+        text-decoration: none;
+        transition: 0.2s ease;
+        display: inline-block;
+        margin-bottom: 6px;
+    }
+
+    .footer-link:hover {
+        color: #fff;
+        padding-left: 5px;
+    }
+
+    .footer-copy {
+        background: #111;
+        color: rgba(255, 255, 255, .62);
+    }
+</style>
+
+<!-- FOOTER -->
+<footer class="mt-5 site-footer">
+    <div class="container py-5">
+
+        <div class="row g-4">
+
+            <!-- INSTITUCIONAL -->
+            <div class="col-md-4 col-sm-6">
+                <h5 class="fw-bold mb-3">Institucional</h5>
+                <ul class="list-unstyled">
+                    <li><a href="/quem-somos" class="footer-link">Quem Somos</a></li>
+                    <li><a href="/fale-conosco" class="footer-link">Fale Conosco</a></li>
+                    <li><a href="/regras-gerais" class="footer-link">Regras Gerais</a></li>
+                    <li><a href="/politica-de-privacidade" class="footer-link">Política de Privacidade</a></li>
+                    <li><a href="/termos-de-uso" class="footer-link">Termos de Uso</a></li>
+                </ul>
+            </div>
+
+            <!-- COMPRAR -->
+            <div class="col-md-4 col-sm-6">
+                <h5 class="fw-bold mb-3"><a href="/comprar" style="color:#fff;text-decoration:none;">Comprar</a></h5>
+                <ul class="list-unstyled">
+                    <li><a href="/carros" class="footer-link">Carros</a></li>
+                    <li><a href="/motos" class="footer-link">Motos</a></li>
+                    <li><a href="/comprar" class="footer-link">Todos os Veículos</a></li>
+                </ul>
+            </div>
+
+            <!-- VENDER -->
+            <div class="col-md-4 col-sm-6">
+                <h5 class="fw-bold mb-3"><a href="/vender" style="color:#fff;text-decoration:none;">Vender</a></h5>
+                <ul class="list-unstyled">
+                    <li><a href="/anunciar" class="footer-link">Anuncie seu Veículo</a></li>
+                    <li><a href="/login" class="footer-link">Acessar meu Anúncio</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- COPYRIGHT -->
+    <div class="footer-copy">
+        <div class="container py-3 text-center">
+            © <%= new Date().getFullYear() %> Copyright Temcar.com.br - Todos os direitos reservados.
+        </div>
+    </div>
+</footer>

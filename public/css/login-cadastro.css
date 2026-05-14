@@ -1,0 +1,47 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #ece9e6, #ffffff);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
+.btn-primary-custom {
+    background: #6C63FF;
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-primary-custom:hover {
+    background: #5149e8;
+    transform: translateY(-2px);
+}
+
+.form-control:focus {
+    border-color: #6C63FF;
+    box-shadow: 0 0 0 0.2rem rgba(108, 99, 255, 0.25);
+}
+
+.logo {
+    font-weight: 600;
+    font-size: 1.6rem;
+    color: #6C63FF;
+}
+
+.link-custom {
+    text-decoration: none;
+    color: #6C63FF;
+}
+
+.link-custom:hover {
+    text-decoration: underline;
+}

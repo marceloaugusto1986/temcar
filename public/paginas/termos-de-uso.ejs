@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('reutilizavel/seo-head', { seo: typeof seo !== 'undefined' ? seo : {} }) %>
+  <script src="./../js/site-config.js" defers></script>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f5f5f5;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: auto;
+  }
+
+  /* SECTION 1 */
+  .two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 60px;
+  }
+
+  .text h2 {
+    margin-bottom: 15px;
+  }
+
+  .accordion {
+    margin-top: 20px;
+  }
+
+  .accordion-item {
+    border-bottom: 1px solid #ccc;
+  }
+
+  .accordion-header {
+    cursor: pointer;
+    padding: 15px;
+    background: #eee;
+    font-weight: bold;
+  }
+
+  .accordion-content {
+    display: none;
+    padding: 15px;
+    background: #fff;
+  }
+
+  .image {
+    display: flex;
+    justify-content: center;
+  }
+
+  .image img {
+    width: 100%;
+    border-radius: 10px;
+  }
+
+  /* SECTION 2 */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+
+  .card h3 {
+    margin-bottom: 10px;
+  }
+
+  /* RESPONSIVO */
+  @media (max-width: 768px) {
+    .two-columns {
+      grid-template-columns: 1fr;
+    }
+
+    .cards {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<body>
+  <%- include('./reutilizavel/header-public') %>
+
+    <h1
+      style="width: 100%; padding: 40px 0 40px 0; background-color: #c90b0c; text-align: center; font-weight: bold; color: white; font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
+      TERMOS DE USO</h1>
+    <main class="container my-5">
+      <!-- <section id="regrasGeraisContainer"></section> -->
+
+      <div class="container">
+
+        <!-- SECTION 1 -->
+        <section class="two-columns">
+
+          <!-- COLUNA ESQUERDA -->
+          <div class="text">
+
+            <style>
+              .accordion-content {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease;
+                background: #fff;
+                padding: 0 15px;
+              }
+
+              .accordion-item.active .accordion-content {
+                max-height: 300px;
+                /* suficiente pro conteúdo */
+                padding: 15px;
+              }
+
+              .accordion-header {
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                padding: 15px;
+                background: #eee;
+                font-weight: bold;
+              }
+
+              .icon {
+                color: red;
+                margin-right: 10px;
+                font-size: 18px;
+              }
+
+              .title {
+                flex: 1;
+              }
+
+              .arrow {
+                transition: transform 0.3s ease;
+              }
+
+              /* seta girando */
+              .accordion-item.active .arrow {
+                transform: rotate(90deg);
+              }
+            </style>
+
+            <div class="accordion">
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">1. Condições Gerais de Uso</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  1.1. O uso do website TemCar (a partir de agora denominado “Site”) e de todas as suas informações,
+                  telas, exibições e produtos, incluindo mecanismos de busca e demais serviços oferecidos, está sujeito
+                  às condições constantes deste Termo.
+
+                  1.2. Estas condições poderão ser alteradas a qualquer momento, sem necessidade de aviso prévio
+                  específico. As modificações estarão sempre atualizadas neste documento, que deve ser revisado
+                  periodicamente pelos usuários.
+
+                  1.3. Este Termo de Uso tem como objetivo regular a utilização pelos usuários de Internet (doravante
+                  “Usuário”) do site TemCar, disponível em www.temcar.com.br.
+
+                  1.4. Para utilizar livremente os conteúdos e serviços oferecidos, o Usuário deverá ler atentamente e
+                  concordar expressamente com este Termo.
+
+                  1.5. Determinados serviços podem ter Termos Específicos, que poderão complementar, substituir ou
+                  alterar este documento conforme o caso.
+
+                  1.6. O Site se reserva o direito de modificar, suprimir e/ou ampliar este Termo de Uso a qualquer
+                  tempo, sem comunicação prévia.
+
+                  1.7. Os serviços oferecidos pelo Site são, em regra, gratuitos, salvo alguns serviços próprios ou de
+                  terceiros que poderão ser cobrados conforme os respectivos Termos Específicos.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">2. Acesso e Registro de Usuário</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  1.8. Inicialmente, o uso dos serviços fornecidos pelo Site não exige cadastro ou registro (denominados
+                  “Serviços Abertos”).
+                  No entanto, o Site também pode oferecer Serviços Fechados, que requerem inscrição ou registro prévio
+                  para utilização.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">3. Responsabilidade e Conduta do Usuário</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  1.9. O Usuário concorda e se compromete a utilizar o Site corretamente, apenas para os fins
+                  permitidos, respeitando este Termo, os Termos Específicos aplicáveis, as instruções do Site, a
+                  legislação vigente e os bons costumes.
+                  O Usuário compromete-se, ainda, a não:
+
+                  Acessar, nem tentar acessar, qualquer serviço ou ambiente do Site por meio diverso da interface
+                  disponibilizada oficialmente;
+
+                  Utilizar meios automatizados, salvo autorização expressa por contrato assinado;
+
+                  Interferir ou interromper o funcionamento dos serviços, servidores ou redes conectadas ao Site;
+
+                  Reproduzir, duplicar, copiar, vender, comercializar ou revender os serviços do Site, salvo autorização
+                  expressa por contrato.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">4. Obrigações e Responsabilidade do Usuário</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  1.10. O Usuário é o único responsável pelo cumprimento de suas obrigações decorrentes deste Termo.
+                  Reconhece que o Site não possui responsabilidade perante ele ou terceiros, respondendo integralmente
+                  por quaisquer prejuízos, perdas ou danos que possam surgir em decorrência do descumprimento das
+                  disposições aqui contidas.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">5. Limitação de Responsabilidade do Site</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  1.11. O Usuário compreende e concorda que o uso dos serviços do Site é feito por sua conta e risco,
+                  estando ciente de que são disponibilizados conforme a disponibilidade e sem garantias de que atenderão
+                  suas expectativas.
+
+                  1.12. O Site se exime de toda e qualquer responsabilidade por perdas, danos ou prejuízos de qualquer
+                  natureza decorrentes:
+
+                  Da indisponibilidade ou interrupção de seus serviços;
+
+                  Da utilidade atribuída pelos usuários aos serviços;
+
+                  De eventuais falhas ou erros de funcionamento.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">6. Links e Páginas Externas</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  1.13. O Site não possui controle sobre Páginas Externas (sites de terceiros), não garantindo nem
+                  assumindo responsabilidade por perdas, danos ou prejuízos decorrentes de:
+
+                  Funcionamento, acessibilidade ou continuidade dessas páginas;
+
+                  Manutenção, conteúdo ou qualidade das informações, produtos e serviços ali oferecidos;
+
+                  Legalidade, confiabilidade e utilidade do conteúdo de terceiros linkados ao Site.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">7. Legislação Aplicável e Foro</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  Ao utilizar o site, o usuário consente com esta Política.
+                  O consentimento pode ser retirado a qualquer momento pelo e-mail contato@temcar.com.br, sem afetar a
+                  legalidade dos tratamentos anteriores.
+
+                  O tratamento também pode ocorrer sem consentimento nos seguintes casos:
+
+                  Cumprimento de obrigação legal;
+
+                  Estudos de pesquisa com anonimização;
+
+                  Exercício regular de direitos em processos;
+
+                  Atendimentos a interesses legítimos do controlador;
+
+                  Proteção do crédito.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">8. Segurança no Tratamento de Dados</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  O site aplica medidas técnicas e organizacionais adequadas para proteger os dados pessoais de acesso
+                  não autorizado, perda, destruição ou alteração.
+                  Utiliza certificado SSL para garantir a transmissão cifrada das informações.
+
+                  O Temcar não se responsabiliza por falhas causadas por:
+
+                  Ataques de hackers ou crackers;
+
+                  Culpa exclusiva do usuário.
+
+                  Em caso de violação de dados que possa afetar direitos e liberdades, o usuário será notificado.
+                  Todos os dados são tratados com confidencialidade nos limites da lei.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">10. Foro Competente</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  Esta Política e os Termos de Uso são regidos pela legislação brasileira.
+                  Qualquer controvérsia será processada na Comarca de Mesquita – RJ.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">11. Uso das Informações pelas Partes</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  O Temcar coleta e trata dados conforme esta Política, mas não se responsabiliza pelo uso de
+                  informações trocadas entre anunciantes e consumidores fora da plataforma.
+                  Toda comunicação ou negociação entre as partes é de responsabilidade exclusiva dos próprios usuários.
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <div class="accordion-header">
+                  <span class="icon">+</span>
+                  <span class="title">12. Última Atualização</span>
+                  <span class="arrow">▶</span>
+                </div>
+                <div class="accordion-content">
+                  A presente versão desta Política de Privacidade foi atualizada em 27 de junho de 2025.
+                </div>
+              </div>
+
+            </div>
+
+            <script>
+              const items = document.querySelectorAll(".accordion-item");
+
+              items.forEach(item => {
+                const header = item.querySelector(".accordion-header");
+                const icon = item.querySelector(".icon");
+
+                header.addEventListener("click", () => {
+
+                  const isActive = item.classList.contains("active");
+
+                  // fecha todos
+                  items.forEach(i => {
+                    i.classList.remove("active");
+                    i.querySelector(".icon").textContent = "+";
+                  });
+
+                  // abre o clicado
+                  if (!isActive) {
+                    item.classList.add("active");
+                    icon.textContent = "-";
+                  }
+                });
+              });
+            </script>
+          </div>
+
+          <!-- COLUNA DIREITA -->
+          <div class="image">
+            <img src="./../icones/img-termos-de-uso.jpeg" style="max-width: 400px;" alt="Imagem exemplo">
+          </div>
+
+        </section>
+
+      </div>
+
+      <script>
+        const headers = document.querySelectorAll(".accordion-header");
+
+        headers.forEach(header => {
+          header.addEventListener("click", () => {
+            const content = header.nextElementSibling;
+
+            content.style.display =
+              content.style.display === "block" ? "none" : "block";
+          });
+        });
+      </script>
+    </main>
+
+    <script>
+      async function carregarTermosUso() {
+        try {
+          const res = await fetch('/api/admin/termos-uso');
+          const blocos = await res.json();
+
+          const container = document.getElementById('termosUsoContainer');
+
+          if (!blocos.length) {
+            container.innerHTML = '<p class="text-muted">Conteúdo em breve.</p>';
+            return;
+          }
+
+          container.innerHTML = blocos.map(b => `
+      <div class="mb-5">
+        ${b.titulo ? `<h2>${b.titulo}</h2>` : ''}
+        ${b.subtitulo ? `<h5 class="text-muted">${b.subtitulo}</h5>` : ''}
+        <p>${formatarTexto(b.texto)}</p>
+      </div>
+    `).join('');
+
+        } catch (erro) {
+          console.error(erro);
+          termosUsoContainer.innerHTML = '<p class="text-danger">Erro ao carregar conteúdo.</p>';
+        }
+      }
+
+      function formatarTexto(texto) {
+        return texto ? texto.replace(/\n/g, '<br>') : '';
+      }
+
+      carregarTermosUso();
+    </script>
+    <%- include('./reutilizavel/footer-public') %>
+</body>
+
+</html>

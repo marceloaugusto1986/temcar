@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('reutilizavel/seo-head', { seo: typeof seo !== 'undefined' ? seo : {} }) %>
+  <script src="./../js/site-config.js" defers></script>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f5f5f5;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: auto;
+  }
+
+  /* SECTION 1 */
+  .two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 60px;
+  }
+
+  .text h2 {
+    margin-bottom: 15px;
+  }
+
+  .accordion {
+    margin-top: 20px;
+  }
+
+  .accordion-item {
+    border-bottom: 1px solid #ccc;
+  }
+
+  .accordion-header {
+    cursor: pointer;
+    padding: 15px;
+    background: #eee;
+    font-weight: bold;
+  }
+
+  .accordion-content {
+    display: none;
+    padding: 15px;
+    background: #fff;
+  }
+
+  .image {
+    display: flex;
+    justify-content: center;
+  }
+
+  .image img {
+    width: 100%;
+    border-radius: 10px;
+  }
+
+  /* SECTION 2 */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+
+  .card h3 {
+    margin-bottom: 10px;
+  }
+
+  /* RESPONSIVO */
+  @media (max-width: 768px) {
+    .two-columns {
+      grid-template-columns: 1fr;
+    }
+
+    .cards {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<body>
+  <%- include('./reutilizavel/header-public') %>
+      <h1
+      style="width: 100%; padding: 40px 0 40px 0; background-color: #c90b0c; text-align: center; font-weight: bold; color: white; font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">
+      FALE CONOSCO</h1>
+    <main class="container my-5">
+
+      <section class="two-columns">
+
+        <div class="text">
+          <!-- <section id="faleConoscoContainer"></section> -->
+          <div class="container py-5">
+            <div class="row justify-content-center">
+
+              <div class="col-md-10">
+                <div style="display: flex; flex-direction: column; margin-bottom: 20px;">
+                  <strong style="font-size: 22px;">Envie-nos uma mensagem</strong>
+                  <span style="width: 100px; height: 3px; background-color: #c90b0c; border-radius: 10px;"></span>
+                </div>
+                <p>Envie sua dúvida, sugestão ou opinião. Estamos aqui para te atender.</p>
+                <div class="card shadow-sm" style="background-color: #eeeeee;">
+                  <div class="card-body">
+                    <h4 class="card-title mb-4 text-center">Fale Conosco</h4>
+
+                    <form id="contatoForm" style="text-align: start;">
+                      <div class="mb-3">
+                        <label class="form-label">Nome</label>
+                        <input type="text" id="nome" class="form-control" required>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label">Cidade</label>
+                        <input type="text" id="cidade" class="form-control" required>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label">Assunto</label>
+                        <input type="text" id="assunto" class="form-control" required>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label">Mensagem</label>
+                        <textarea id="mensagem" class="form-control" rows="4" required></textarea>
+                      </div>
+                      <button type="submit" class="btn btn-success w-100" style="margin-top: 10px;">
+                        <i class="bi bi-whatsapp"></i> Enviar pelo WhatsApp
+                      </button>
+                    </form>
+
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="text">
+          <style>
+            .accordion-content {
+              max-height: 0;
+              overflow: hidden;
+              transition: max-height 0.3s ease, padding 0.3s ease;
+              background: #fff;
+              padding: 0 15px;
+            }
+
+            .accordion-item.active .accordion-content {
+              max-height: 1000px;
+              padding: 15px;
+            }
+
+            .accordion-header {
+              display: flex;
+              align-items: center;
+              cursor: pointer;
+              padding: 15px;
+              background: #eee;
+              font-weight: bold;
+            }
+
+            .icon {
+              color: red;
+              margin-right: 10px;
+              font-size: 18px;
+            }
+
+            .title {
+              flex: 1;
+            }
+
+            .arrow {
+              transition: transform 0.3s ease;
+            }
+
+            /* seta girando */
+            .accordion-item.active .arrow {
+              transform: rotate(90deg);
+            }
+          </style>
+
+           <div style="display: flex; flex-direction: column; margin-bottom: 20px;">
+                  <strong style="font-size: 22px;">Perguntas Frequentes</strong>
+                  <span style="width: 100px; height: 3px; background-color: #c90b0c; border-radius: 10px;"></span>
+                </div>
+
+          <div class="accordion">
+            <div class="accordion-item">
+              <div class="accordion-header">
+                <span class="icon">+</span>
+                <span class="title">Por que anunciar meu veículo na Temcar?</span>
+                <span class="arrow">▶</span>
+              </div>
+              <div class="accordion-content">
+                A Temcar oferece um ambiente seguro e confiável para quem quer vender seu carro rapidamente. Seu
+                anúncio ganha visibilidade em todo o Brasil, com destaque nas pesquisas e ferramentas de filtragem
+                inteligentes que conectam você diretamente a compradores reais. Além disso, o processo de publicação é
+                simples, gratuito e pode ser feito em poucos minutos.
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <div class="accordion-header">
+                <span class="icon">+</span>
+                <span class="title">A plataforma é segura?</span>
+                <span class="arrow">▶</span>
+              </div>
+              <div class="accordion-content">
+                Sim! A Temcar utiliza verificação de usuários e sistemas de proteção de dados para garantir uma
+                experiência segura. As negociações são diretas entre comprador e vendedor, com orientações e alertas
+                de segurança para evitar fraudes. Assim, você compra com confiança, transparência e tranquilidade.
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <div class="accordion-header">
+                <span class="icon">+</span>
+                <span class="title">Compre e venda com maior agilidade</span>
+                <span class="arrow">▶</span>
+              </div>
+              <div class="accordion-content">
+                A Temcar foi criada para acelerar todo o processo de compra e venda de veículos.
+                Com uma interface simples e intuitiva, você consegue anunciar em poucos minutos e alcançar compradores
+                qualificados de forma imediata.
+                Já quem busca um veículo pode encontrar ofertas atualizadas em tempo real, filtrando por marca,
+                modelo, ano, preço e localização.
+                A plataforma utiliza tecnologia otimizada para conectar quem vende a quem compra com rapidez e
+                precisão, reduzindo o tempo de negociação e aumentando as chances de fechar negócio no mesmo dia.
+              </div>
+            </div>
+          </div>
+
+          <script>
+            const items = document.querySelectorAll(".accordion-item");
+
+            items.forEach(item => {
+              const header = item.querySelector(".accordion-header");
+              const icon = item.querySelector(".icon");
+
+              header.addEventListener("click", () => {
+
+                const isActive = item.classList.contains("active");
+
+                // fecha todos
+                items.forEach(i => {
+                  i.classList.remove("active");
+                  i.querySelector(".icon").textContent = "+";
+                });
+
+                // abre o clicado
+                if (!isActive) {
+                  item.classList.add("active");
+                  icon.textContent = "-";
+                }
+              });
+            });
+          </script>
+        </div>
+
+      </section>
+      <script>
+        const headers = document.querySelectorAll(".accordion-header");
+
+        headers.forEach(header => {
+          header.addEventListener("click", () => {
+            const content = header.nextElementSibling;
+
+            content.style.display =
+              content.style.display === "block" ? "none" : "block";
+          });
+        });
+      </script>
+
+
+
+
+      <script>
+        document.getElementById("contatoForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const nome = document.getElementById("nome").value.trim();
+          const cidade = document.getElementById("cidade").value.trim();
+          const assunto = document.getElementById("assunto").value.trim();
+          const mensagem = document.getElementById("mensagem").value.trim();
+
+          const telefone = "5521995301954";
+
+          const texto =
+            `*Novo contato pelo site Temcar*
+Nome: ${nome}
+Cidade: ${cidade}
+Assunto: ${assunto}
+Mensagem: ${mensagem}`;
+
+          const url = `https://wa.me/${telefone}?text=${encodeURIComponent(texto)}`;
+
+          window.open(url, "_blank");
+        });
+      </script>
+    </main>
+
+    <script>
+      async function carregarFaleConosco() {
+        try {
+          const res = await fetch('/api/admin/fale-conosco');
+          const blocos = await res.json();
+
+          const container = document.getElementById('faleConoscoContainer');
+
+          if (!blocos.length) {
+            container.innerHTML = '<p class="text-muted">Conteúdo em breve.</p>';
+            return;
+          }
+
+          container.innerHTML = blocos.map(b => `
+      <div class="mb-5">
+        ${b.titulo ? `<h2>${b.titulo}</h2>` : ''}
+        ${b.subtitulo ? `<h5 class="text-muted">${b.subtitulo}</h5>` : ''}
+        <p>${formatarTexto(b.texto)}</p>
+      </div>
+    `).join('');
+
+        } catch (erro) {
+          console.error(erro);
+          faleConoscoContainer.innerHTML = '<p class="text-danger">Erro ao carregar conteúdo.</p>';
+        }
+      }
+
+      function formatarTexto(texto) {
+        return texto ? texto.replace(/\n/g, '<br>') : '';
+      }
+
+      carregarFaleConosco();
+    </script>
+    <%- include('./reutilizavel/footer-public') %>
+</body>
+
+</html>

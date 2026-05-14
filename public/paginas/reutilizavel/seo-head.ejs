@@ -1,0 +1,38 @@
+<%
+const defaultTitle = 'TemCar - Compra e Venda de Veículos';
+const defaultDescription = 'Compre e venda veículos novos, seminovos e usados no TemCar. Encontre carros e motos com ofertas de revendas e particulares.';
+const title = (typeof seo !== 'undefined' && seo.titulo) ? seo.titulo : defaultTitle;
+const description = (typeof seo !== 'undefined' && seo.descricao) ? seo.descricao : defaultDescription;
+const keywords = (typeof seo !== 'undefined' && seo.keywords) ? seo.keywords : 'comprar carro, vender carro, veículos usados, carros novos, motos usadas, temcar';
+const canonical = (typeof seo !== 'undefined' && seo.link_canonico) ? seo.link_canonico : (typeof currentUrl !== 'undefined' ? currentUrl : 'https://www.temcar.com.br/');
+const robots = (typeof seo !== 'undefined' && seo.robots) ? seo.robots : 'index, follow';
+const ogType = (typeof seo !== 'undefined' && seo.og_type) ? seo.og_type : 'website';
+const ogImage = (typeof seo !== 'undefined' && seo.og_image) ? seo.og_image : 'https://www.temcar.com.br/imagens/img/og-temcar.jpg';
+%>
+<title><%= title %></title>
+<meta name="description" content="<%= description %>">
+<meta name="keywords" content="<%= keywords %>">
+<link rel="canonical" href="<%= canonical %>">
+<meta name="robots" content="<%= robots %>">
+
+<!-- Favicon dinâmico do banco -->
+<% if (typeof siteConfig !== 'undefined' && siteConfig.favicon) { %>
+<link rel="icon" href="/uploads/anuncios/<%= siteConfig.favicon %>" id="site-favicon">
+<% } else { %>
+<link rel="icon" href="/images/favicon-default.png" id="site-favicon">
+<% } %>
+
+<!-- Open Graph -->
+<meta property="og:title" content="<%= title %>">
+<meta property="og:description" content="<%= description %>">
+<meta property="og:type" content="<%= ogType %>">
+<meta property="og:url" content="<%= canonical %>">
+<meta property="og:image" content="<%= ogImage %>">
+<meta property="og:site_name" content="TemCar">
+<meta property="og:locale" content="pt_BR">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= title %>">
+<meta name="twitter:description" content="<%= description %>">
+<meta name="twitter:image" content="<%= ogImage %>">

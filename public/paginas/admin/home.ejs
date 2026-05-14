@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do admin</title>
+
+  <script src="./../js/site-config.js" defers></script>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Flatpickr CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+  <link href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="./../../css/dashboard.css">
+  <link rel="stylesheet" href="./../../css/mobile.css">
+</head>
+
+<style>
+  .painel-nav {
+    font-size: 0.95rem;
+  }
+
+  .painel-link {
+    background: transparent;
+    border: none;
+    padding: 6px 14px;
+    font-weight: 600;
+    color: #555;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+  }
+
+  .painel-link:hover {
+    background: #fdeaea;
+    color: #C90B0C;
+  }
+
+  .painel-link.active {
+    background: #C90B0C;
+    color: #fff;
+  }
+
+  .painel-content {
+    display: none;
+    animation: fade 0.3s ease;
+  }
+
+  .painel-content.active {
+    display: block;
+  }
+
+  @keyframes fade {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<style>
+  .info-box {
+    padding: 0.75rem 1rem;
+    border: 1px solid #9fa1a3;
+    border-radius: 0.5rem;
+    background-color: #fdfdfd;
+    height: 100%;
+  }
+
+  .form-control {
+    border: 1px solid #9fa1a3;
+    background-color: #fdfdfd;
+  }
+
+  .info-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.03em;
+  }
+
+  .info-value {
+    font-weight: 500;
+    word-break: break-word;
+  }
+</style>
+
+<style>
+  .vehicle-card {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .vehicle-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  }
+</style>
+
+<!-- Descrição do card do anunciante -->
+<style>
+  .descricao-card {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    /* número de linhas */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+<!-- Status do card (análise/ativo) -->
+<style>
+  .vehicle-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    width: 280px;
+  }
+
+  .vehicle-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  }
+
+  .badge-status {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+  }
+</style>
+
+
+<body>
+  <section class="container my-5">
+
+    <!-- Header do Painel -->
+    <div class="bg-white shadow-sm rounded mb-4">
+
+      <div class="d-flex flex-wrap align-items-center justify-content-between p-3">
+
+        <h4 class="fw-bold m-0" style="color:#C90B0C;">
+          Painel do Admin
+        </h4>
+
+        <nav class="painel-nav d-flex flex-wrap gap-3 mt-3 mt-md-0">
+
+          <button class="painel-link active" data-target="anunciantes">
+            Anunciantes
+          </button>
+
+          <button class="painel-link" data-target="seo">
+            SEO Avançado
+          </button>
+
+          <button class="painel-link" data-target="cidades">
+            Cidades
+          </button>
+
+          <button class="painel-link" data-target="banners">
+            Banners
+          </button>
+
+          <button class="painel-link" data-target="editar-textos">
+            Menu de serviços
+          </button>
+
+          <button class="painel-link" data-target="editar-imagens">
+            Edição de imagens
+          </button>
+
+          <button class="painel-link" data-target="analise">
+            Em análise
+          </button>
+
+          <button class="painel-link" data-target="publicados">
+            Publicados
+          </button>
+
+          <button class="painel-link" data-target="perfil">
+            Perfil
+          </button>
+          <button class="painel-link" onclick="logout()">
+            Sair
+          </button>
+
+        </nav>
+      </div>
+
+    </div>
+
+    <!-- Conteúdo -->
+    <div class="bg-white shadow-sm rounded p-4">
+
+      <div class="painel-content active" id="anunciantes">
+
+        <section class="tabela-usuarios">
+
+          <div class="table-responsive">
+            <table class="table align-middle table-borderless admin-table">
+              <thead class="text-muted small">
+                <tr>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Tipo</th>
+                  <th>Cidade</th>
+                  <th>WhatsApp</th>
+                  <th>Cadastro</th>
+                  <th class="text-center">Ações</th>
+                </tr>
+              </thead>
+
+              <tbody id="usuariosTableBody">
+                <!-- Conteúdo dinâmico -->
+              </tbody>
+            </table>
+          </div>
+
+        </section>
+
+        <section class="visualizar-usuario d-none">
+
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">Perfil do Usuário</h4>
+            <button class="btn btn-sm btn-outline-secondary" onclick="fecharVisualizacao()">
+              Voltar
+            </button>
+          </div>
+
+          <div id="perfilUsuario" class="row g-4"></div>
+
+          <hr class="my-4">
+
+          <section class="mt-4">
+            <h4 class="mb-0" style="margin-bottom: 10px !important;">Anúncios</h4>
+            <div id="cards-analise" class="d-flex flex-wrap gap-3 pb-2">
+              <!-- Cards inseridos via JavaScript -->
+            </div>
+          </section>
+
+        </section>
+
+      </div>
+
+      <div class="painel-content" id="seo">
+        <div class="container mt-4" style="max-width:800px">
+
+          <div class="container mt-4">
+
+            <h3>SEO das Páginas</h3>
+
+            <!-- SELETOR DE PÁGINA -->
+            <div class="card mb-4">
+              <div class="card-body">
+
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Selecionar Página</label>
+                    <select id="paginaSelecionada" class="form-select">
+                      <option value="">Escolher...</option>
+                      <option value="home">Home</option>
+                      <option value="venda">Venda</option>
+                      <option value="buscar_revendas">Buscar Revendas</option>
+                      <option value="anunciar">Anunciar</option>
+                      <option value="login">Login</option>
+                      <option value="cadastro_particular">Cadastro Particular</option>
+                      <option value="cadastro_revenda">Cadastro Revenda</option>
+                      <option value="criar_conta">Criar Conta</option>
+                      <option value="cadastro">Cadastro</option>
+                      <option value="revenda">Revenda</option>
+                      <option value="particular">Particular</option>
+                      <option value="carros">Carros</option>
+                      <option value="motos">Motos</option>
+                      <option value="comprar">Comprar</option>
+                      <option value="vender">Vender</option>
+                      <option value="quem_somos">Quem Somos</option>
+                      <option value="fale_conosco">Fale Conosco</option>
+                      <option value="regras_gerais">Regras Gerais</option>
+                      <option value="politica_privacidade">Política de Privacidade</option>
+                      <option value="termos_uso">Termos de Uso</option>
+                      <option value="pagina_erro">Página de erro</option>
+                      <option value="planos">Planos</option>
+                      <option value="buscar_cidades">Buscar Cidades</option>
+                      <option value="cidade">Cidade</option>
+                    </select>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+
+            <!-- FORMULÁRIO -->
+            <div class="card mb-4">
+              <div class="card-body">
+
+                <form id="formSeo">
+                  <input type="hidden" id="seoId">
+
+                  <div class="row g-3">
+
+                    <div class="col-md-8">
+                      <label class="form-label">Meta Title</label>
+                      <input type="text" id="titulo" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-12">
+                      <label class="form-label">Meta Description</label>
+                      <textarea id="descricao" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="col-md-12">
+                      <label class="form-label">Meta Keywords</label>
+                      <input type="text" id="keywords" class="form-control">
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label">H1 da Página</label>
+                      <input type="text" id="texto_h1" class="form-control">
+                    </div>
+
+                    <div class="col-md-6">
+                      <label class="form-label">Link Canônico</label>
+                      <input type="text" id="link_canonico" class="form-control">
+                    </div>
+
+                    <div class="col-md-12 d-none">
+                      <label class="form-label">Texto SEO</label>
+                      <textarea id="texto_conteudo" class="form-control" rows="4"></textarea>
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                      <div class="form-check">
+                        <input type="checkbox" id="ativo" class="form-check-input" checked>
+                        <label class="form-check-label">Ativo</label>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="mt-3">
+                    <button class="btn btn-primary" type="submit">Salvar</button>
+                    <button class="btn btn-secondary" type="button" onclick="resetFormSeo()">Cancelar</button>
+                  </div>
+
+                  <div class="mt-3 text-muted">
+                    Placeholders: #marca, #modelo, #cidade, #estado, #veiculo, #bairro
+                  </div>
+
+                </form>
+
+              </div>
+            </div>
+
+
+            <!-- TABELA -->
+            <div class="card">
+              <div class="card-body">
+
+                <table class="table table-striped align-middle">
+                  <thead>
+                    <tr>
+                      <th>Título</th>
+                      <th>Status</th>
+                      <th style="width:160px">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tabelaSeo"></tbody>
+                </table>
+
+              </div>
+            </div>
+
+          </div>
+
+          <script>
+            let paginaAtual = null;
+
+
+            document.getElementById('paginaSelecionada').addEventListener('change', function () {
+              paginaAtual = this.value;
+              resetFormSeo();
+              carregarSeoDaPagina();
+            });
+
+
+            async function carregarSeoDaPagina() {
+              if (!paginaAtual) return;
+
+              const res = await fetch(`/api/seo-templates/pagina/${paginaAtual}`);
+              const dados = await res.json();
+
+              const tbody = document.getElementById('tabelaSeo');
+              tbody.innerHTML = '';
+
+              if (!dados.length) {
+                tbody.innerHTML = `<tr><td colspan="3">Nenhum SEO cadastrado</td></tr>`;
+                return;
+              }
+
+              dados.forEach(item => {
+                tbody.innerHTML += `
+            <tr>
+                <td>${item.titulo}</td>
+                <td>${item.ativo
+                    ? '<span class="badge bg-success">Ativo</span>'
+                    : '<span class="badge bg-secondary">Inativo</span>'
+                  }</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick='editarSeo(${JSON.stringify(item)})'>Editar</button>
+                    <button class="btn btn-sm btn-danger" onclick="excluirSeo(${item.id})">Excluir</button>
+                </td>
+            </tr>
+        `;
+              });
+            }
+
+
+            document.getElementById('formSeo').addEventListener('submit', async (e) => {
+              e.preventDefault();
+
+              if (!paginaAtual) {
+                alert('Selecione uma página primeiro');
+                return;
+              }
+
+              const id = document.getElementById('seoId').value;
+
+              const dados = {
+                pagina: paginaAtual,
+                titulo: document.getElementById('titulo').value,
+                descricao: document.getElementById('descricao').value,
+                keywords: document.getElementById('keywords').value,
+                texto_h1: document.getElementById('texto_h1').value,
+                texto_conteudo: document.getElementById('texto_conteudo').value,
+                link_canonico: document.getElementById('link_canonico').value,
+                ativo: document.getElementById('ativo').checked
+              };
+
+              const metodo = id ? 'PUT' : 'POST';
+              const url = id ? `/api/seo-templates/${id}` : '/api/seo-templates';
+
+              await fetch(url, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+              });
+
+              resetFormSeo();
+              carregarSeoDaPagina();
+            });
+
+
+            function editarSeo(item) {
+              document.getElementById('seoId').value = item.id;
+              document.getElementById('titulo').value = item.titulo;
+              document.getElementById('descricao').value = item.descricao || '';
+              document.getElementById('keywords').value = item.keywords || '';
+              document.getElementById('texto_h1').value = item.texto_h1 || '';
+              document.getElementById('texto_conteudo').value = item.texto_conteudo || '';
+              document.getElementById('link_canonico').value = item.link_canonico || '';
+              document.getElementById('ativo').checked = item.ativo;
+            }
+
+
+            async function excluirSeo(id) {
+              if (!confirm('Excluir SEO desta página?')) return;
+              await fetch(`/api/seo-templates/${id}`, { method: 'DELETE' });
+              carregarSeoDaPagina();
+            }
+
+
+            function resetFormSeo() {
+              document.getElementById('formSeo').reset();
+              document.getElementById('seoId').value = '';
+            }
+          </script>
+
+        </div>
+
+      </div>
+
+      <div class="painel-content" id="cidades">
+        <section class="container mt-4">
+
+          <!-- TOPO -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Cidades</h3>
+            <button class="btn btn-primary" id="btn-mostrar-cadastro">
+              + Nova Cidade
+            </button>
+          </div>
+
+          <!-- SELECT -->
+          <div class="mb-4">
+            <label class="form-label">Selecionar cidade</label>
+            <select id="select-cidades" class="form-select">
+              <option value="">Selecione uma cidade</option>
+            </select>
+          </div>
+
+          <!-- ✏️ EDITAR -->
+          <div id="box-editar" class="card p-3 mb-4 d-none">
+            <h5>Editar Cidade</h5>
+
+            <form id="form-editar-cidade" enctype="multipart/form-data">
+              <input class="form-control mb-2" type="text" name="nome" placeholder="Nome" />
+              <input class="form-control mb-2" type="text" name="estado" placeholder="Estado" />
+
+              <input class="form-control mb-2" type="file" name="imagem" />
+
+              <img id="preview-imagem" class="mb-2" style="width:120px; display:none;" />
+
+              <textarea class="form-control mb-2" name="descricao"></textarea>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-success" type="submit">Salvar</button>
+                <button class="btn btn-danger" type="button" id="btn-excluir">Excluir</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- ➕ CADASTRAR -->
+          <div id="box-cadastrar" class="card p-3 d-none">
+            <h5>Nova Cidade</h5>
+
+            <form id="form-cadastrar-cidade" enctype="multipart/form-data">
+              <input class="form-control mb-2" type="text" name="nome" placeholder="Nome" required />
+              <input class="form-control mb-2" type="text" name="estado" placeholder="Estado" required />
+              <input class="form-control mb-2" type="file" name="imagem" />
+              <textarea class="form-control mb-2" name="descricao"></textarea>
+
+              <button class="btn btn-primary" type="submit">Cadastrar</button>
+            </form>
+          </div>
+
+        </section>
+
+        <script>
+        const select = document.getElementById("select-cidades");
+const boxEditar = document.getElementById("box-editar");
+const boxCadastrar = document.getElementById("box-cadastrar");
+const btnMostrarCadastro = document.getElementById("btn-mostrar-cadastro");
+
+const formEditar = document.getElementById("form-editar-cidade");
+const formCadastrar = document.getElementById("form-cadastrar-cidade");
+const preview = document.getElementById("preview-imagem");
+const btnExcluir = document.getElementById("btn-excluir");
+
+let cidadeSelecionada = null;
+
+// 🔄 carregar cidades
+async function carregarCidades() {
+  const res = await fetch("/api/cidades");
+  const cidades = await res.json();
+
+  select.innerHTML = `<option value="">Selecione uma cidade</option>`;
+
+  cidades.forEach(cidade => {
+    const option = document.createElement("option");
+    option.value = cidade.id;
+    option.textContent = `${cidade.nome} - ${cidade.estado}`;
+    option.dataset.cidade = JSON.stringify(cidade);
+    select.appendChild(option);
+  });
+}
+
+// 📌 selecionar cidade
+select.addEventListener("change", () => {
+  const selected = select.options[select.selectedIndex];
+
+  if (!selected.value) {
+    boxEditar.classList.add("d-none");
+    cidadeSelecionada = null;
+    return;
+  }
+
+  cidadeSelecionada = JSON.parse(selected.dataset.cidade);
+
+  // mostra edição
+  boxEditar.classList.remove("d-none");
+
+  // esconde cadastro
+  boxCadastrar.classList.add("d-none");
+
+  formEditar.nome.value = cidadeSelecionada.nome;
+  formEditar.estado.value = cidadeSelecionada.estado;
+  formEditar.descricao.value = cidadeSelecionada.descricao;
+
+  if (cidadeSelecionada.imagem) {
+    preview.src = cidadeSelecionada.imagem;
+    preview.style.display = "block";
+
+    console.log(cidadeSelecionada.imagem)
+  } else {
+    preview.style.display = "none";
+  }
+});
+
+// ➕ mostrar cadastro
+btnMostrarCadastro.addEventListener("click", () => {
+  boxCadastrar.classList.remove("d-none");
+  boxEditar.classList.add("d-none");
+  select.value = "";
+  cidadeSelecionada = null;
+});
+
+// ✏️ editar
+formEditar.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  if (!cidadeSelecionada) return;
+
+  const formData = new FormData(formEditar);
+
+  await fetch(`/api/cidades/${cidadeSelecionada.id}`, {
+    method: "PUT",
+    body: formData
+  });
+
+  alert("Atualizado!");
+  carregarCidades();
+});
+
+// ❌ excluir
+btnExcluir.addEventListener("click", async () => {
+  if (!cidadeSelecionada) return;
+
+  if (!confirm("Excluir cidade?")) return;
+
+  await fetch(`/api/cidades/${cidadeSelecionada.id}`, {
+    method: "DELETE"
+  });
+
+  boxEditar.classList.add("d-none");
+  cidadeSelecionada = null;
+
+  carregarCidades();
+});
+
+// ➕ cadastrar
+formCadastrar.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData(formCadastrar);
+
+  await fetch("/api/cidades", {
+    method: "POST",
+    body: formData
+  });
+
+  alert("Cadastrado!");
+
+  formCadastrar.reset();
+  boxCadastrar.classList.add("d-none");
+
+  carregarCidades();
+});
+
+// init
+carregarCidades();
+        </script>
+      </div>
+
+      <!-- BANNERS -->
+      <div class="painel-content" id="banners">
+        <div class="container mt-4" style="max-width:900px">
+          <h3>Gerenciar Banners</h3>
+
+          <!-- Formulário de upload -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="card-title">Adicionar Banner</h5>
+              <form id="formBanner" enctype="multipart/form-data">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Título (opcional)</label>
+                    <input type="text" class="form-control" name="titulo" placeholder="Ex: Promoção de Verão">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Link (opcional)</label>
+                    <input type="text" class="form-control" name="link" placeholder="https://...">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Imagem *</label>
+                    <input type="file" class="form-control" name="imagem" accept="image/*" required>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">Ordem</label>
+                    <input type="number" class="form-control" name="ordem" value="0" min="0">
+                  </div>
+                  <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-danger w-100">Adicionar</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Lista de banners -->
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Banners Cadastrados</h5>
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Imagem</th>
+                      <th>Título</th>
+                      <th>Link</th>
+                      <th>Ordem</th>
+                      <th>Ativo</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tabelaBanners"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script>
+async function carregarBannersAdmin() {
+  const resp = await fetch('/api/admin/banners');
+  const banners = await resp.json();
+  const tbody = document.getElementById('tabelaBanners');
+  tbody.innerHTML = '';
+
+  if (!banners.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Nenhum banner cadastrado</td></tr>';
+    return;
+  }
+
+  banners.forEach(b => {
+    tbody.innerHTML += `
+      <tr>
+        <td><img src="/uploads/banners/${b.imagem}" style="height:60px;border-radius:4px;"></td>
+        <td>${b.titulo || '-'}</td>
+        <td>${b.link ? '<a href="' + b.link + '" target="_blank">Ver</a>' : '-'}</td>
+        <td>${b.ordem}</td>
+        <td>
+          <button class="btn btn-sm ${b.ativo ? 'btn-success' : 'btn-secondary'}"
+            onclick="toggleBanner(${b.id}, ${!b.ativo}, '${b.titulo || ''}', '${b.link || ''}', ${b.ordem})">
+            ${b.ativo ? 'Ativo' : 'Inativo'}
+          </button>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-danger" onclick="excluirBanner(${b.id})">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+async function toggleBanner(id, ativo, titulo, link, ordem) {
+  await fetch('/api/admin/banners/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ titulo, link, ordem, ativo })
+  });
+  carregarBannersAdmin();
+}
+
+async function excluirBanner(id) {
+  if (!confirm('Excluir este banner?')) return;
+  await fetch('/api/admin/banners/' + id, { method: 'DELETE' });
+  carregarBannersAdmin();
+}
+
+document.getElementById('formBanner').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  const resp = await fetch('/api/admin/banners', { method: 'POST', body: formData });
+  if (resp.ok) {
+    this.reset();
+    carregarBannersAdmin();
+    alert('Banner adicionado!');
+  } else {
+    alert('Erro ao adicionar banner');
+  }
+});
+
+carregarBannersAdmin();
+        </script>
+      </div>
+
+      <div class="painel-content" id="editar-textos">
+        <section class="mt-3">
+          <div class="container mt-4">
+
+            <h3>Gerenciar opções do menu Serviços</h3>
+
+            <!-- FORMULÁRIO CRIAR / EDITAR -->
+            <div class="card mb-4">
+              <div class="card-body">
+                <form id="formOpcao">
+
+                  <input type="hidden" id="opcaoId">
+
+                  <div class="row g-3">
+                    <div class="col-md-4">
+                      <label class="form-label">Nome da opção</label>
+                      <input type="text" id="nome" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label">URL de destino</label>
+                      <input type="text" id="url" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-2">
+                      <label class="form-label">Ordem</label>
+                      <input type="number" id="ordem" class="form-control" value="0">
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="ativo" checked>
+                        <label class="form-check-label">Ativo</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-3">
+                    <button class="btn btn-primary" type="submit">Salvar</button>
+                    <button class="btn btn-secondary" type="button" onclick="resetForm()">Cancelar</button>
+                  </div>
+
+                </form>
+              </div>
+            </div>
+
+
+            <!-- TABELA DE OPÇÕES -->
+            <div class="card">
+              <div class="card-body">
+
+                <table class="table table-striped align-middle">
+                  <thead>
+                    <tr>
+                      <th>Ordem</th>
+                      <th>Nome</th>
+                      <th>URL</th>
+                      <th>Status</th>
+                      <th style="width:150px">Ações</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="tabelaOpcoes">
+                    <!-- preenchido via JS -->
+                  </tbody>
+
+                </table>
+
+              </div>
+            </div>
+
+          </div>
+
+          <script>
+
+            async function carregarOpcoes() {
+              const res = await fetch('/api/servicos-select');
+              const dados = await res.json();
+
+              const tbody = document.getElementById('tabelaOpcoes');
+              tbody.innerHTML = '';
+
+              dados.forEach(op => {
+                tbody.innerHTML += `
+            <tr>
+                <td>${op.ordem}</td>
+                <td>${op.nome}</td>
+                <td>${op.url}</td>
+                <td>
+                    ${op.ativo ?
+                    '<span class="badge bg-success">Ativo</span>' :
+                    '<span class="badge bg-secondary">Inativo</span>'
+                  }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick='editarOpcao(${JSON.stringify(op)})'>Editar</button>
+                    <button class="btn btn-sm btn-danger" onclick="excluirOpcao(${op.id})">Excluir</button>
+                </td>
+            </tr>
+        `;
+              });
+            }
+
+
+            document.getElementById('formOpcao').addEventListener('submit', async (e) => {
+              e.preventDefault();
+
+              const id = document.getElementById('opcaoId').value;
+
+              const dados = {
+                nome: document.getElementById('nome').value,
+                url: document.getElementById('url').value,
+                ordem: document.getElementById('ordem').value,
+                ativo: document.getElementById('ativo').checked
+              };
+
+              const metodo = id ? 'PUT' : 'POST';
+              const endpoint = id ? `/api/servicos-select/${id}` : '/api/servicos-select';
+
+              await fetch(endpoint, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+              });
+
+              resetForm();
+              carregarOpcoes();
+            });
+
+
+            function editarOpcao(op) {
+              document.getElementById('opcaoId').value = op.id;
+              document.getElementById('nome').value = op.nome;
+              document.getElementById('url').value = op.url;
+              document.getElementById('ordem').value = op.ordem;
+              document.getElementById('ativo').checked = op.ativo;
+            }
+
+
+            async function excluirOpcao(id) {
+              if (!confirm('Deseja excluir esta opção?')) return;
+
+              await fetch(`/api/servicos-select/${id}`, { method: 'DELETE' });
+              carregarOpcoes();
+            }
+
+
+            function resetForm() {
+              document.getElementById('formOpcao').reset();
+              document.getElementById('opcaoId').value = '';
+            }
+
+
+            carregarOpcoes();
+
+          </script>
+        </section>
+
+        <section class="container my-5 d-none">
+          <h2>Gerenciar Página Quem Somos</h2>
+
+          <!-- FORM -->
+          <div class="card p-4 mb-4">
+            <form id="formQuemSomos">
+
+              <input type="hidden" id="blocoId">
+
+              <div class="mb-3">
+                <label class="form-label">Título</label>
+                <input type="text" id="qs_titulo" name="titulo" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Subtítulo</label>
+                <input type="text" id="qs_subtitulo" name="subtitulo" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Texto</label>
+                <textarea id="qs_texto" name="texto" class="form-control" rows="4" required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Ordem de exibição</label>
+                <input type="number" id="qs_ordem" name="ordem" class="form-control" value="0">
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                Salvar bloco
+              </button>
+
+              <button type="button" class="btn btn-secondary" onclick="resetFormQS()">
+                Novo
+              </button>
+
+            </form>
+          </div>
+
+          <!-- LISTA -->
+          <div class="card p-4">
+            <h4>Blocos cadastrados</h4>
+            <div id="listaBlocos"></div>
+          </div>
+
+          <script>
+            async function carregarBlocos() {
+              const res = await fetch('/api/admin/quem-somos');
+              const blocos = await res.json();
+
+              const container = document.getElementById('listaBlocos');
+              container.innerHTML = '';
+
+              blocos.forEach(b => {
+                container.innerHTML += `
+      <div class="border p-3 mb-3">
+        <h5>${b.titulo || '(sem título)'}</h5>
+        <p><strong>${b.subtitulo || ''}</strong></p>
+        <p>${b.texto}</p>
+
+        <button class="btn btn-sm btn-warning" onclick='editarBloco(${JSON.stringify(b)})'>
+          Editar
+        </button>
+
+        <button class="btn btn-sm btn-danger" onclick="excluirBloco(${b.id})">
+          Excluir
+        </button>
+      </div>
+    `;
+              });
+            }
+
+
+            document.getElementById('formQuemSomos').addEventListener('submit', async (e) => {
+              e.preventDefault();
+
+              const form = e.target;
+              const formData = new FormData(form);
+
+              const id = document.getElementById('blocoId').value;
+
+              const dados = {
+                titulo: formData.get('titulo')?.trim() || '',
+                subtitulo: formData.get('subtitulo')?.trim() || '',
+                texto: formData.get('texto')?.trim() || '',
+                ordem: parseInt(formData.get('ordem')) || 0
+              };
+
+              const metodo = id ? 'PUT' : 'POST';
+              const endpoint = id ? `/api/admin/quem-somos/${id}` : '/api/admin/quem-somos';
+
+              await fetch(endpoint, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+              });
+
+              resetFormQS();
+              carregarBlocos();
+            });
+
+
+            function editarBloco(b) {
+              document.getElementById('blocoId').value = b.id;
+              document.getElementById('qs_titulo').value = b.titulo || '';
+              document.getElementById('qs_subtitulo').value = b.subtitulo || '';
+              document.getElementById('qs_texto').value = b.texto || '';
+              document.getElementById('qs_ordem').value = b.ordem || 0;
+            }
+
+
+            async function excluirBloco(id) {
+              if (!confirm('Excluir este bloco?')) return;
+
+              await fetch(`/api/admin/quem-somos/${id}`, { method: 'DELETE' });
+              carregarBlocos();
+            }
+
+
+            function resetFormQS() {
+              document.getElementById('formQuemSomos').reset();
+              document.getElementById('blocoId').value = '';
+            }
+
+
+            carregarBlocos();
+          </script>
+        </section>
+
+        <section class="container my-5 d-none">
+          <h2>Gerenciar Página Fale Conosco</h2>
+
+          <div class="card p-4 mb-4">
+            <form id="formFaleConosco">
+              <input type="hidden" id="fc_id">
+
+              <div class="mb-3">
+                <label>Título</label>
+                <input type="text" name="titulo" id="fc_titulo" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label>Subtítulo</label>
+                <input type="text" name="subtitulo" id="fc_subtitulo" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label>Texto</label>
+                <textarea name="texto" id="fc_texto" class="form-control" rows="4" required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label>Ordem</label>
+                <input type="number" name="ordem" id="fc_ordem" class="form-control" value="0">
+              </div>
+
+              <button type="submit" class="btn btn-primary">Salvar</button>
+              <button type="button" class="btn btn-secondary" onclick="resetFC()">Novo</button>
+            </form>
+          </div>
+
+          <div class="card p-4">
+            <h4>Blocos cadastrados</h4>
+            <div id="listaFC"></div>
+          </div>
+        </section>
+
+        <script>
+          async function carregarFC() {
+            const res = await fetch('/api/admin/fale-conosco');
+            const dados = await res.json();
+
+            const container = document.getElementById('listaFC');
+            container.innerHTML = '';
+
+            dados.forEach(b => {
+              container.innerHTML += `
+      <div class="border p-3 mb-3">
+        <h5>${b.titulo || '(sem título)'}</h5>
+        <p><strong>${b.subtitulo || ''}</strong></p>
+        <p>${b.texto}</p>
+
+        <button class="btn btn-sm btn-warning" onclick='editarFC(${JSON.stringify(b)})'>Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="excluirFC(${b.id})">Excluir</button>
+      </div>
+    `;
+            });
+          }
+
+          document.getElementById('formFaleConosco').addEventListener('submit', async e => {
+            e.preventDefault();
+            const form = new FormData(e.target);
+
+            const id = document.getElementById('fc_id').value;
+
+            const dados = {
+              titulo: form.get('titulo'),
+              subtitulo: form.get('subtitulo'),
+              texto: form.get('texto'),
+              ordem: form.get('ordem')
+            };
+
+            const metodo = id ? 'PUT' : 'POST';
+            const url = id ? `/api/admin/fale-conosco/${id}` : '/api/admin/fale-conosco';
+
+            await fetch(url, {
+              method: metodo,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(dados)
+            });
+
+            resetFC();
+            carregarFC();
+          });
+
+          function editarFC(b) {
+            fc_id.value = b.id;
+            fc_titulo.value = b.titulo || '';
+            fc_subtitulo.value = b.subtitulo || '';
+            fc_texto.value = b.texto || '';
+            fc_ordem.value = b.ordem || 0;
+          }
+
+          async function excluirFC(id) {
+            if (!confirm('Excluir bloco?')) return;
+            await fetch(`/api/admin/fale-conosco/${id}`, { method: 'DELETE' });
+            carregarFC();
+          }
+
+          function resetFC() {
+            formFaleConosco.reset();
+            fc_id.value = '';
+          }
+
+          carregarFC();
+        </script>
+
+        <section class="container my-5 d-none">
+          <h2>Gerenciar Regras Gerais</h2>
+
+          <div class="card p-4 mb-4">
+            <form id="formRegras">
+              <input type="hidden" id="rg_id">
+
+              <input type="text" name="titulo" id="rg_titulo" class="form-control mb-3" placeholder="Título">
+              <input type="text" name="subtitulo" id="rg_subtitulo" class="form-control mb-3" placeholder="Subtítulo">
+              <textarea name="texto" id="rg_texto" class="form-control mb-3" rows="4" required></textarea>
+              <input type="number" name="ordem" id="rg_ordem" class="form-control mb-3" value="0">
+
+              <button type="submit" class="btn btn-primary">Salvar</button>
+              <button type="button" class="btn btn-secondary" onclick="resetRG()">Novo</button>
+            </form>
+          </div>
+
+          <div class="card p-4">
+            <h4>Blocos cadastrados</h4>
+            <div id="listaRG"></div>
+          </div>
+        </section>
+
+        <script>
+          async function carregarRG() {
+            const res = await fetch('/api/admin/regras-gerais');
+            const dados = await res.json();
+            listaRG.innerHTML = dados.map(b => `
+    <div class="border p-3 mb-3">
+      <h5>${b.titulo || '(sem título)'}</h5>
+      <p><strong>${b.subtitulo || ''}</strong></p>
+      <p>${b.texto}</p>
+      <button class="btn btn-warning btn-sm" onclick='editarRG(${JSON.stringify(b)})'>Editar</button>
+      <button class="btn btn-danger btn-sm" onclick="excluirRG(${b.id})">Excluir</button>
+    </div>`).join('');
+          }
+
+          formRegras.addEventListener('submit', async e => {
+            e.preventDefault();
+            const form = new FormData(e.target);
+            const id = rg_id.value;
+
+            const dados = Object.fromEntries(form.entries());
+
+            const metodo = id ? 'PUT' : 'POST';
+            const url = id ? `/api/admin/regras-gerais/${id}` : '/api/admin/regras-gerais';
+
+            await fetch(url, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados) });
+            resetRG();
+            carregarRG();
+          });
+
+          function editarRG(b) { rg_id.value = b.id; rg_titulo.value = b.titulo || ''; rg_subtitulo.value = b.subtitulo || ''; rg_texto.value = b.texto; rg_ordem.value = b.ordem || 0; }
+          async function excluirRG(id) { if (!confirm('Excluir?')) return; await fetch(`/api/admin/regras-gerais/${id}`, { method: 'DELETE' }); carregarRG(); }
+          function resetRG() { formRegras.reset(); rg_id.value = ''; }
+          carregarRG();
+        </script>
+
+        <section class="container my-5 d-none">
+          <h2>Gerenciar Política de Privacidade</h2>
+
+          <div class="card p-4 mb-4">
+            <form id="formPolitica">
+              <input type="hidden" id="pp_id">
+
+              <div class="mb-3">
+                <label>Título</label>
+                <input type="text" name="titulo" id="pp_titulo" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label>Subtítulo</label>
+                <input type="text" name="subtitulo" id="pp_subtitulo" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label>Texto</label>
+                <textarea name="texto" id="pp_texto" class="form-control" rows="4" required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label>Ordem</label>
+                <input type="number" name="ordem" id="pp_ordem" class="form-control" value="0">
+              </div>
+
+              <button type="submit" class="btn btn-primary">Salvar</button>
+              <button type="button" class="btn btn-secondary" onclick="resetPP()">Novo</button>
+            </form>
+          </div>
+
+          <div class="card p-4">
+            <h4>Blocos cadastrados</h4>
+            <div id="listaPP"></div>
+          </div>
+        </section>
+
+        <script>
+          async function carregarPP() {
+            const res = await fetch('/api/admin/politica-privacidade');
+            const dados = await res.json();
+
+            listaPP.innerHTML = dados.map(b => `
+    <div class="border p-3 mb-3">
+      <h5>${b.titulo || '(sem título)'}</h5>
+      <p><strong>${b.subtitulo || ''}</strong></p>
+      <p>${b.texto}</p>
+
+      <button class="btn btn-sm btn-warning" onclick='editarPP(${JSON.stringify(b)})'>Editar</button>
+      <button class="btn btn-sm btn-danger" onclick="excluirPP(${b.id})">Excluir</button>
+    </div>
+  `).join('');
+          }
+
+          formPolitica.addEventListener('submit', async e => {
+            e.preventDefault();
+
+            const form = new FormData(e.target);
+            const id = pp_id.value;
+
+            const dados = Object.fromEntries(form.entries());
+
+            const metodo = id ? 'PUT' : 'POST';
+            const url = id ? `/api/admin/politica-privacidade/${id}` : '/api/admin/politica-privacidade';
+
+            await fetch(url, {
+              method: metodo,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(dados)
+            });
+
+            resetPP();
+            carregarPP();
+          });
+
+          function editarPP(b) {
+            pp_id.value = b.id;
+            pp_titulo.value = b.titulo || '';
+            pp_subtitulo.value = b.subtitulo || '';
+            pp_texto.value = b.texto || '';
+            pp_ordem.value = b.ordem || 0;
+          }
+
+          async function excluirPP(id) {
+            if (!confirm('Excluir bloco?')) return;
+            await fetch(`/api/admin/politica-privacidade/${id}`, { method: 'DELETE' });
+            carregarPP();
+          }
+
+          function resetPP() {
+            formPolitica.reset();
+            pp_id.value = '';
+          }
+
+          carregarPP();
+        </script>
+
+        <section class="container my-5 d-none">
+          <h2>Gerenciar Termos de Uso</h2>
+
+          <div class="card p-4 mb-4">
+            <form id="formTermos">
+              <input type="hidden" id="tu_id">
+
+              <div class="mb-3">
+                <label>Título</label>
+                <input type="text" name="titulo" id="tu_titulo" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label>Subtítulo</label>
+                <input type="text" name="subtitulo" id="tu_subtitulo" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label>Texto</label>
+                <textarea name="texto" id="tu_texto" class="form-control" rows="4" required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label>Ordem</label>
+                <input type="number" name="ordem" id="tu_ordem" class="form-control" value="0">
+              </div>
+
+              <button type="submit" class="btn btn-primary">Salvar</button>
+              <button type="button" class="btn btn-secondary" onclick="resetTU()">Novo</button>
+            </form>
+          </div>
+
+          <div class="card p-4">
+            <h4>Blocos cadastrados</h4>
+            <div id="listaTU"></div>
+          </div>
+        </section>
+
+        <script>
+          async function carregarTU() {
+            const res = await fetch('/api/admin/termos-uso');
+            const dados = await res.json();
+
+            listaTU.innerHTML = dados.map(b => `
+    <div class="border p-3 mb-3">
+      <h5>${b.titulo || '(sem título)'}</h5>
+      <p><strong>${b.subtitulo || ''}</strong></p>
+      <p>${b.texto}</p>
+
+      <button class="btn btn-sm btn-warning" onclick='editarTU(${JSON.stringify(b)})'>Editar</button>
+      <button class="btn btn-sm btn-danger" onclick="excluirTU(${b.id})">Excluir</button>
+    </div>
+  `).join('');
+          }
+
+          formTermos.addEventListener('submit', async e => {
+            e.preventDefault();
+
+            const form = new FormData(e.target);
+            const id = tu_id.value;
+
+            const dados = Object.fromEntries(form.entries());
+
+            const metodo = id ? 'PUT' : 'POST';
+            const url = id ? `/api/admin/termos-uso/${id}` : '/api/admin/termos-uso';
+
+            await fetch(url, {
+              method: metodo,
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(dados)
+            });
+
+            resetTU();
+            carregarTU();
+          });
+
+          function editarTU(b) {
+            tu_id.value = b.id;
+            tu_titulo.value = b.titulo || '';
+            tu_subtitulo.value = b.subtitulo || '';
+            tu_texto.value = b.texto || '';
+            tu_ordem.value = b.ordem || 0;
+          }
+
+          async function excluirTU(id) {
+            if (!confirm('Excluir bloco?')) return;
+            await fetch(`/api/admin/termos-uso/${id}`, { method: 'DELETE' });
+            carregarTU();
+          }
+
+          function resetTU() {
+            formTermos.reset();
+            tu_id.value = '';
+          }
+
+          carregarTU();
+        </script>
+      </div>
+
+      <div class="painel-content" id="editar-imagens">
+        <div class="container mt-4" style="max-width:800px">
+
+          <h3 class="mb-3">Imagens do Site</h3>
+
+          <!-- ============================= -->
+          <!-- LOGO HEADER -->
+          <!-- ============================= -->
+          <div class="card" style="padding: 20px;">
+            <div class="card mb-4">
+              <div class="card-body">
+                <h5 class="mb-3">Logo do Header</h5>
+
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+
+                  <!-- PREVIEW -->
+                  <div class="text-center">
+                    <img id="previewLogo" class="border rounded"
+                      style="max-height:80px; min-height:80px; object-fit:contain; padding:6px;">
+                  </div>
+
+                  <!-- AÇÕES -->
+                  <div class="flex-grow-1">
+
+                    <input type="hidden" id="logoAtual">
+
+                    <input type="file" id="inputLogo" class="form-control mb-2" accept="image/*">
+
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-outline-danger" id="btnRemoverLogo" type="button">
+                        Remover imagem
+                      </button>
+
+                      <small class="text-muted align-self-center">
+                        PNG ou JPG recomendado
+                      </small>
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+
+            <!-- ============================= -->
+            <!-- FAVICON -->
+            <!-- ============================= -->
+            <div class="card mb-4">
+              <div class="card-body">
+                <h5 class="mb-3">Ícone da Página (Favicon)</h5>
+
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+
+                  <!-- PREVIEW -->
+                  <div class="text-center">
+                    <img id="previewFavicon" class="border rounded"
+                      style="max-height:50px; min-height:50px; object-fit:contain; padding:6px;">
+                  </div>
+
+                  <!-- AÇÕES -->
+                  <div class="flex-grow-1">
+
+                    <input type="hidden" id="faviconAtual">
+
+                    <input type="file" id="inputFavicon" class="form-control mb-2" accept="image/*">
+
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-outline-danger" id="btnRemoverFavicon" type="button">
+                        Remover imagem
+                      </button>
+
+                      <small class="text-muted align-self-center">
+                        Preferência: PNG 32x32
+                      </small>
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+
+            <!-- BOTÃO SALVAR -->
+            <button class="btn btn-primary w-100 mt-3" onclick="salvarImagensSiteConfig()">
+              Salvar alterações
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Banners de Cidades</h5>
+                <button class="btn btn-primary" onclick="adicionarImagemRegiao()">
+                  + Novo banner
+                </button>
+              </div>
+
+              <!-- SELECT -->
+              <div class="mb-3">
+                <label class="form-label">Selecione a cidade</label>
+                <select id="selectCidade" class="form-select">
+                  <option value="">Selecione uma cidade</option>
+                </select>
+              </div>
+
+              <!-- LISTA -->
+              <div id="listaRegiao" class="d-flex flex-column gap-3"></div>
+
+              <!-- EMPTY -->
+              <div id="emptyRegiao" class="text-center text-muted d-none">
+                Nenhum banner cadastrado para esta cidade
+              </div>
+
+              <!-- SALVAR -->
+              <div class="d-grid mt-4">
+                <button class="btn btn-primary" onclick="salvarImagensRegiao()">
+                  Salvar alterações
+                </button>
+              </div>
+
+            </div>
+
+            <!-- TEMPLATE -->
+            <template id="templateRegiao">
+              <div class="slide-item border p-3 rounded">
+
+                <input type="hidden" class="input-id">
+
+                <div class="row">
+                  <div class="col-md-3">
+                    <img class="preview img-fluid rounded"
+                      src="/uploads/anuncios/regioes/1774637770227-851750240.png" />
+                  </div>
+
+                  <div class="col-md-9">
+                    <input type="file" class="form-control input-imagem mb-2">
+
+                    <button type="button" class="btn btn-danger btn-remover">
+                      Remover
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </template>
+          </div>
+
+          <script>
+            /* ==========================
+               CONFIG
+            ========================== */
+            const API_CIDADES = "/api/cidades";
+            const API_LISTAR_CIDADES = "/api/admin/regioes/imagens";
+            const API_SALVAR_CIDADES = "/api/admin/regioes/imagens";
+            const API_EXCLUIR_CIDADES = "/api/admin/regioes/imagens";
+
+            /* ==========================
+               INIT
+            ========================== */
+            document.addEventListener("DOMContentLoaded", () => {
+              carregarCidades();
+
+              document.getElementById("selectCidade")
+                .addEventListener("change", carregarImagensRegiao);
+            });
+
+            /* ==========================
+               CARREGAR CIDADES
+            ========================== */
+            async function carregarCidades() {
+              try {
+                const res = await fetch(API_CIDADES);
+                const data = await res.json();
+
+                const select = document.getElementById("selectCidade");
+                select.innerHTML = `<option value="">Selecione uma cidade</option>`;
+
+                data.forEach(loc => {
+                  const option = document.createElement("option");
+                  option.value = loc.nome;
+                  option.textContent = `${loc.nome} - ${loc.estado}`;
+                  select.appendChild(option);
+                });
+
+              } catch (err) {
+                console.error("Erro ao carregar cidades:", err);
+              }
+            }
+
+            /* ==========================
+               ADICIONAR ITEM
+            ========================== */
+            function adicionarImagemRegiao(dados = {}) {
+              const template = document.getElementById("templateRegiao");
+              const clone = template.content.cloneNode(true);
+              const item = clone.querySelector(".slide-item");
+
+              const inputId = item.querySelector(".input-id");
+              const inputImagem = item.querySelector(".input-imagem");
+              const preview = item.querySelector(".preview");
+              const btnRemover = item.querySelector(".btn-remover");
+
+              if (dados.id) inputId.value = dados.id;
+              if (dados.imagem) preview.src = dados.imagem;
+
+              /* PREVIEW */
+              inputImagem.addEventListener("change", () => {
+                const file = inputImagem.files[0];
+                if (file) preview.src = URL.createObjectURL(file);
+              });
+
+              /* REMOVER */
+              btnRemover.addEventListener("click", async () => {
+                const id = inputId.value;
+
+                if (!id) {
+                  item.remove();
+                  verificarEmptyState();
+                  return;
+                }
+
+                if (!confirm("Deseja excluir esta imagem?")) return;
+
+                try {
+                  const res = await fetch(`${API_EXCLUIR_CIDADES}/${id}`, {
+                    method: "DELETE"
+                  });
+
+                  if (res.ok) {
+                    item.remove();
+                    verificarEmptyState();
+                  } else {
+                    alert("Erro ao excluir");
+                  }
+
+                } catch (err) {
+                  console.error(err);
+                }
+              });
+
+              document.getElementById("listaRegiao").appendChild(clone);
+              verificarEmptyState();
+            }
+
+            /* ==========================
+               CARREGAR IMAGENS
+            ========================== */
+            async function carregarImagensRegiao() {
+              const cidade = document.getElementById("selectCidade").value;
+
+              const lista = document.getElementById("listaRegiao");
+              const empty = document.getElementById("emptyRegiao");
+
+              lista.innerHTML = "";
+
+              if (!cidade) {
+                empty.classList.remove("d-none");
+                return;
+              }
+
+              try {
+                const res = await fetch(`${API_LISTAR_CIDADES}?cidade=${encodeURIComponent(cidade)}`);
+                const imagens = await res.json();
+
+                if (!imagens.length) {
+                  empty.classList.remove("d-none");
+                  return;
+                }
+
+                empty.classList.add("d-none");
+
+                imagens.forEach(img => {
+                  adicionarImagemRegiao({
+                    id: img.id,
+                    imagem: `/uploads/anuncios/${img.imagem}`
+                  });
+                });
+
+              } catch (err) {
+                console.error("Erro ao carregar imagens:", err);
+              }
+            }
+
+            /* ==========================
+               SALVAR
+            ========================== */
+            async function salvarImagensRegiao() {
+              const cidade = document.getElementById("selectCidade").value;
+              const itens = document.querySelectorAll(".slide-item");
+
+              if (!cidade) {
+                alert("Selecione uma cidade");
+                return;
+              }
+
+              if (itens.length === 0) {
+                alert("Adicione pelo menos uma imagem");
+                return;
+              }
+
+              const formData = new FormData();
+              formData.append("cidade", cidade);
+
+              itens.forEach(item => {
+                const id = item.querySelector(".input-id").value;
+                const fileInput = item.querySelector(".input-imagem");
+                const file = fileInput.files[0];
+
+                formData.append("ids[]", id || "");
+                formData.append("temImagem[]", file ? "true" : "false");
+
+                if (file) formData.append("imagens", file);
+              });
+
+              try {
+                const res = await fetch(API_SALVAR_CIDADES, {
+                  method: "POST",
+                  body: formData
+                });
+
+                const json = await res.json();
+
+                if (res.ok) {
+                  alert("Salvo com sucesso!");
+                  carregarImagensRegiao();
+                } else {
+                  alert(json.message || "Erro ao salvar");
+                }
+
+              } catch (err) {
+                console.error("Erro ao salvar:", err);
+              }
+            }
+
+            /* ==========================
+               EMPTY STATE
+            ========================== */
+            function verificarEmptyState() {
+              const lista = document.getElementById("listaRegiao");
+              const empty = document.getElementById("emptyRegiao");
+
+              if (lista.children.length === 0) {
+                empty.classList.remove("d-none");
+              } else {
+                empty.classList.add("d-none");
+              }
+            }
+          </script>
+
+          <script>
+            /* ==========================
+               CONFIG
+            ========================== */
+            const API_CONFIG_LISTAR = "/api/configuracoes-site";
+            const API_CONFIG_SALVAR = "/api/admin/configuracoes-site";
+
+
+            /* ==========================
+               ESTADO LOCAL
+            ========================== */
+            let removerLogo = false;
+            let removerFavicon = false;
+
+
+            /* ==========================
+               PREVIEW DE IMAGEM
+            ========================== */
+            function previewImagem(input, previewId) {
+              const file = input.files[0];
+              if (!file) return;
+
+              const preview = document.getElementById(previewId);
+              preview.src = URL.createObjectURL(file);
+            }
+
+
+            /* ==========================
+               MARCAR PARA EXCLUIR
+            ========================== */
+            function marcarRemocao(tipo) {
+              if (tipo === "logo") {
+                removerLogo = true;
+                document.getElementById("previewLogo").src = "";
+                document.getElementById("inputLogo").value = "";
+              }
+
+              if (tipo === "favicon") {
+                removerFavicon = true;
+                document.getElementById("previewFavicon").src = "";
+                document.getElementById("inputFavicon").value = "";
+              }
+            }
+
+
+            /* ==========================
+               CARREGAR CONFIGURAÇÕES
+            ========================== */
+            async function carregarConfiguracoesSite() {
+              try {
+                const resposta = await fetch(API_CONFIG_LISTAR);
+                const config = await resposta.json();
+
+                if (!config) return;
+
+                if (config.logo) {
+                  document.getElementById("previewLogo").src =
+                    "/uploads/anuncios/" + config.logo;
+
+                  document.getElementById("logoAtual").value = config.logo;
+                }
+
+                if (config.favicon) {
+                  document.getElementById("previewFavicon").src =
+                    "/uploads/anuncios/" + config.favicon;
+
+                  document.getElementById("faviconAtual").value = config.favicon;
+                }
+
+              } catch (erro) {
+                console.error("Erro ao carregar configurações:", erro);
+              }
+            }
+
+
+            /* ==========================
+               SALVAR ALTERAÇÕES
+            ========================== */
+            async function salvarImagensSiteConfig() {
+              const formData = new FormData();
+
+              const fileLogo = document.getElementById("inputLogo").files[0];
+              const fileFavicon = document.getElementById("inputFavicon").files[0];
+
+              formData.append("removerLogo", removerLogo);
+              formData.append("removerFavicon", removerFavicon);
+
+              if (fileLogo) formData.append("logo", fileLogo);
+              if (fileFavicon) formData.append("favicon", fileFavicon);
+
+              try {
+                const resposta = await fetch(API_CONFIG_SALVAR, {
+                  method: "POST",
+                  body: formData
+                });
+
+                const json = await resposta.json();
+
+                if (resposta.ok) {
+                  alert(json.message || "Configurações salvas!");
+                  removerLogo = false;
+                  removerFavicon = false;
+                  carregarConfiguracoesSite();
+                } else {
+                  alert(json.message || "Erro ao salvar.");
+                }
+
+              } catch (erro) {
+                console.error("Erro ao salvar:", erro);
+                alert("Erro de conexão com o servidor.");
+              }
+            }
+
+
+            /* ==========================
+               EVENTOS DOS INPUTS
+            ========================== */
+            document.getElementById("inputLogo")
+              .addEventListener("change", function () {
+                removerLogo = false;
+                previewImagem(this, "previewLogo");
+              });
+
+            document.getElementById("inputFavicon")
+              .addEventListener("change", function () {
+                removerFavicon = false;
+                previewImagem(this, "previewFavicon");
+              });
+
+            document.getElementById("btnRemoverLogo")
+              .addEventListener("click", () => marcarRemocao("logo"));
+
+            document.getElementById("btnRemoverFavicon")
+              .addEventListener("click", () => marcarRemocao("favicon"));
+
+
+            /* ==========================
+               AUTO LOAD
+            ========================== */
+            document.addEventListener("DOMContentLoaded", () => {
+              carregarConfiguracoesSite();
+            });
+          </script>
+
+          <!-- ============================= -->
+          <!-- CARROSSEL HOME (ADMIN) -->
+          <!-- ============================= -->
+
+          <div class="card">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Carrossel da Página Home</h5>
+                <button class="btn btn-primary" onclick="adicionarSlide()">
+                  + Nova imagem
+                </button>
+              </div>
+
+              <!-- Lista de slides -->
+              <div id="listaSlides" class="d-flex flex-column gap-3"></div>
+
+              <!-- Ações globais -->
+              <div class="d-grid mt-4">
+                <button class="btn btn-primary" onclick="salvarImagensSite()">
+                  Salvar alterações
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+
+          <!-- ============================= -->
+          <!-- TEMPLATE DO SLIDE -->
+          <!-- ============================= -->
+          <template id="templateSlide">
+
+            <div class="card slide-item border">
+
+              <!-- ID do banco -->
+              <input type="hidden" class="input-id">
+
+              <div class="card-body">
+
+                <div class="row g-3 align-items-center">
+
+                  <!-- PREVIEW + UPLOAD -->
+                  <div class="col-md-3 text-center">
+                    <img class="preview img-fluid rounded mb-2 border" style="max-height:120px; object-fit:cover;">
+                    <input type="file" class="form-control input-imagem" accept="image/*">
+                    <small class="text-muted">Nova imagem (opcional)</small>
+                  </div>
+
+                  <!-- DADOS DO SLIDE -->
+                  <div class="col-md-7">
+
+                    <input type="text" class="form-control mb-2 input-titulo"
+                      placeholder="Título exibido sobre a imagem">
+
+                    <input type="text" class="form-control mb-2 input-descricao" placeholder="Descrição">
+
+                    <input type="text" class="form-control mb-3 input-link" placeholder="Link ao clicar">
+
+                    <div class="d-flex align-items-center gap-4">
+
+                      <div class="form-check">
+                        <input class="form-check-input input-ativo" type="checkbox" checked>
+                        <label class="form-check-label">
+                          Visível no site
+                        </label>
+                      </div>
+
+                      <div>
+                        <label class="form-label mb-0">Ordem</label>
+                        <input type="number" class="form-control input-ordem" value="0" style="width:90px;">
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <!-- AÇÕES -->
+                  <div class="col-md-2">
+
+                    <div class="d-grid gap-2">
+
+                      <button type="button" class="btn btn-outline-danger btn-remover">
+                        Excluir
+                      </button>
+
+                      <small class="text-muted text-center">
+                        Marcar para remover
+                      </small>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </template>
+
+
+        </div>
+
+      </div>
+
+      <div class="painel-content" id="analise">
+        <section class="mt-3">
+          <div id="cards-anuncios-analise" class="d-flex flex-wrap gap-3">
+            <!-- Cards inseridos via JS -->
+          </div>
+        </section>
+      </div>
+
+      <div class="painel-content" id="publicados">
+        <section class="mt-3">
+          <div id="cards-anuncios-publicados" class="d-flex flex-wrap gap-3">
+            <!-- Cards inseridos via JS -->
+          </div>
+        </section>
+      </div>
+
+      <div class="painel-content" id="perfil">
+        <div class="container mt-4" style="max-width:500px">
+
+          <h3 class="mb-3">Dados do Administrador</h3>
+
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input id="adminEmail" type="email" class="form-control">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Nova senha</label>
+            <input id="adminSenha" type="password" class="form-control">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Confirmar nova senha</label>
+            <input id="adminConfirmarSenha" type="password" class="form-control">
+          </div>
+
+          <button class="btn btn-danger w-100" onclick="salvarAdmin()">
+            Atualizar dados
+          </button>
+
+        </div>
+        <script>
+          async function carregarAdmin() {
+            try {
+              const res = await fetch('/api/admin/usuario');
+              const admin = await res.json();
+
+              document.getElementById("adminEmail").value = admin.email || "";
+
+            } catch (erro) {
+              alert("Erro ao carregar dados do admin");
+            }
+          }
+
+          async function salvarAdmin() {
+            const email = document.getElementById("adminEmail").value.trim();
+            const senha = document.getElementById("adminSenha").value;
+            const confirmar = document.getElementById("adminConfirmarSenha").value;
+
+            if (!email) {
+              alert("Informe o email");
+              return;
+            }
+
+            if (senha && senha !== confirmar) {
+              alert("As senhas não coincidem");
+              return;
+            }
+
+            try {
+              const res = await fetch('/api/admin/usuario', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email,
+                  senha // se vazio, backend ignora
+                })
+              });
+
+              const dados = await res.json();
+              alert(dados.message);
+
+              document.getElementById("adminSenha").value = "";
+              document.getElementById("adminConfirmarSenha").value = "";
+
+            } catch (erro) {
+              alert("Erro ao atualizar dados");
+            }
+          }
+
+          carregarAdmin();
+        </script>
+      </div>
+
+    </div>
+
+  </section>
+
+  <script src="./../../js/header-admin.js"></script>
+
+  <%- include('../reutilizavel/js-dependencias-sessao') %>
+
+    <script src="./../../js/admin/gerenciamento-de-usuarios.js"></script>
+    <script src="./../../js/admin/anuncios-em-analise.js"></script>
+    <script src="./../../js/admin/anuncios-publicados.js"></script>
+    <script src="./../../js/admin/adicionar-imagens-carrossel.js" defer></script>
+</body>
+
+</html>

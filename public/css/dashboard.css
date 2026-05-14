@@ -1,0 +1,42 @@
+body {
+    background: #f4f6fa;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+h2,
+h4 {
+    color: #2c3e50;
+}
+
+table th,
+table td {
+    vertical-align: middle;
+}
+
+.btn-logout {
+    background-color: rgb(104, 132, 255);
+    border: 2px solid rgb(109, 136, 252);
+    color: white;
+    border-radius: 3px;
+    padding: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.btn-logout:hover {
+    cursor: pointer;
+    background-color: rgb(105, 131, 248);
+}

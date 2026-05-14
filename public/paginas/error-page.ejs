@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página não encontrada - TemCar</title>
+  <meta name="robots" content="noindex, nofollow">
+  <% if (typeof siteConfig !== 'undefined' && siteConfig.favicon) { %>
+  <link rel="icon" href="/uploads/anuncios/<%= siteConfig.favicon %>">
+  <% } else { %>
+  <link rel="icon" href="/images/favicon-default.png">
+  <% } %>
+  <script src="./../js/site-config.js" defers></script>
+  <link rel="stylesheet" href="./../css/pagina-de-erro.css">
+</head>
+
+<body>
+  <section class="error-page">
+
+    <h1>404 - Página não encontrada</h1>
+
+    <img src="/icones/error-404.png" alt="error 404">
+
+    <a href="/login">Voltar para a página inicial</a>
+
+  </section>
+</body>
+
+</html>

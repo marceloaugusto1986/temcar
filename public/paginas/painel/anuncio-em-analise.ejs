@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Venda de Carro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <% if (typeof siteConfig !== 'undefined' && siteConfig.favicon) { %>
+    <link rel="icon" href="/uploads/anuncios/<%= siteConfig.favicon %>">
+    <% } else { %>
+    <link rel="icon" href="/images/favicon-default.png">
+    <% } %>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<style>
+    /* Carrossel */
+
+    .carousel-item {
+        height: 420px;
+    }
+
+    .carousel-item img {
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .price {
+        font-size: 2.2rem;
+        color: #198754;
+        font-weight: 700;
+    }
+
+    .badge-accessory {
+        margin: 3px 3px 3px 0;
+    }
+
+    .card {
+        border-radius: 16px;
+    }
+
+    .btn-success {
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    /* SLIDER BASE */
+    .carousel-item {
+        max-height: 420px;
+        background-color: #5555551a;
+    }
+
+    /* DESKTOP */
+    .carousel-item img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        object-position: center;
+        cursor: pointer;
+    }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+        .carousel-item {
+            height: auto;
+            /* deixa a imagem definir a altura */
+            padding: 10px 0;
+        }
+
+        .carousel-item img {
+            width: auto !important;
+            /* REMOVE w-100 */
+            max-width: 100%;
+            height: auto;
+        }
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        filter: invert(30%) sepia(70%) saturate(4000%) hue-rotate(350deg);
+    }
+
+    /* Descrição */
+
+    .price {
+        font-size: 2rem;
+        color: #198754;
+        font-weight: bold;
+    }
+
+    .specs span {
+        margin-right: 15px;
+        font-weight: 500;
+        color: #555;
+    }
+</style>
+
+<body>
+    <%- include('../reutilizavel/header-public') %>
+
+    <!-- Container Slider e Descrição -->
+    <div class="container my-5">
+        <div class="row g-2" style="margin-top: -40px !important;">
+
+            <!-- Slider -->
+            <div class="col-12">
+
+                <div id="imageCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner rounded">
+
+                        <div class="carousel-item active">
+                            <img src="https://www.remaza.com.br/uploads/bc51be65-9c0a-415c-92bf-d41442c9bed7/fiat-strada-marcas-de-carros-remaza.png"
+                                class="d-block w-100" data-bs-toggle="modal" data-bs-target="#fullscreenModal"
+                                onclick="openFullscreen(this.src)">
+                        </div>
+
+                        <div class="carousel-item">
+                            <img src="https://fotos.jornaldocarro.estadao.com.br/wp-content/uploads/2020/12/17234015/1-2-1160x836.jpg"
+                                class="d-block w-100" data-bs-toggle="modal" data-bs-target="#fullscreenModal"
+                                onclick="openFullscreen(this.src)">
+                        </div>
+
+                        <div class="carousel-item">
+                            <img src="./../../imagens/1767657740353-209329564.jpg" class="d-block w-100"
+                                data-bs-toggle="modal" data-bs-target="#fullscreenModal"
+                                onclick="openFullscreen(this.src)">
+                        </div>
+
+                    </div>
+
+                    <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel"
+                        data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                    </button>
+
+                    <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel"
+                        data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Descrição -->
+            <div class="col-12">
+                <div class="card shadow-lg border-0 h-100">
+                    <div class="card-body p-4 d-flex flex-column">
+
+                        <div>
+                            <h3 class="fw-bold mb-1">HYUNDAI HB20 Hatch</h3>
+                            <p class="text-muted mb-3">1.8 16V Manual • 2024</p>
+
+                            <div class="price mb-3">R$ 85.000</div>
+
+                            <!-- Specs -->
+                            <div class="d-flex flex-wrap gap-2 mb-4">
+                                <span class="badge bg-light text-dark">Gasolina</span>
+                                <span class="badge bg-light text-dark">Hatch</span>
+                                <span class="badge bg-light text-dark">Cinza</span>
+                                <span class="badge bg-light text-dark">107.000 km</span>
+                            </div>
+
+                            <!-- Acessórios -->
+                            <h6 class="fw-bold">Acessórios</h6>
+                            <div class="mb-3">
+                                <span class="badge bg-secondary badge-accessory">Ar digital</span>
+                                <span class="badge bg-secondary badge-accessory">Bancos couro</span>
+                                <span class="badge bg-secondary badge-accessory">Multimídia</span>
+                                <span class="badge bg-secondary badge-accessory">Câmera de ré</span>
+                                <span class="badge bg-secondary badge-accessory">Sensor estacionamento</span>
+                                <span class="badge bg-secondary badge-accessory">Ar digital</span>
+                                <span class="badge bg-secondary badge-accessory">Bancos couro</span>
+                                <span class="badge bg-secondary badge-accessory">Multimídia</span>
+                                <span class="badge bg-secondary badge-accessory">Câmera de ré</span>
+                                <span class="badge bg-secondary badge-accessory">Sensor estacionamento</span>
+                            </div>
+
+                            <!-- Descrição -->
+                            <h6 class="fw-bold">Descrição</h6>
+                            <p class="text-muted small">
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                                Garantia mecânica de 3 meses. Veículo revisado, excelente estado.
+                            </p>
+                        </div>
+
+                        <!-- CTA -->
+                        <div class="mt-auto">
+                            <button class="btn btn-success btn-lg">
+                                📞 Entrar em contato
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Anúncior relacionados -->
+    <div class="container my-5">
+        <div class="col-lg-5" style="width: 100%;">
+            <div class="card shadow-lg border-0 h-100">
+                <div class="card-body p-4 d-flex flex-column">
+                    <h3 class="fw-bold mb-1" style="color: #C90B0C; margin-bottom: 20px !important;">Anúncios
+                        relacionados</h3>
+                    <%- include('../reutilizavel/painel-anunciante/anuncios-em-analise') %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../reutilizavel/footer-public') %>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

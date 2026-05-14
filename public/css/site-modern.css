@@ -1,0 +1,265 @@
+:root {
+  --temcar-red: #C90B0C;
+  --temcar-red-dark: #960708;
+  --temcar-black: #151515;
+  --temcar-gray-50: #fafafa;
+  --temcar-gray-100: #f4f5f7;
+  --temcar-gray-200: #e7e9ee;
+  --temcar-gray-600: #626874;
+  --temcar-radius: 8px;
+  --temcar-shadow: 0 10px 30px rgba(15, 23, 42, .08);
+  --temcar-shadow-hover: 0 16px 40px rgba(15, 23, 42, .14);
+  --temcar-transition: 180ms ease;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--temcar-gray-100) !important;
+  color: var(--temcar-black);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::selection {
+  background: rgba(201, 11, 12, .18);
+}
+
+a {
+  transition: color var(--temcar-transition), background-color var(--temcar-transition), border-color var(--temcar-transition), transform var(--temcar-transition), box-shadow var(--temcar-transition);
+}
+
+.container {
+  max-width: 1180px;
+}
+
+.nav-menu {
+  border-bottom: 1px solid rgba(15, 23, 42, .08);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, .08) !important;
+  backdrop-filter: saturate(140%) blur(10px);
+}
+
+.navbar-brand {
+  display: inline-flex;
+  align-items: center;
+}
+
+.site-logo {
+  max-width: 190px;
+  height: auto;
+  transition: transform var(--temcar-transition);
+}
+
+.navbar-brand:hover .site-logo {
+  transform: scale(1.02);
+}
+
+.navbar .nav-link {
+  color: #2d3035;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 8px 10px !important;
+  position: relative;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+  color: var(--temcar-red);
+  background: rgba(201, 11, 12, .06);
+}
+
+.navbar .form-select {
+  min-height: 40px;
+  border-color: var(--temcar-gray-200);
+  border-radius: 7px;
+  font-weight: 600;
+  color: #333;
+  box-shadow: none;
+  transition: border-color var(--temcar-transition), box-shadow var(--temcar-transition);
+}
+
+.navbar .form-select:focus,
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(201, 11, 12, .55);
+  box-shadow: 0 0 0 .2rem rgba(201, 11, 12, .12);
+}
+
+.btn-anuncie,
+.btn-danger,
+.btn-pesquisar,
+button.btn-pesquisar {
+  background: linear-gradient(135deg, var(--temcar-red), var(--temcar-red-dark)) !important;
+  border-color: var(--temcar-red) !important;
+  color: #fff !important;
+  border-radius: 7px !important;
+  box-shadow: 0 8px 20px rgba(201, 11, 12, .22);
+  transition: transform var(--temcar-transition), box-shadow var(--temcar-transition), filter var(--temcar-transition);
+}
+
+.btn-anuncie:hover,
+.btn-danger:hover,
+.btn-pesquisar:hover,
+button.btn-pesquisar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(201, 11, 12, .28);
+  filter: brightness(1.04);
+}
+
+.btn-outline-danger {
+  border-color: var(--temcar-red) !important;
+  color: var(--temcar-red) !important;
+  border-radius: 7px !important;
+}
+
+.btn-outline-danger:hover {
+  background: var(--temcar-red) !important;
+  color: #fff !important;
+}
+
+.bg-white,
+.custom-box,
+.box-filtros,
+.filtro-revendas,
+.card {
+  border: 1px solid rgba(15, 23, 42, .07) !important;
+  box-shadow: var(--temcar-shadow) !important;
+}
+
+.bg-white,
+.custom-box,
+.box-filtros,
+.filtro-revendas {
+  border-radius: var(--temcar-radius) !important;
+}
+
+.card {
+  border-radius: var(--temcar-radius) !important;
+  overflow: hidden;
+  transition: transform var(--temcar-transition), box-shadow var(--temcar-transition), border-color var(--temcar-transition);
+}
+
+.card:hover,
+.vehicle-card:hover {
+  border-color: rgba(201, 11, 12, .16) !important;
+  box-shadow: var(--temcar-shadow-hover) !important;
+}
+
+.vehicle-card {
+  background: #fff;
+}
+
+.vehicle-card img,
+.vehicle-img,
+.card-img-top {
+  transition: transform 260ms ease, filter 260ms ease;
+}
+
+.vehicle-card:hover img,
+.vehicle-card:hover .vehicle-img {
+  transform: scale(1.025);
+  filter: saturate(1.03);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+.fw-bold {
+  letter-spacing: 0;
+}
+
+h1 span[style*="text-decoration"],
+h4[style*="#C90B0C"],
+h5[style*="#C90B0C"] {
+  text-decoration-color: var(--temcar-red) !important;
+}
+
+input,
+select,
+textarea,
+.form-control,
+.form-select {
+  border-radius: 7px !important;
+}
+
+.bannerSwiper img,
+.cidade-banner,
+.comprar-banner,
+.vender-banner,
+.veiculos-banner {
+  overflow: hidden;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+  transition: transform var(--temcar-transition), background-color var(--temcar-transition), opacity var(--temcar-transition);
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  transform: scale(1.04);
+}
+
+.carroceria-item,
+.marca-item {
+  border-radius: 8px;
+  padding: 8px;
+  transition: transform var(--temcar-transition), background-color var(--temcar-transition), box-shadow var(--temcar-transition);
+}
+
+.carroceria-item:hover,
+.marca-item:hover {
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+  transform: translateY(-2px);
+}
+
+.temcar-reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: temcarReveal 520ms ease forwards;
+}
+
+@keyframes temcarReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+@media (max-width: 991px) {
+  .nav-menu {
+    padding: 8px 0 !important;
+  }
+
+  .site-logo {
+    max-width: 160px;
+  }
+
+  .navbar-nav {
+    align-items: stretch !important;
+    gap: 6px !important;
+    padding: 12px 0 8px;
+  }
+
+  .navbar .nav-link,
+  .navbar .form-select,
+  .navbar .btn-anuncie {
+    width: 100%;
+  }
+}

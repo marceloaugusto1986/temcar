@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do usuário</title>
+
+  <script src="./../js/site-config.js" defers></script>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Flatpickr CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+  <link href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="./../../css/dashboard.css">
+  <link rel="stylesheet" href="./../../css/mobile.css">
+</head>
+
+<style>
+  .painel-nav {
+    font-size: 0.95rem;
+  }
+
+  .painel-link {
+    background: transparent;
+    border: none;
+    padding: 6px 14px;
+    font-weight: 600;
+    color: #555;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+  }
+
+  .painel-link:hover {
+    background: #fdeaea;
+    color: #C90B0C;
+  }
+
+  .painel-link.active {
+    background: #C90B0C;
+    color: #fff;
+  }
+
+  .painel-content {
+    display: none;
+    animation: fade 0.3s ease;
+  }
+
+  .painel-content.active {
+    display: block;
+  }
+
+  @keyframes fade {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<style>
+  .vehicle-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    width: 280px;
+  }
+
+  .vehicle-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  }
+
+  .badge-status {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+  }
+</style>
+
+<!-- Descrição do card do anunciante -->
+<style>
+  .descricao-card {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    /* número de linhas */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+<body>
+
+  <section class="container my-5">
+
+    <!-- Header do Painel -->
+    <div class="bg-white shadow-sm rounded mb-4">
+
+      <div class="d-flex flex-wrap align-items-center justify-content-between p-3">
+
+        <h4 class="fw-bold m-0" style="color:#C90B0C;">
+          Painel do Anunciante
+        </h4>
+
+        <nav class="painel-nav d-flex flex-wrap gap-3 mt-3 mt-md-0">
+
+          <button class="painel-link active" data-target="criar">
+            Criar anúncio
+          </button>
+
+          <button class="painel-link" data-target="editarExcluir">
+            Editar/Excluir anúncio
+          </button>
+
+          <button class="painel-link" data-target="analise">
+            Em análise
+          </button>
+
+          <button class="painel-link" data-target="publicados">
+            Publicados
+          </button>
+
+          <button class="painel-link" data-target="destaques">
+            Destaques
+          </button>
+
+          <button class="painel-link" data-target="perfil">
+            Perfil
+          </button>
+          <button class="painel-link" onclick="logout()">
+            Sair
+          </button>
+
+        </nav>
+      </div>
+
+    </div>
+
+    <!-- Conteúdo -->
+    <div class="bg-white shadow-sm rounded p-4">
+
+      <div class="painel-content active" id="criar">
+        <%- include('../reutilizavel/painel-anunciante/criar-anuncio') %>
+      </div>
+
+      <div class="painel-content" id="editarExcluir">
+        <form id="form-editar-anuncio" enctype="multipart/form-data" class="d-none">
+
+          <div class="row g-3">
+
+            <!-- TIPO -->
+            <div class="col-md-4">
+              <label class="form-label">Tipo</label>
+              <select class="form-select" name="tipo" required>
+                <option value="">Selecione</option>
+                <option>Carro</option>
+                <option>Moto</option>
+                <option>Caminhão</option>
+                <option>Ônibus</option>
+                <option>Van</option>
+                <option>Utilitário</option>
+                <option>Pickup</option>
+                <option>SUV</option>
+              </select>
+            </div>
+
+            <!-- MARCA -->
+            <div class="col-md-4">
+              <label class="form-label">Marca</label>
+              <select class="form-select" name="marca" required>
+                <option value="">Selecione</option>
+                <option>Chevrolet</option>
+                <option>Volkswagen</option>
+                <option>Fiat</option>
+                <option>Ford</option>
+                <option>Honda</option>
+                <option>Toyota</option>
+              </select>
+            </div>
+
+            <!-- VERSÃO -->
+            <div class="col-md-4">
+              <label class="form-label">Versão / Modelo</label>
+              <input type="text" class="form-control" name="versao" required>
+            </div>
+
+            <!-- ANOS -->
+            <div class="col-md-3">
+              <label class="form-label">Ano Fabricação</label>
+              <input type="number" class="form-control" id="ano_fabricacao" name="ano_fabricacao" required>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label">Ano Modelo</label>
+              <input type="number" class="form-control" id="ano_modelo" name="ano_modelo" required>
+            </div>
+
+            <!-- KM -->
+            <div class="col-md-3">
+              <label class="form-label">KM</label>
+              <input type="number" class="form-control" id="km" name="km" required>
+            </div>
+
+            <!-- CONDIÇÃO -->
+            <div class="col-md-3">
+              <label class="form-label">Condição</label>
+              <select class="form-select" name="condicao">
+                <option>Novo</option>
+                <option>Usado</option>
+                <option>Seminovo</option>
+              </select>
+            </div>
+
+            <!-- CÂMBIO -->
+            <div class="col-md-4">
+              <label class="form-label">Câmbio</label>
+              <select class="form-select" name="cambio">
+                <option>Manual</option>
+                <option>Automático</option>
+                <option>Automático CVT</option>
+              </select>
+            </div>
+
+            <!-- MOTORIZAÇÃO -->
+            <div class="col-md-4">
+              <label class="form-label">Motorização</label>
+              <select class="form-select" name="motorizacao">
+                <option>1.0</option>
+                <option>1.3</option>
+                <option>1.6</option>
+                <option>2.0</option>
+                <option>Elétrico</option>
+              </select>
+            </div>
+
+            <!-- PORTAS -->
+            <div class="col-md-4">
+              <label class="form-label">Portas</label>
+              <select class="form-select" name="portas">
+                <option value="2">2</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+
+            <!-- CARROCERIA -->
+            <div class="col-md-4">
+              <label class="form-label">Carroceria</label>
+              <select class="form-select" name="carroceria">
+                <option>Hatch</option>
+                <option>Sedan</option>
+                <option>SUV</option>
+                <option>Pickup</option>
+              </select>
+            </div>
+
+            <!-- COMBUSTÍVEL -->
+            <div class="col-md-4">
+              <label class="form-label">Combustível</label>
+              <select class="form-select" name="combustivel">
+                <option>Gasolina</option>
+                <option>Etanol</option>
+                <option>Flex</option>
+                <option>Diesel</option>
+                <option>Elétrico</option>
+              </select>
+            </div>
+
+            <!-- TRAÇÃO -->
+            <div class="col-md-4">
+              <label class="form-label">Tração</label>
+              <select class="form-select" name="tracao">
+                <option>Dianteira</option>
+                <option>Traseira</option>
+                <option>4x4</option>
+              </select>
+            </div>
+
+            <!-- COR -->
+            <div class="col-md-4">
+              <label class="form-label">Cor</label>
+              <select class="form-select" name="cor">
+                <option>Branco</option>
+                <option>Preto</option>
+                <option>Prata</option>
+                <option>Cinza</option>
+              </select>
+            </div>
+
+            <!-- ACESSÓRIOS -->
+            <div class="col-12">
+              <label class="form-label fw-bold">Acessórios</label>
+              <div class="row">
+                <div class="col-md-3">
+                  <input type="checkbox" data-acessorio="Ar-condicionado"> Ar-condicionado
+                </div>
+                <div class="col-md-3">
+                  <input type="checkbox" data-acessorio="Direção elétrica"> Direção elétrica
+                </div>
+                <div class="col-md-3">
+                  <input type="checkbox" data-acessorio="Airbag"> Airbag
+                </div>
+                <div class="col-md-3">
+                  <input type="checkbox" data-acessorio="ABS"> ABS
+                </div>
+                <div class="col-md-3">
+                  <input type="checkbox" data-acessorio="Multimídia"> Multimídia
+                </div>
+                <div class="col-md-3">
+                  <input type="checkbox" data-acessorio="Câmera de ré"> Câmera de ré
+                </div>
+              </div>
+            </div>
+
+            <!-- IMAGENS -->
+            <div class="col-12">
+              <label class="form-label">Imagens</label>
+              <input type="file" class="form-control" name="imagens" multiple>
+            </div>
+
+            <div class="col-12">
+              <div id="previewImagensEdicao" class="d-flex flex-wrap gap-3"></div>
+            </div>
+
+            <!-- PREÇO -->
+            <div class="col-md-4">
+              <label class="form-label">Preço</label>
+              <input type="number" class="form-control" name="preco" required>
+            </div>
+
+            <!-- DESCRIÇÃO -->
+            <div class="col-12">
+              <label class="form-label">Descrição</label>
+              <textarea class="form-control" name="descricao" rows="4" required></textarea>
+            </div>
+
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary px-5">
+                Salvar alterações
+              </button>
+              <button type="button" onclick="window.location.reload()" class="btn btn-primary px-5"
+                style="background-color: #C90B0C;">
+                Cancelar
+              </button>
+            </div>
+
+          </div>
+        </form>
+
+        <div id="container-editar-excluir-anuncio" class="d-flex flex-wrap gap-3 pb-2"></div>
+      </div>
+
+      <div class="painel-content" id="analise">
+        <%- include('../reutilizavel/painel-anunciante/anuncios-em-analise') %>
+      </div>
+
+      <div class="painel-content" id="publicados">
+        <style>
+          .vehicle-card {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+          }
+
+          .vehicle-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+          }
+        </style>
+
+        <div id="cards-ativos" class="d-flex flex-wrap gap-3 pb-2">
+          <!-- Cards inseridos via JavaScript -->
+        </div>
+      </div>
+
+      <div class="painel-content" id="destaques">
+        <div class="card">
+          <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="mb-0">Gerenciar Destaques</h5>
+              <button class="btn btn-primary" onclick="salvarDestaques()">
+                Salvar destaques
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-bordered align-middle">
+                <thead>
+                  <tr>
+                    <th>Destaque</th>
+                    <th>Imagem</th>
+                    <th>Veículo</th>
+                    <th>Preço</th>
+                    <th>Cidade</th>
+                  </tr>
+                </thead>
+                <tbody id="tabelaAnuncios"></tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+       <script>
+const API_LISTAR_ANUNCIOS_ATIVOS = "/api/meus-anuncios";
+const API_SALVAR_ANUNCIOS_DESTAQUE = "/api/meus-anuncios-destaques";
+
+/* ==========================
+   CARREGAR ANÚNCIOS
+========================== */
+async function carregarAnuncios() {
+  try {
+    const res = await fetch(API_LISTAR_ANUNCIOS_ATIVOS);
+
+    if (!res.ok) {
+      throw new Error("Erro na API: " + res.status);
+    }
+
+    const data = await res.json();
+
+    console.log("RESPOSTA API:", data); // 🔥 DEBUG
+
+    // 🔥 garante que é array
+    const anuncios = Array.isArray(data)
+      ? data
+      : data.anuncios || data.data || [];
+
+    const tbody = document.getElementById("tabelaAnuncios");
+
+    if (!tbody) {
+      console.error("tbody não encontrado!");
+      return;
+    }
+
+    tbody.innerHTML = "";
+
+    if (anuncios.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center text-muted">
+            Nenhum anúncio encontrado
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    anuncios.forEach(anuncio => {
+      const tr = document.createElement("tr");
+
+      const imagem = anuncio.imagem
+        ? `/uploads/anuncios/${anuncio.imagem}`
+        : "/img/sem-imagem.jpg"; // fallback
+
+      tr.innerHTML = `
+        <td>
+          <input 
+            type="checkbox" 
+            class="check-destaque"
+            data-id="${anuncio.id}"
+            ${Number(anuncio.destaque) ? "checked" : ""}
+          >
+        </td>
+
+        <td>
+          <img 
+            src="${imagem}" 
+            width="80"
+            style="object-fit: cover;"
+          />
+        </td>
+
+        <td>
+          ${anuncio.marca || "-"} ${anuncio.versao || ""}
+          <br>
+          <small>${anuncio.ano_modelo || ""}</small>
+        </td>
+
+        <td>
+          R$ ${parseFloat(anuncio.preco || 0).toLocaleString("pt-BR")}
+        </td>
+
+        <td>
+          ${anuncio.cidade || "-"} - ${anuncio.estado || ""}
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+
+  } catch (err) {
+    console.error("Erro ao carregar anúncios:", err);
+
+    const tbody = document.getElementById("tabelaAnuncios");
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-danger text-center">
+            Erro ao carregar anúncios
+          </td>
+        </tr>
+      `;
+    }
+  }
+}
+
+/* ==========================
+   SALVAR DESTAQUES
+========================== */
+async function salvarDestaques() {
+  const checks = document.querySelectorAll(".check-destaque");
+
+  const selecionados = [];
+
+  checks.forEach(check => {
+    if (check.checked) {
+      selecionados.push(check.dataset.id);
+    }
+  });
+
+  console.log("Selecionados:", selecionados); // DEBUG
+
+  try {
+    const res = await fetch(API_SALVAR_ANUNCIOS_DESTAQUE, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        anuncios: selecionados
+      })
+    });
+
+    const json = await res.json();
+
+    if (res.ok) {
+      alert("Destaques atualizados!");
+      carregarAnuncios();
+    } else {
+      alert(json.message || "Erro ao salvar");
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao salvar destaques");
+  }
+}
+
+/* ==========================
+   INIT
+========================== */
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("Página carregada");
+  carregarAnuncios();
+});
+</script>
+      </div>
+
+      <div class="painel-content" id="perfil">
+        <%- include('../reutilizavel/painel-anunciante/perfil') %>
+      </div>
+
+    </div>
+
+  </section>
+
+  <%- include('../reutilizavel/js-dependencias-sessao') %>
+
+    <script src="./../../js/header-admin.js"></script>
+    <script src="./../../js/painel/criar-anuncio.js"></script>
+    <script src="./../../js/painel/renderizar-editar-excluir-anuncios.js"></script>
+    <script src="./../../js/painel/renderizar-anuncios-em-analise.js"></script>
+    <script src="./../../js/painel/renderizar-anuncios-ativos.js"></script>
+    <script src="./../../js/painel/editar-anuncio.js"></script>
+    <script src="./../../js/painel/excluir-anuncio.js"></script>
+
+</body>
+
+</html>

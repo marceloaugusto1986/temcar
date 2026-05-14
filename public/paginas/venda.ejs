@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <%- include('reutilizavel/seo-head', { seo: typeof seo !== 'undefined' ? seo : {} }) %>
+    <%- include('reutilizavel/jsonld-breadcrumb', { breadcrumbs: typeof breadcrumbs !== 'undefined' ? breadcrumbs : [] }) %>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="/js/site-config.js" defer></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<style>
+    /* MENU DE APROVAR OU RECUSAR ANÚNCIO */
+    .admin-action-bar {
+        width: 100%;
+        z-index: 999;
+        background: #ffffff;
+        padding: 12px 20px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<body class="bg-light">
+    <%- include('./reutilizavel/header-public') %>
+
+        <% if (typeof seo !== 'undefined' && seo.texto_h1) { %>
+        <h1 class="visually-hidden"><%= seo.texto_h1 %></h1>
+        <% } else { %>
+        <h1 class="visually-hidden">Detalhes do Veículo à Venda - TemCar</h1>
+        <% } %>
+
+        <section id="adminActionBar" class="admin-action-bar d-none">
+            <button class="btn btn-success" id="btnAprovar">
+                Aprovar anúncio
+            </button>
+
+            <button class="btn btn-danger" id="btnReprovar">
+                Reprovar anúncio
+            </button>
+        </section>
+
+        <div class="container my-4">
+
+            <!-- 🔹 TOPO: GALERIA + INFO PRINCIPAL -->
+            <div class="row g-4">
+
+                <style>
+                    .info-lateral {
+                        position: sticky;
+                        top: 100px;
+                    }
+
+                    .galeria-container {
+                        position: relative;
+                        top: -15px;
+                    }
+
+                    .galeria {
+                        overflow: hidden;
+                    }
+
+                    .galeria-track {
+                        display: flex;
+                        gap: 20px;
+                        transition: transform .4s ease;
+                    }
+
+                    /* 3 imagens visíveis */
+
+                    .galeria-track img {
+                        min-width: calc(33.333% - 14px);
+                        height: 320px;
+                        object-fit: cover;
+                    }
+
+                    /* BOTÕES */
+
+                    .btn-galeria {
+                        position: absolute;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        background: rgba(0, 0, 0, 0.171);
+                        color: rgb(255, 255, 255);
+                        border: none;
+                        width: 45px;
+                        height: 45px;
+                        border-radius: 20px;
+                        font-size: 22px;
+                        cursor: pointer;
+                        z-index: 5;
+                    }
+
+                    .btn-prev {
+                        left: -15px;
+                    }
+
+                    .btn-next {
+                        right: -15px;
+                    }
+
+                    /* MOBILE */
+
+                    @media(max-width:768px) {
+
+                        .galeria-track img {
+                            min-width: 100%;
+                        }
+
+                    }
+                </style>
+
+                <!-- GALERIA -->
+                <div class="container my-4">
+
+                    <div class="galeria-container">
+
+                        <button class="btn-galeria btn-prev" onclick="moverGaleria(-1)">❮</button>
+                        <button class="btn-galeria btn-next" onclick="moverGaleria(1)">❯</button>
+
+                        <div class="galeria">
+                            <div id="miniaturas" class="galeria-track"></div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="container my-5" style="margin-top: -50px !important;">
+
+                <div class="row g-4">
+
+                    <!-- COLUNA ESQUERDA (no mobile fica depois) -->
+                    <div class="col-lg-7 order-2 order-lg-1">
+
+                        <!-- FICHA TÉCNICA -->
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+
+                                <h5 class="fw-bold mb-3">Ficha Técnica</h5>
+
+                                <div class="row small g-3">
+                                    <div class="col-md-3">
+                                        <strong>Motorização</strong>
+                                        <div id="motorizacao"></div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <strong>Portas</strong>
+                                        <div id="portas"></div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <strong>Carroceria</strong>
+                                        <div id="carroceria"></div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <strong>Tração</strong>
+                                        <div id="tracao"></div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <strong>Cor</strong>
+                                        <div id="cor"></div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <strong>Tipo</strong>
+                                        <div id="tipo"></div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- DESCRIÇÃO -->
+                        <div class="card mt-4 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Descrição</h5>
+                                <p id="descricao" class="mb-0"></p>
+                            </div>
+                        </div>
+
+                        <!-- ACESSÓRIOS -->
+                        <div class="card mt-4 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Acessórios</h5>
+                                <div id="acessorios" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- COLUNA DIREITA -->
+                    <div class="col-lg-5 order-1 order-lg-2">
+
+                        <div class="info-lateral">
+
+                            <h2 id="tituloVeiculo" class="fw-bold"></h2>
+
+                            <h3 id="preco" class="text-danger fw-bold my-3"></h3>
+
+                            <p class="text-muted mb-2">
+                                <i class="bi bi-geo-alt-fill text-danger"></i>
+                                <span id="localizacao"></span>
+                            </p>
+
+                            <a id="btnWhatsapp" target="_blank" class="btn btn-success btn-lg w-100 mb-3">
+                                <i class="bi bi-whatsapp"></i> Entrar em contato
+                            </a>
+
+                            <a id="verRevenda" class="btn btn-success btn-lg w-100 mb-3"
+                                style="background-color: red; border: none; ">
+                                <i class="bi bi-buildings"></i> Ver Revenda
+                            </a>
+
+                            <div class="row g-3 small border-top pt-3">
+                                <div class="col-6"><strong>Ano Fabricação:</strong> <span id="anoFabricacao"></span>
+                                </div>
+                                <div class="col-6"><strong>Ano Modelo:</strong> <span id="anoModelo"></span></div>
+                                <div class="col-6"><strong>KM:</strong> <span id="km"></span></div>
+                                <div class="col-6"><strong>Condição:</strong> <span id="condicao"></span></div>
+                                <div class="col-6"><strong>Câmbio:</strong> <span id="cambio"></span></div>
+                                <div class="col-6"><strong>Combustível:</strong> <span id="combustivel"></span></div>
+                            </div>
+
+                        </div>
+
+                        <!-- ANUNCIANTE -->
+                        <div class="card mt-4 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="fw-bold mb-3">Sobre o anunciante</h5>
+
+                                <div class="row g-3 small">
+                                    <div class="col-md-6">
+                                        <strong>Nome</strong>
+                                        <div id="nomeAnunciante"></div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <strong>Tipo</strong>
+                                        <div id="tipoAnunciante"></div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <strong>Email</strong>
+                                        <div id="emailAnunciante"></div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <strong>Telefone</strong>
+                                        <div id="telefoneAnunciante"></div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <span>
+                <strong>ATENÇÃO:</strong> O site <a href="https://www.temcar.com.br" target="_blank"
+                    rel="noopener noreferrer">www.temcar.com.br</a> não se responsabiliza pelos anúncios constantes de
+                seu site, que são de
+                responsabilidade exclusiva de cada anunciante. Cabe ao consumidor assegurar-se de que o negócio é idôneo
+                antes de realizar qualquer transação. O site não realiza intermediação das vendas e compras, trocas ou
+                qualquer tipo de transação feita pelos usuários de seu site, tratando-se de serviço exclusivamente de
+                disponibilização de mídia para divulgação. A transação é feita diretamente entre as partes interessadas.
+                Fotos ilustrativas. Os preços podem sofrer alterações sem prévio aviso.
+            </span>
+        </div>
+
+        <script src="./../js/renderizar-pagina-de-venda.js"></script>
+        <script src="./../js/pagina-de-venda/aprovar-recusar-anuncio.js"></script>
+
+        <%- include('./reutilizavel/footer-public') %>
+
+</body>
+
+</html>
