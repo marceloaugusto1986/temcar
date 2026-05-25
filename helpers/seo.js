@@ -98,8 +98,8 @@ function makeDefaultSeo(pagina, overrides = {}) {
  * Busca SEO server-side para páginas estáticas.
  * Replica a lógica de /api/seo-dinamico/:pagina
  */
-async function getSeo(pagina) {
-  const fallbackSeo = makeDefaultSeo(pagina);
+async function getSeo(pagina, dadosContexto = {}, fallbackOverrides = {}) {
+  const fallbackSeo = makeDefaultSeo(pagina, fallbackOverrides);
 
   try {
     const [[seo]] = await db.query(`
@@ -128,16 +128,26 @@ async function getSeo(pagina) {
       LIMIT 1
     `);
 
-    const dados = anuncio || {
+    const dados = {
       marca: '', versao: '', tipo: '', cidade: '', estado: '', condicao: '', bairro: ''
     };
+
+    Object.assign(dados, anuncio || {}, dadosContexto || {});
+
+    if (dados.modelo && !dados.versao) {
+      dados.versao = dados.modelo;
+    }
+
+    if (dados.veiculo && !dados.tipo) {
+      dados.tipo = dados.veiculo;
+    }
 
     function aplicarPlaceholders(texto) {
       if (!texto) return texto;
       return texto
         .replaceAll('#marca', dados.marca || '')
         .replaceAll('#modelo', dados.versao || '')
-        .replaceAll('#veiculo', dados.tipo || '')
+        .replaceAll('#veiculo', dados.veiculo || dados.tipo || '')
         .replaceAll('#cidade', dados.cidade || '')
         .replaceAll('#estado', dados.estado || '')
         .replaceAll('#bairro', dados.bairro || '');
@@ -148,11 +158,12 @@ async function getSeo(pagina) {
       return texto
         .replaceAll('#marca', slugify(dados.marca))
         .replaceAll('#modelo', slugify(dados.versao))
-        .replaceAll('#veiculo', slugify(dados.tipo))
+        .replaceAll('#veiculo', slugify(dados.veiculo || dados.tipo))
         .replaceAll('#cidade', slugify(dados.cidade))
         .replaceAll('#estado', slugify(dados.estado))
         .replaceAll('#condicao', slugify(dados.condicao))
-        .replaceAll('#bairro', slugify(dados.bairro));
+        .replaceAll('#bairro', slugify(dados.bairro))
+        .replace(/,\s*/g, '/');
     }
 
     return {
