@@ -72,7 +72,7 @@ router.get('/sitemap.xml', async (req, res) => {
     let anunciosUrls = [];
     try {
       const [anuncios] = await db.query(`
-        SELECT id, COALESCE(atualizado_em, criado_em) AS data_mod
+        SELECT id, criado_em AS data_mod
         FROM anuncios
         WHERE status = 'ativo'
         ORDER BY criado_em DESC

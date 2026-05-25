@@ -148,6 +148,8 @@ app.use('/', RotasVenda);
 app.use('/', RotasFiltro);
 app.use('/', RotasBuscarRevendas);
 app.use('/', RotasBuscarCidades);
+// Rotas de /carros e /motos precisam vir antes das rotas regionais/cidade.
+app.use('/', RotasVeiculos);
 app.use('/', RotasCidade);
 app.use('/', RotasRevenda);
 app.use('/', RotasParticular);
@@ -163,7 +165,6 @@ app.use('/', RotasRegrasGerais);
 app.use('/', RotasTermosUso);
 app.use('/', RotasPlanosParticular);
 app.use('/', RotasPlanosRevenda);
-app.use('/', RotasVeiculos);
 app.use('/', RotasBairros); // ← BAIRROS
 
 /* Rotas Admin */

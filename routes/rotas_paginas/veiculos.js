@@ -17,6 +17,11 @@ function capitalize(texto) {
   return (texto || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
+async function buscarCidadePorSlugUf(cidadeSlug, ufSlug) {
+  const [cidades] = await db.query('SELECT nome, estado FROM cidades WHERE LOWER(estado) = ?', [ufSlug]);
+  return cidades.find(cidade => slugify(cidade.nome) === cidadeSlug) || null;
+}
+
 // =========================================================
 // PÁGINAS: /carros e /motos (com variações de cidade/bairro)
 // =========================================================
@@ -37,16 +42,22 @@ router.get('/:tipo(carros|motos)', async (req, res) => {
 // /carros/:cidade/:uf ou /motos/:cidade/:uf
 router.get('/:tipo(carros|motos)/:cidade/:uf', async (req, res) => {
   const { tipo, cidade, uf } = req.params;
+  res.set('X-Temcar-Route', 'veiculos-cidade');
   const cidadeSlug = slugify(cidade);
   const ufSlug = slugify(uf);
-  const nomeCidade = capitalize(cidadeSlug);
-  const ufUpper = ufSlug.toUpperCase();
+  const cidadeEncontrada = await buscarCidadePorSlugUf(cidadeSlug, ufSlug);
+  const nomeCidade = cidadeEncontrada ? cidadeEncontrada.nome : capitalize(cidadeSlug);
+  const ufUpper = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : ufSlug.toUpperCase();
 
-  const seo = await getSeo(tipo);
-  seo.titulo = `${capitalize(tipo)} em ${nomeCidade}, ${ufUpper} | Temcar`;
-  seo.descricao = `Encontre ${tipo} à venda em ${nomeCidade}, ${ufUpper}. Ofertas de veículos novos, seminovos e usados no Temcar.`;
-  seo.texto_h1 = `${capitalize(tipo)} à Venda em ${nomeCidade} - ${ufUpper}`;
-  seo.link_canonico = `${SITE_URL}/${tipo}/${cidadeSlug}/${ufSlug}`;
+  const seo = await getSeo(tipo, {
+    cidade: nomeCidade,
+    estado: ufUpper,
+    veiculo: tiposValidos[tipo],
+    tipo: tiposValidos[tipo],
+    bairro: ''
+  }, {
+    link_canonico: `${SITE_URL}/${tipo}/${cidadeSlug}/${ufSlug}`
+  });
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
@@ -66,11 +77,15 @@ router.get('/:tipo(carros|motos)/:bairro/:cidade/:uf', async (req, res) => {
   const nomeCidade = capitalize(cidadeSlug);
   const ufUpper = ufSlug.toUpperCase();
 
-  const seo = await getSeo(tipo);
-  seo.titulo = `${capitalize(tipo)} em ${nomeBairro}, ${nomeCidade} - ${ufUpper} | Temcar`;
-  seo.descricao = `${capitalize(tipo)} à venda em ${nomeBairro}, ${nomeCidade} - ${ufUpper}. Encontre ofertas perto de você no Temcar.`;
-  seo.texto_h1 = `${capitalize(tipo)} à Venda em ${nomeBairro}, ${nomeCidade} - ${ufUpper}`;
-  seo.link_canonico = `${SITE_URL}/${tipo}/${bairroSlug}/${cidadeSlug}/${ufSlug}`;
+  const seo = await getSeo(tipo, {
+    bairro: nomeBairro,
+    cidade: nomeCidade,
+    estado: ufUpper,
+    veiculo: tiposValidos[tipo],
+    tipo: tiposValidos[tipo]
+  }, {
+    link_canonico: `${SITE_URL}/${tipo}/${bairroSlug}/${cidadeSlug}/${ufSlug}`
+  });
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },

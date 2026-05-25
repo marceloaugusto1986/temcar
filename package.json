@@ -6,6 +6,10 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "db:up": "docker compose up -d mysql",
+    "db:logs": "docker compose logs -f mysql",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d mysql",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

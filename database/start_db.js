@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
-const { HOST, DB_USER, DB_PASSWORD, DB_NAME, PRIMARY_PASSWORD } = process.env;
+const { HOST, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, PRIMARY_PASSWORD } = process.env;
 const bcrypt = require('bcryptjs');
 
 async function start_DB() {
@@ -8,7 +8,8 @@ async function start_DB() {
 
     try {
         db = await mysql.createConnection({
-            host: HOST,
+            host: DB_HOST || HOST || 'localhost',
+            port: Number(DB_PORT || 3306),
             user: DB_USER,
             password: DB_PASSWORD
         });
