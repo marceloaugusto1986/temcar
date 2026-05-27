@@ -72,6 +72,19 @@ function obterUrlBannerCidade(imagem) {
     return `/uploads/anuncios/${imagem}`
 }
 
+function normalizarUrlDirecionamento(link) {
+    const valor = String(link || "").trim()
+    if (!valor) return ""
+    if (valor.startsWith("/") && !valor.startsWith("//")) return valor
+
+    try {
+        const url = new URL(valor)
+        return ["http:", "https:"].includes(url.protocol) ? url.href : ""
+    } catch (erro) {
+        return ""
+    }
+}
+
 // ===============================
 // BUSCAR + FILTRAR ANÚNCIOS
 // ===============================
@@ -221,9 +234,9 @@ function renderizarLista() {
 
                   <p class="fw-bold d-flex align-items-center gap-2">
                     ${item.tipo_anunciante === "particular"
-                        ? `<i class="bi bi-person-fill"></i> Particular`
-                        : `<i class="bi bi-building"></i> ${item.nome || "Revenda"}`
-                    }
+                ? `<i class="bi bi-person-fill"></i> Particular`
+                : `<i class="bi bi-building"></i> ${item.nome || "Revenda"}`
+            }
                   </p>
 
                   <p>
@@ -253,9 +266,8 @@ function renderizarCidadeSemAnuncios(container) {
             </div>
 
             <p class="cidade-empty-title">
-                Venda seu veículo em
-                <strong>${nomeCidade}${estado ? ` - ${estado}` : ""}</strong>
-                
+                Venda seu carro em
+                <strong>${nomeCidade}${estado ? ` - ${estado}` : ""}</strong>                
             </p>
 
             <p class="cidade-empty-promo">
@@ -264,12 +276,9 @@ function renderizarCidadeSemAnuncios(container) {
             </p>
 
             <div class="cidade-empty-actions">
-                <a class="btn btn-danger" href="/anunciar">
+                <a class="btn btn-danger" href="/vender">
                     Anunciar grátis
-                </a>
-                <a class="btn btn-outline-danger" href="/vender">
-                    Ver planos
-                </a>
+                </a>                
             </div>
         </div>
     `
@@ -374,29 +383,33 @@ async function carregarBannersCidade() {
             return
         }
 
-        const banners = await res.json()
-        const imagens = banners
-            .map(banner => obterUrlBannerCidade(banner.imagem))
-            .filter(Boolean)
+        const banners = (await res.json())
+            .map(banner => ({
+                src: obterUrlBannerCidade(banner.imagem),
+                link: normalizarUrlDirecionamento(banner.link)
+            }))
+            .filter(banner => banner.src)
 
-        if (!imagens.length) {
+        if (!banners.length) {
             renderizarBannerFallback()
             return
         }
 
-        wrapper.innerHTML = imagens.map((src, index) => `
+        wrapper.innerHTML = banners.map((banner, index) => `
             <div class="swiper-slide">
-                <img
-                    src="${escaparHtml(src)}"
-                    class="cidade-banner-img"
-                    alt="Banner de ${escaparHtml(obterNomeCidadeAtual())}${index > 0 ? ` ${index + 1}` : ""}"
-                    loading="${index === 0 ? "eager" : "lazy"}"
-                    onerror="this.closest('.swiper-slide').remove()"
-                >
+                ${banner.link ? `<a href="${escaparHtml(banner.link)}" class="cidade-banner-link">` : ""}
+                    <img
+                        src="${escaparHtml(banner.src)}"
+                        class="cidade-banner-img"
+                        alt="Banner de ${escaparHtml(obterNomeCidadeAtual())}${index > 0 ? ` ${index + 1}` : ""}"
+                        loading="${index === 0 ? "eager" : "lazy"}"
+                        onerror="this.closest('.swiper-slide').remove()"
+                    >
+                ${banner.link ? "</a>" : ""}
             </div>
         `).join("")
 
-        iniciarSliderCidade(imagens.length)
+        iniciarSliderCidade(banners.length)
 
     } catch (erro) {
         console.error("Erro ao carregar banners da cidade:", erro)

@@ -1,5 +1,6 @@
 let itens = []              // lista filtrada (renderizada)
-let itensOriginais = []     // lista completa sem filtro
+let itensOriginais = []     // lista de destaques sem filtro
+let todosItensOriginais = [] // lista completa para secoes auxiliares
 let itensDestaque = []
 let itensSecundarios = []
 let paginaAtual = 1
@@ -52,10 +53,11 @@ const revendasFormatadas = revendas.map(item => ({
     tipo_carro: item.tipo_carro || item.tipo_automovel || item.tipo
 }))
 
-        itensOriginais = misturarIntercalado(particularesFormatados, revendasFormatadas)
-        itensDestaque = itensOriginais.filter(item => Number(item.destaque) === 1)
-        itensSecundarios = montarModelosMaisBuscados(itensOriginais)
-        itens = [...itensOriginais]
+        todosItensOriginais = misturarIntercalado(particularesFormatados, revendasFormatadas)
+        itensDestaque = todosItensOriginais.filter(item => Number(item.destaque) === 1)
+        itensSecundarios = montarModelosMaisBuscados(todosItensOriginais)
+        itensOriginais = [...itensDestaque]
+        itens = [...itensDestaque]
 
         preencherSelectUnico("filtroTipo", itensOriginais.map(i => i.tipo_automovel || i.tipo))
         preencherSelectUnico("filtroMarca", itensOriginais.map(i => i.marca))
@@ -281,7 +283,7 @@ function renderizarCards(containerId = "container-card-primary", lista = itens) 
 }
 
 function renderizarHome() {
-    renderizarCards("container-card-primary", itensDestaque)
+    renderizarCards("container-card-primary")
     renderizarVeiculosSecundarios()
 }
 
@@ -359,7 +361,7 @@ function renderizarVeiculosSecundarios() {
 
     container.innerHTML = ""
 
-    const lista = itensSecundarios.length ? itensSecundarios : montarModelosMaisBuscados(itensOriginais)
+    const lista = itensSecundarios.length ? itensSecundarios : montarModelosMaisBuscados(todosItensOriginais)
 
     if (!lista.length) {
         container.innerHTML = "<p class='text-center text-muted w-100'>Nenhum modelo disponível no momento</p>"

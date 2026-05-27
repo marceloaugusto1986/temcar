@@ -53,9 +53,30 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DOMAIN = "localhost";
 const SITE_URL = (process.env.SITE_URL || 'https://www.temcar.com.br').replace(/\/$/, '');
+const APP_STARTED_AT = new Date().toISOString();
 
 app.set('trust proxy', 1);
-app.use(express.static(path.join(__dirname, 'public')));
+app.set('view cache', false);
+app.disable('etag');
+
+app.use((req, res, next) => {
+    res.setHeader('X-Temcar-Pid', String(process.pid));
+    res.setHeader('X-Temcar-Started-At', APP_STARTED_AT);
+    next();
+});
+
+app.use(express.static(path.join(__dirname, 'public'), {
+    etag: false,
+    lastModified: false,
+    maxAge: 0,
+    setHeaders: (res, filePath) => {
+        if (/\.(?:css|js|html)$/i.test(filePath)) {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+        }
+    }
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

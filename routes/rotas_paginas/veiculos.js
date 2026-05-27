@@ -28,10 +28,35 @@ async function buscarCidadePorSlugUf(cidadeSlug, ufSlug) {
 
 const tiposValidos = { carros: 'Carro', motos: 'Moto' };
 
+const seoBrasilPorTipo = {
+  carros: {
+    titulo: 'Carros a venda no Brasil | TEMCAR',
+    descricao: 'Encontre carros a venda no Brasil no TEMCAR. Compare ofertas de carros novos, seminovos e usados anunciados por revendas e particulares.',
+    keywords: 'carros a venda no Brasil, comprar carro, carros usados, carros seminovos',
+    texto_h1: 'Carros a venda no Brasil',
+    link_canonico: `${SITE_URL}/carros`
+  },
+  motos: {
+    titulo: 'Motos a venda no Brasil | TEMCAR',
+    descricao: 'Encontre motos a venda no Brasil no TEMCAR. Veja ofertas de motos novas, seminovas e usadas anunciadas por revendas e particulares.',
+    keywords: 'motos a venda no Brasil, comprar moto, motos usadas, motos seminovas',
+    texto_h1: 'Motos a venda no Brasil',
+    link_canonico: `${SITE_URL}/motos`
+  }
+};
+
+async function getSeoBrasil(tipoSlug) {
+  const seo = await getSeo(tipoSlug);
+  return {
+    ...seo,
+    ...seoBrasilPorTipo[tipoSlug]
+  };
+}
+
 // /carros ou /motos (geral)
 router.get('/:tipo(carros|motos)', async (req, res) => {
   const tipoSlug = req.params.tipo;
-  const seo = await getSeo(tipoSlug);
+  const seo = await getSeoBrasil(tipoSlug);
   const breadcrumbs = [
     { name: 'Home', url: 'https://www.temcar.com.br/' },
     { name: capitalize(tipoSlug), url: `https://www.temcar.com.br/${tipoSlug}` }
@@ -46,6 +71,15 @@ router.get('/:tipo(carros|motos)/:cidade/:uf', async (req, res) => {
   const cidadeSlug = slugify(cidade);
   const ufSlug = slugify(uf);
   const cidadeEncontrada = await buscarCidadePorSlugUf(cidadeSlug, ufSlug);
+  if (!cidadeEncontrada) {
+    const seo = await getSeoBrasil(tipo);
+    const breadcrumbs = [
+      { name: 'Home', url: `${SITE_URL}/` },
+      { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` }
+    ];
+    return res.render('veiculos', { seo, breadcrumbs, filtro: { tipo } });
+  }
+
   const nomeCidade = cidadeEncontrada ? cidadeEncontrada.nome : capitalize(cidadeSlug);
   const ufUpper = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : ufSlug.toUpperCase();
 
@@ -64,7 +98,11 @@ router.get('/:tipo(carros|motos)/:cidade/:uf', async (req, res) => {
     { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
     { name: `${nomeCidade} - ${ufUpper}`, url: `${SITE_URL}/${tipo}/${cidadeSlug}/${ufSlug}` }
   ];
-  res.render('veiculos', { seo, breadcrumbs, filtro: { tipo, cidade: cidadeSlug, uf: ufSlug } });
+  res.render('veiculos', {
+    seo,
+    breadcrumbs,
+    filtro: { tipo, cidade: cidadeSlug, cidadeNome: nomeCidade, uf: ufSlug, ufNome: ufUpper }
+  });
 });
 
 // /carros/:bairro/:cidade/:uf ou /motos/:bairro/:cidade/:uf (Task 11)
@@ -73,9 +111,10 @@ router.get('/:tipo(carros|motos)/:bairro/:cidade/:uf', async (req, res) => {
   const bairroSlug = slugify(bairro);
   const cidadeSlug = slugify(cidade);
   const ufSlug = slugify(uf);
+  const cidadeEncontrada = await buscarCidadePorSlugUf(cidadeSlug, ufSlug);
   const nomeBairro = capitalize(bairroSlug);
-  const nomeCidade = capitalize(cidadeSlug);
-  const ufUpper = ufSlug.toUpperCase();
+  const nomeCidade = cidadeEncontrada ? cidadeEncontrada.nome : capitalize(cidadeSlug);
+  const ufUpper = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : ufSlug.toUpperCase();
 
   const seo = await getSeo(tipo, {
     bairro: nomeBairro,
@@ -93,7 +132,19 @@ router.get('/:tipo(carros|motos)/:bairro/:cidade/:uf', async (req, res) => {
     { name: `${nomeCidade} - ${ufUpper}`, url: `${SITE_URL}/${tipo}/${cidadeSlug}/${ufSlug}` },
     { name: nomeBairro, url: `${SITE_URL}/${tipo}/${bairroSlug}/${cidadeSlug}/${ufSlug}` }
   ];
-  res.render('veiculos', { seo, breadcrumbs, filtro: { tipo, bairro: bairroSlug, cidade: cidadeSlug, uf: ufSlug } });
+  res.render('veiculos', {
+    seo,
+    breadcrumbs,
+    filtro: {
+      tipo,
+      bairro: bairroSlug,
+      bairroNome: nomeBairro,
+      cidade: cidadeSlug,
+      cidadeNome: nomeCidade,
+      uf: ufSlug,
+      ufNome: ufUpper
+    }
+  });
 });
 
 // =========================================================

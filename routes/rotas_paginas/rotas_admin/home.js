@@ -7,6 +7,23 @@ const fs = require("fs");
 const path = require("path");
 const upload = require("../../../middlewares/uploadImagens");
 
+async function garantirColunaLinkRegioesImagens() {
+  const [colunas] = await db.query(`
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'regioes_imagens'
+      AND COLUMN_NAME = 'link'
+  `);
+
+  if (!colunas.length) {
+    await db.query(`
+      ALTER TABLE regioes_imagens
+      ADD COLUMN link varchar(500) DEFAULT NULL AFTER imagem
+    `);
+  }
+}
+
 router.get('/home', checkAuth('private'), (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -1349,6 +1366,8 @@ router.get("/api/admin/regioes/imagens", async (req, res) => {
       return res.status(400).json({ message: "Cidade é obrigatória" });
     }
 
+    await garantirColunaLinkRegioesImagens();
+
     const [imagens] = await db.query(`
       SELECT *
       FROM regioes_imagens
@@ -1372,7 +1391,8 @@ router.post(
       const {
         cidade,
         ids = [],
-        temImagem = []
+        temImagem = [],
+        links = []
       } = req.body;
 
       if (!cidade) {
@@ -1380,11 +1400,17 @@ router.post(
       }
 
       let fileIndex = 0;
+      const listaIds = Array.isArray(ids) ? ids : [ids];
+      const listaTemImagem = Array.isArray(temImagem) ? temImagem : [temImagem];
+      const listaLinks = Array.isArray(links) ? links : [links];
 
-      for (let i = 0; i < ids.length; i++) {
-        const id = ids[i];
-        const possuiNovaImagem = temImagem[i] === "true";
+      await garantirColunaLinkRegioesImagens();
+
+      for (let i = 0; i < listaIds.length; i++) {
+        const id = listaIds[i];
+        const possuiNovaImagem = listaTemImagem[i] === "true";
         const novaImagem = possuiNovaImagem ? req.files[fileIndex++] : null;
+        const link = String(listaLinks[i] || "").trim() || null;
 
         /* ==========================
            ATUALIZAR EXISTENTE
@@ -1415,10 +1441,11 @@ router.post(
           await db.query(
             `
             UPDATE regioes_imagens
-            SET imagem = COALESCE(?, imagem)
+            SET imagem = COALESCE(?, imagem),
+                link = ?
             WHERE id = ?
             `,
-            [imagemFinal, id]
+            [imagemFinal, link, id]
           );
 
         /* ==========================
@@ -1429,10 +1456,10 @@ router.post(
 
           await db.query(
             `
-            INSERT INTO regioes_imagens (cidade, imagem)
-            VALUES (?, ?)
+            INSERT INTO regioes_imagens (cidade, imagem, link)
+            VALUES (?, ?, ?)
             `,
-            [cidade, novaImagem.filename]
+            [cidade, novaImagem.filename, link]
           );
         }
       }

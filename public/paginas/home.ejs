@@ -45,29 +45,42 @@
 	/* BANNER */
 	.bannerSwiper {
 		width: 100%;
-		/*     padding:40px 0; */
+		max-width: 100vw;
+		height: clamp(190px, 24vw, 300px);
+		overflow: hidden;
 	}
 
 	.bannerSwiper .swiper-slide {
-		width: 60%;
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
+	}
+
+	.bannerSwiper a {
+		display: block;
+		width: 100%;
+		height: 100%;
 	}
 
 	.bannerSwiper img {
 		width: 100%;
-		height: 420px;
+		height: 100%;
 		object-fit: cover;
+		object-position: center;
+		display: block;
 	}
 
 	/* MOBILE BANNER */
 
 	@media(max-width:767px) {
-
-		.bannerSwiper .swiper-slide {
-			width: 100%;
+		.bannerSwiper {
+			height: auto;
+			background: #C90B0C;
 		}
 
 		.bannerSwiper img {
-			height: 220px;
+			height: auto;
+			object-fit: contain;
 		}
 
 	}
@@ -275,7 +288,7 @@
 		<% if (typeof seo !== 'undefined' && seo.texto_h1) { %>
 		<h1 class="visually-hidden"><%= seo.texto_h1 %></h1>
 		<% } else { %>
-		<h1 class="visually-hidden">TemCar - Compre e Venda Veículos Novos e Seminovos</h1>
+		<h1 class="visually-hidden">TEMCAR - Compre e Venda Veículos Novos e Seminovos</h1>
 		<% } %>
 
 		<!-- 🔹 SLIDER PADRÃO -->
@@ -299,7 +312,7 @@
 
 					<div class="col-lg-7 col-md-12">
 						<h4 class="fw-bold m-0">
-							Pesquise no TemCar seu veículo novo ou seminovo
+							Pesquise no TEMCAR seu veículo novo ou seminovo
 						</h4>
 					</div>
 
@@ -1329,28 +1342,22 @@
 						swiper.destroy(true, true);
 					}
 
-					swiper = new Swiper(".bannerSwiper", {
+					swiper = new Swiper("#sliderPadrao", {
 
 						loop: true,
 						initialSlide: 0,
-						centeredSlides: true,
-						slidesPerView: 1.3,
-						spaceBetween: 15,
+						slidesPerView: 1,
+						spaceBetween: 0,
 						speed: 800,
+						effect: "fade",
+						fadeEffect: {
+							crossFade: true
+						},
 
 						autoplay: {
 							delay: 3500,
 							disableOnInteraction: false,
 							pauseOnMouseEnter: true
-						},
-
-						breakpoints: {
-							768: {
-								slidesPerView: 1.8
-							},
-							1200: {
-								slidesPerView: 2.2
-							}
 						},
 
 						on: {

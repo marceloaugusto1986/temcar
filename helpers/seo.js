@@ -13,64 +13,64 @@ function slugify(texto) {
 
 const SEO_DEFAULTS = {
   home: {
-    titulo: 'TemCar - Compra e Venda de Veículos Novos e Usados',
-    descricao: 'Compre e venda carros e motos no TemCar. Encontre veículos novos, seminovos e usados anunciados por revendas e particulares.',
+    titulo: 'TEMCAR - Compra e Venda de Veículos Novos e Usados',
+    descricao: 'Compre e venda carros e motos no TEMCAR. Encontre veículos novos, seminovos e usados anunciados por revendas e particulares.',
     keywords: 'comprar carro, vender carro, carros usados, carros seminovos, motos usadas, temcar',
-    texto_h1: 'TemCar - Compre e Venda Veículos Novos e Seminovos',
+    texto_h1: 'TEMCAR - Compre e Venda Veículos Novos e Seminovos',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/`
   },
   carros: {
-    titulo: 'Carros à Venda Novos, Seminovos e Usados | TemCar',
-    descricao: 'Encontre carros à venda no TemCar. Compare ofertas de revendas e particulares para comprar carros novos, seminovos e usados.',
+    titulo: 'Carros à Venda Novos, Seminovos e Usados | TEMCAR',
+    descricao: 'Encontre carros à venda no TEMCAR. Compare ofertas de revendas e particulares para comprar carros novos, seminovos e usados.',
     keywords: 'carros à venda, comprar carro, carros usados, carros seminovos',
-    texto_h1: 'Carros à Venda no TemCar',
+    texto_h1: 'Carros à Venda no TEMCAR',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/carros`
   },
   motos: {
-    titulo: 'Motos à Venda Novas, Seminovas e Usadas | TemCar',
-    descricao: 'Encontre motos à venda no TemCar. Veja ofertas de motos novas, seminovas e usadas anunciadas por revendas e particulares.',
+    titulo: 'Motos à Venda Novas, Seminovas e Usadas | TEMCAR',
+    descricao: 'Encontre motos à venda no TEMCAR. Veja ofertas de motos novas, seminovas e usadas anunciadas por revendas e particulares.',
     keywords: 'motos à venda, comprar moto, motos usadas, motos seminovas',
-    texto_h1: 'Motos à Venda no TemCar',
+    texto_h1: 'Motos à Venda no TEMCAR',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/motos`
   },
   comprar: {
-    titulo: 'Comprar Veículos Novos e Usados | TemCar',
-    descricao: 'Busque carros e motos à venda no TemCar. Encontre veículos novos, seminovos e usados com filtros por cidade, preço e categoria.',
+    titulo: 'Comprar Veículos Novos e Usados | TEMCAR',
+    descricao: 'Busque carros e motos à venda no TEMCAR. Encontre veículos novos, seminovos e usados com filtros por cidade, preço e categoria.',
     keywords: 'comprar veículos, comprar carro, comprar moto, veículos usados',
-    texto_h1: 'Comprar Veículos no TemCar',
+    texto_h1: 'Comprar Veículos no TEMCAR',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/comprar`
   },
   vender: {
-    titulo: 'Vender Veículo Online | Anuncie no TemCar',
-    descricao: 'Anuncie seu carro ou moto no TemCar e alcance compradores interessados em veículos novos, seminovos e usados.',
+    titulo: 'Vender Veículo Online | Anuncie no TEMCAR',
+    descricao: 'Anuncie seu carro ou moto no TEMCAR e alcance compradores interessados em veículos novos, seminovos e usados.',
     keywords: 'vender carro, vender moto, anunciar veículo, anunciar carro',
-    texto_h1: 'Venda seu Veículo no TemCar',
+    texto_h1: 'Venda seu Veículo no TEMCAR',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/vender`
   },
   buscar_cidades: {
-    titulo: 'Buscar Veículos por Cidade | TemCar',
-    descricao: 'Encontre carros e motos à venda por cidade no TemCar. Veja ofertas próximas de você.',
+    titulo: 'Buscar Veículos por Cidade | TEMCAR',
+    descricao: 'Encontre carros e motos à venda por cidade no TEMCAR. Veja ofertas próximas de você.',
     keywords: 'veículos por cidade, carros por cidade, motos por cidade',
     texto_h1: 'Buscar Veículos por Cidade',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/buscar-cidades`
   },
   buscar_revendas: {
-    titulo: 'Buscar Revendas de Veículos | TemCar',
-    descricao: 'Encontre revendas de veículos no TemCar e veja carros e motos anunciados por lojistas.',
+    titulo: 'Buscar Revendas de Veículos | TEMCAR',
+    descricao: 'Encontre revendas de veículos no TEMCAR e veja carros e motos anunciados por lojistas.',
     keywords: 'revendas de veículos, lojas de carros, lojas de motos',
-    texto_h1: 'Buscar Revendas no TemCar',
+    texto_h1: 'Buscar Revendas no TEMCAR',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/buscar-revendas`
   },
   venda: {
-    titulo: 'Veículo à Venda | TemCar',
-    descricao: 'Veja detalhes, fotos e informações do veículo anunciado no TemCar.',
+    titulo: 'Veículo à Venda | TEMCAR',
+    descricao: 'Veja detalhes, fotos e informações do veículo anunciado no TEMCAR.',
     keywords: 'veículo à venda, comprar veículo, anúncio de veículo',
     texto_h1: 'Detalhes do Veículo à Venda',
     texto_conteudo: '',
@@ -80,10 +80,10 @@ const SEO_DEFAULTS = {
 
 function makeDefaultSeo(pagina, overrides = {}) {
   return {
-    titulo: 'TemCar - Compra e Venda de Veículos',
-    descricao: 'Compre e venda veículos novos, seminovos e usados no TemCar. Encontre carros e motos com ofertas de revendas e particulares.',
+    titulo: 'TEMCAR - Compra e Venda de Veículos',
+    descricao: 'Compre e venda veículos novos, seminovos e usados no TEMCAR. Encontre carros e motos com ofertas de revendas e particulares.',
     keywords: 'comprar carro, vender carro, veículos usados, carros novos, motos usadas, temcar',
-    texto_h1: 'TemCar - Compra e Venda de Veículos',
+    texto_h1: 'TEMCAR - Compra e Venda de Veículos',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/${pagina && pagina !== 'home' ? pagina.replace(/_/g, '-') : ''}`,
     og_type: 'website',
@@ -224,8 +224,8 @@ async function getSeoAnuncio(id) {
 
     if (!seo) {
       return makeDefaultSeo('venda', {
-        titulo: `${anuncio.marca || 'Veículo'} ${anuncio.versao || ''} à venda | TemCar`.replace(/\s+/g, ' ').trim(),
-        descricao: `Veja detalhes de ${anuncio.marca || 'veículo'} ${anuncio.versao || ''} à venda em ${anuncio.cidade || ''} ${anuncio.estado || ''} no TemCar.`.replace(/\s+/g, ' ').trim(),
+        titulo: `${anuncio.marca || 'Veículo'} ${anuncio.versao || ''} à venda | TEMCAR`.replace(/\s+/g, ' ').trim(),
+        descricao: `Veja detalhes de ${anuncio.marca || 'veículo'} ${anuncio.versao || ''} à venda em ${anuncio.cidade || ''} ${anuncio.estado || ''} no TEMCAR.`.replace(/\s+/g, ' ').trim(),
         texto_h1: `${anuncio.marca || 'Veículo'} ${anuncio.versao || ''} à venda`.replace(/\s+/g, ' ').trim(),
         link_canonico: `${SITE_URL}/venda?id=${id}`,
         og_type: 'product',
@@ -276,8 +276,8 @@ async function getSeoCidade(cidade) {
     .replace(/\s+/g, '-');
   const uf = (cidade.estado || '').toLowerCase();
   const fallbackSeo = makeDefaultSeo('cidade', {
-    titulo: `Veículos à Venda em ${cidade.nome}, ${cidade.estado} | TemCar`,
-    descricao: `Encontre carros e motos à venda em ${cidade.nome}, ${cidade.estado}. Veja ofertas de veículos novos, seminovos e usados no TemCar.`,
+    titulo: `Veículos à Venda em ${cidade.nome}, ${cidade.estado} | TEMCAR`,
+    descricao: `Encontre carros e motos à venda em ${cidade.nome}, ${cidade.estado}. Veja ofertas de veículos novos, seminovos e usados no TEMCAR.`,
     keywords: `veículos em ${cidade.nome}, carros em ${cidade.nome}, motos em ${cidade.nome}`,
     texto_h1: `Veículos à Venda em ${cidade.nome} - ${cidade.estado}`,
     link_canonico: `${SITE_URL}/cidade/${slug}/${uf}`
@@ -341,10 +341,10 @@ async function getSeoRevenda(id) {
     if (!revenda) return fallbackSeo;
 
     const revendaFallbackSeo = makeDefaultSeo('revenda', {
-      titulo: `${revenda.nome} - Revenda de Veículos | TemCar`,
-      descricao: `Veja veículos anunciados por ${revenda.nome} em ${revenda.cidade || ''}, ${revenda.estado || ''} no TemCar.`.replace(/\s+/g, ' ').trim(),
+      titulo: `${revenda.nome} - Revenda de Veículos | TEMCAR`,
+      descricao: `Veja veículos anunciados por ${revenda.nome} em ${revenda.cidade || ''}, ${revenda.estado || ''} no TEMCAR.`.replace(/\s+/g, ' ').trim(),
       keywords: `${revenda.nome}, revenda de veículos, carros à venda, motos à venda`,
-      texto_h1: `${revenda.nome} no TemCar`,
+      texto_h1: `${revenda.nome} no TEMCAR`,
       link_canonico: `${SITE_URL}/revenda/${id}`
     });
 

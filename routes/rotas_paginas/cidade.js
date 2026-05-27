@@ -15,6 +15,23 @@ function capitalize(texto) {
   return (texto || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
+async function garantirColunaLinkRegioesImagens() {
+  const [colunas] = await db.query(`
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'regioes_imagens'
+      AND COLUMN_NAME = 'link'
+  `);
+
+  if (!colunas.length) {
+    await db.query(`
+      ALTER TABLE regioes_imagens
+      ADD COLUMN link varchar(500) DEFAULT NULL AFTER imagem
+    `);
+  }
+}
+
 // ── /cidade/:slug/:uf (rota original) ──
 router.get("/cidade/:slug/:uf", async (req, res) => {
   const { slug, uf } = req.params;
@@ -40,8 +57,8 @@ router.get("/veiculos/:estado/:cidade/:bairro", async (req, res) => {
   const ufUpper     = estado.toUpperCase();
 
   const seo = {
-    titulo: `Veículos em ${nomeBairro}, ${nomeCidade} - ${ufUpper} | TemCar`,
-    descricao: `Compre e venda veículos no bairro ${nomeBairro}, ${nomeCidade} - ${ufUpper}. Encontre carros e motos perto de você no TemCar.`,
+    titulo: `Veículos em ${nomeBairro}, ${nomeCidade} - ${ufUpper} | TEMCAR`,
+    descricao: `Compre e venda veículos no bairro ${nomeBairro}, ${nomeCidade} - ${ufUpper}. Encontre carros e motos perto de você no TEMCAR.`,
     keywords: `veículos ${nomeBairro}, carros ${nomeBairro}, ${nomeCidade}, ${ufUpper}`,
     texto_h1: `Veículos em ${nomeBairro} — ${nomeCidade}`,
     link_canonico: `https://www.temcar.com.br/veiculos/${estado}/${cidade}/${bairro}`
@@ -65,8 +82,8 @@ router.get("/veiculos/:estado/:cidade", async (req, res) => {
   const ufUpper    = estado.toUpperCase();
 
   const seo = {
-    titulo: `Veículos em ${nomeCidade} - ${ufUpper} | TemCar`,
-    descricao: `Compre e venda veículos em ${nomeCidade} - ${ufUpper}. Encontre carros e motos no TemCar.`,
+    titulo: `Veículos em ${nomeCidade} - ${ufUpper} | TEMCAR`,
+    descricao: `Compre e venda veículos em ${nomeCidade} - ${ufUpper}. Encontre carros e motos no TEMCAR.`,
     keywords: `veículos ${nomeCidade}, carros ${nomeCidade}, ${ufUpper}`,
     texto_h1: `Veículos em ${nomeCidade} - ${ufUpper}`,
     link_canonico: `https://www.temcar.com.br/veiculos/${estado}/${cidade}`
@@ -88,8 +105,8 @@ router.get("/veiculos/:estado", async (req, res) => {
   const ufUpper = estado.toUpperCase();
 
   const seo = {
-    titulo: `Veículos em ${ufUpper} | TemCar`,
-    descricao: `Compre e venda veículos no estado ${ufUpper}. Encontre carros e motos no TemCar.`,
+    titulo: `Veículos em ${ufUpper} | TEMCAR`,
+    descricao: `Compre e venda veículos no estado ${ufUpper}. Encontre carros e motos no TEMCAR.`,
     keywords: `veículos ${ufUpper}, carros ${ufUpper}`,
     texto_h1: `Veículos em ${ufUpper}`,
     link_canonico: `https://www.temcar.com.br/veiculos/${estado}`
@@ -113,11 +130,12 @@ router.get("/api/cidades/:slug/:uf/banners", async (req, res) => {
       slugify(c.nome) === slug && c.estado.toLowerCase() === uf.toLowerCase()
     );
     if (!cidade) return res.status(404).json({ message: "Cidade não encontrada" });
+    await garantirColunaLinkRegioesImagens();
     const [banners] = await db.query(
-      `SELECT id, imagem FROM regioes_imagens WHERE cidade = ? ORDER BY id ASC`,
+      `SELECT id, imagem, link FROM regioes_imagens WHERE cidade = ? ORDER BY id ASC`,
       [cidade.nome]
     );
-    const imagens = banners.map(b => ({ id: b.id, imagem: `/uploads/anuncios/${b.imagem}` }));
+    const imagens = banners.map(b => ({ id: b.id, imagem: `/uploads/anuncios/${b.imagem}`, link: b.link || '' }));
     if (!imagens.length && cidade.imagem) {
       imagens.push({ id: `cidade-${cidade.id}`, imagem: cidade.imagem });
     }

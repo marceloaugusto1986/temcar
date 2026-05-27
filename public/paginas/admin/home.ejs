@@ -1350,6 +1350,7 @@ carregarBannersAdmin();
                   </div>
                   <div class="col-md-9">
                     <input type="file" class="form-control input-imagem mb-2">
+                    <input type="url" class="form-control input-link mb-2" placeholder="URL de direcionamento (opcional)">
                     <button type="button" class="btn btn-danger btn-remover">Remover</button>
                   </div>
                 </div>
@@ -1389,10 +1390,12 @@ carregarBannersAdmin();
               const item = clone.querySelector(".slide-item");
               const inputId = item.querySelector(".input-id");
               const inputImagem = item.querySelector(".input-imagem");
+              const inputLink = item.querySelector(".input-link");
               const preview = item.querySelector(".preview");
               const btnRemover = item.querySelector(".btn-remover");
               if (dados.id) inputId.value = dados.id;
               if (dados.imagem) preview.src = dados.imagem;
+              if (dados.link) inputLink.value = dados.link;
               inputImagem.addEventListener("change", () => {
                 const file = inputImagem.files[0];
                 if (file) preview.src = URL.createObjectURL(file);
@@ -1422,7 +1425,13 @@ carregarBannersAdmin();
                 const imagens = await res.json();
                 if (!imagens.length) { empty.classList.remove("d-none"); return; }
                 empty.classList.add("d-none");
-                imagens.forEach(img => { adicionarImagemRegiao({ id: img.id, imagem: `/uploads/anuncios/${img.imagem}` }); });
+                imagens.forEach(img => {
+                  adicionarImagemRegiao({
+                    id: img.id,
+                    imagem: `/uploads/anuncios/${img.imagem}`,
+                    link: img.link || ""
+                  });
+                });
               } catch (err) { console.error("Erro ao carregar imagens:", err); }
             }
 
@@ -1436,9 +1445,11 @@ carregarBannersAdmin();
               itens.forEach(item => {
                 const id = item.querySelector(".input-id").value;
                 const fileInput = item.querySelector(".input-imagem");
+                const linkInput = item.querySelector(".input-link");
                 const file = fileInput.files[0];
                 formData.append("ids[]", id || "");
                 formData.append("temImagem[]", file ? "true" : "false");
+                formData.append("links[]", linkInput.value.trim());
                 if (file) formData.append("imagens", file);
               });
               try {

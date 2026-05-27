@@ -6,7 +6,7 @@ const db = require('../database/pool_connection');
  */
 async function getSeo(pagina) {
   const defaultSeo = {
-    titulo: 'TemCar - Compra e Venda de Veículos',
+    titulo: 'TEMCAR - Compra e Venda de Veículos',
     descricao: '',
     keywords: '',
     texto_h1: '',
@@ -81,7 +81,7 @@ async function getSeo(pagina) {
  */
 async function getSeoAnuncio(id) {
   const defaultSeo = {
-    titulo: 'TemCar - Compra e Venda de Veículos',
+    titulo: 'TEMCAR - Compra e Venda de Veículos',
     descricao: '',
     keywords: '',
     texto_h1: '',
@@ -162,7 +162,7 @@ async function getSeoAnuncio(id) {
  */
 async function getSeoCidade(cidade) {
   const defaultSeo = {
-    titulo: 'TemCar - Compra e Venda de Veículos',
+    titulo: 'TEMCAR - Compra e Venda de Veículos',
     descricao: '',
     keywords: '',
     texto_h1: '',

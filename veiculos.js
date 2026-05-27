@@ -72,7 +72,7 @@ function atualizarTitulos() {
     const totalEl = document.getElementById("total-resultados")
 
     let titulo = `${tipoNome} à Venda`
-    let sub = `Encontre os melhores ${(filtro.tipo || "veículos")} no Temcar`
+    let sub = `Encontre os melhores ${(filtro.tipo || "veículos")} no TEMCAR`
 
     if (filtro.bairro) {
         titulo = `${tipoNome} em ${capitalize(filtro.bairro)}, ${capitalize(filtro.cidade)} - ${(filtro.uf || "").toUpperCase()}`

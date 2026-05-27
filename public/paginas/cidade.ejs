@@ -4,16 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <%- include('reutilizavel/seo-head', { seo: typeof seo !== 'undefined' ? seo : {} }) %>
-    <%- include('reutilizavel/jsonld-breadcrumb', { breadcrumbs: typeof breadcrumbs !== 'undefined' ? breadcrumbs : [] }) %>
-    <script src="/js/site-config.js" defer></script>
+    <%- include('reutilizavel/seo-head', { seo: typeof seo !=='undefined' ? seo : {} }) %>
+        <%- include('reutilizavel/jsonld-breadcrumb', { breadcrumbs: typeof breadcrumbs !=='undefined' ? breadcrumbs :
+            [] }) %>
+            <script src="/js/site-config.js" defer></script>
 
 
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+            <!-- Bootstrap 5 -->
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 </head>
 
 <style>
@@ -31,7 +32,8 @@
 
     .cidade-banner {
         width: 100%;
-        height: 350px;
+        max-width: 100vw;
+        height: clamp(190px, 24vw, 250px);
         background: #1f1f1f;
         overflow: hidden;
     }
@@ -41,12 +43,25 @@
     .cidadeBannerSwiper .swiper-slide {
         width: 100%;
         height: 100%;
+        overflow: hidden;
+    }
+
+    .cidadeBannerSwiper .swiper-slide {
+        min-width: 0;
+    }
+
+    .cidade-banner-link {
+        display: block;
+        width: 100%;
+        height: 100%;
     }
 
     .cidade-banner-img {
         width: 100%;
         height: 100%;
+        max-width: 100%;
         object-fit: cover;
+        object-position: center;
         display: block;
     }
 
@@ -143,12 +158,51 @@
 
     @media (max-width: 576px) {
         .cidade-banner {
-            height: 210px;
+            height: auto;
+            background: #C90B0C;
+        }
+
+        .cidadeBannerSwiper,
+        .cidadeBannerSwiper .swiper-wrapper,
+        .cidadeBannerSwiper .swiper-slide {
+            height: auto;
+        }
+
+        .cidade-banner-img {
+            height: auto;
+            object-fit: contain;
+            object-position: center;
+        }
+
+        .cidade-banner-link {
+            height: auto;
+        }
+
+        .cidade-banner-fallback {
+            min-height: 140px;
         }
 
         .cidadeBannerSwiper .swiper-button-next,
         .cidadeBannerSwiper .swiper-button-prev {
             display: none;
+        }
+
+        .cidade-page-content {
+            margin-top: 28px !important;
+            margin-bottom: 32px !important;
+        }
+
+        .cidade-page-panel {
+            padding: 18px 14px !important;
+        }
+
+        .cidade-page-panel h4 {
+            font-size: 1.28rem;
+            line-height: 1.25;
+        }
+
+        #container-card-primary .vehicle-card {
+            width: min(280px, calc(100vw - 76px)) !important;
         }
 
         .cidade-empty-state {
@@ -160,45 +214,47 @@
 <body>
     <%- include('./reutilizavel/header-public') %>
 
-        <% if (typeof seo !== 'undefined' && seo.texto_h1) { %>
-        <h1 class="visually-hidden"><%= seo.texto_h1 %></h1>
-        <% } else { %>
-        <h1 class="visually-hidden">Veículos à Venda - TemCar</h1>
-        <% } %>
+        <% if (typeof seo !=='undefined' && seo.texto_h1) { %>
+            <h1 class="visually-hidden">
+                <%= seo.texto_h1 %>
+            </h1>
+            <% } else { %>
+                <h1 class="visually-hidden">Veículos à Venda - TEMCAR</h1>
+                <% } %>
 
-        <!-- Banner da cidade em slider -->
-        <section class="cidade-banner position-relative text-white">
-            <div class="swiper cidadeBannerSwiper" id="cidadeBannerSlider">
-                <div class="swiper-wrapper" id="cidadeBannerWrapper">
-                    <div class="swiper-slide">
-                        <div class="cidade-banner-fallback"></div>
-                    </div>
-                </div>
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
-                <div class="swiper-pagination"></div>
-            </div>
-        </section>
+                    <!-- Banner da cidade em slider -->
+                    <section class="cidade-banner position-relative text-white">
+                        <div class="swiper cidadeBannerSwiper" id="cidadeBannerSlider">
+                            <div class="swiper-wrapper" id="cidadeBannerWrapper">
+                                <div class="swiper-slide">
+                                    <div class="cidade-banner-fallback"></div>
+                                </div>
+                            </div>
+                            <div class="swiper-button-prev"></div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-pagination"></div>
+                        </div>
+                    </section>
 
-        <section class="container my-5" style="min-height: 80vh !important;">
+                    <section class="container my-5 cidade-page-content" style="min-height: 80vh !important;">
 
-            <div class="bg-white  p-3 rounded">
-                <h4 id="titulo-cidade" class="mb-4 fw-bold" style="color:#C90B0C;"></h4>
+                        <div class="bg-white p-3 rounded cidade-page-panel">
+                            <h4 id="titulo-cidade" class="mb-4 fw-bold" style="color:#C90B0C;"></h4>
 
-                <div id="container-card-primary" class="d-flex gap-3 overflow-auto pb-2"></div>
+                            <div id="container-card-primary" class="d-flex gap-3 overflow-auto pb-2"></div>
 
-                <nav class="mt-4">
-                    <ul class="pagination justify-content-center" id="paginacao"></ul>
-                </nav>
+                            <nav class="mt-4">
+                                <ul class="pagination justify-content-center" id="paginacao"></ul>
+                            </nav>
 
-            </div>
+                        </div>
 
-        </section>
+                    </section>
 
-        <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-        <script src="/js/cidade.js?v=9"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+        <script src="/js/cidade.js?v=11"></script>
 
-        <%- include('./reutilizavel/footer-public') %>
+                    <%- include('./reutilizavel/footer-public') %>
 
 
 </body>

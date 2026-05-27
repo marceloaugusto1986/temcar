@@ -22,6 +22,62 @@ function capitalize(texto) {
     return (texto || "").replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
 }
 
+function obterCidadeFiltro() {
+    const filtro = window.FILTRO || {}
+    return filtro.cidadeNome || capitalize(filtro.cidade)
+}
+
+function obterBairroFiltro() {
+    const filtro = window.FILTRO || {}
+    return filtro.bairroNome || capitalize(filtro.bairro)
+}
+
+function obterUfFiltro() {
+    const filtro = window.FILTRO || {}
+    return (filtro.ufNome || filtro.uf || "").toUpperCase()
+}
+
+function escaparHtml(valor) {
+    return String(valor || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;")
+}
+
+function obterLocalizacaoEmptyState() {
+    const filtro = window.FILTRO || {}
+
+    if (filtro.cidade) {
+        const cidade = obterCidadeFiltro()
+        const uf = obterUfFiltro()
+        return {
+            titulo: uf ? `${cidade}, ${uf}` : cidade,
+            texto: uf ? `${cidade} - ${uf}` : cidade,
+            preposicao: "em"
+        }
+    }
+
+    return {
+        titulo: "Brasil",
+        texto: "Brasil",
+        preposicao: "no"
+    }
+}
+
+function obterTipoEmptyState() {
+    const filtro = window.FILTRO || {}
+    const isMoto = filtro.tipo === "motos"
+
+    return {
+        nome: isMoto ? "moto" : "carro",
+        artigo: isMoto ? "sua" : "seu",
+        chamada: isMoto ? "Venda sua moto" : "Venda seu carro",
+        icon: isMoto ? "bi-bicycle" : "bi-car-front-fill"
+    }
+}
+
 // ===============================
 // CAPTURAR FILTRO DA URL
 // Suporta:
@@ -40,13 +96,13 @@ async function carregarVeiculos() {
             params.set('tipo', tipoMap[filtro.tipo])
         }
 
-        if (filtro.cidade)  params.set('cidade', filtro.cidade)
-        if (filtro.uf)      params.set('uf', filtro.uf)
-        if (filtro.bairro)  params.set('bairro', filtro.bairro)   // ← NOVO
+        if (filtro.cidade) params.set('cidade', filtro.cidade)
+        if (filtro.uf) params.set('uf', filtro.uf)
+        if (filtro.bairro) params.set('bairro', filtro.bairro)   // ← NOVO
 
-        if (query.get('marca'))      params.set('marca', query.get('marca'))
+        if (query.get('marca')) params.set('marca', query.get('marca'))
         if (query.get('carroceria')) params.set('carroceria', query.get('carroceria'))
-        if (query.get('busca'))      params.set('busca', query.get('busca'))
+        if (query.get('busca')) params.set('busca', query.get('busca'))
 
         const resp = await fetch(`/api/veiculos?${params.toString()}`)
         if (!resp.ok) throw new Error("Erro ao buscar veículos")
@@ -82,18 +138,18 @@ function atualizarTitulos() {
     const totalEl = document.getElementById("total-resultados")
 
     let titulo = `${tipoNome} à Venda`
-    let sub = `Encontre os melhores ${(filtro.tipo || "veículos")} no Temcar`
+    let sub = `Encontre os melhores ${(filtro.tipo || "veículos")} no TEMCAR`
 
     if (filtro.bairro) {
         // ← NOVO: título com bairro
-        titulo = `${tipoNome} em ${capitalize(filtro.bairro)}, ${capitalize(filtro.cidade)} - ${(filtro.uf || "").toUpperCase()}`
+        titulo = `${tipoNome} em ${obterBairroFiltro()}, ${obterCidadeFiltro()} - ${obterUfFiltro()}`
         sub = `Ofertas de ${(filtro.tipo || "veículos")} no seu bairro`
     } else if (filtro.cidade) {
-        titulo = `${tipoNome} em ${capitalize(filtro.cidade)} - ${(filtro.uf || "").toUpperCase()}`
+        titulo = `${tipoNome} em ${obterCidadeFiltro()} - ${obterUfFiltro()}`
         sub = `Ofertas de ${(filtro.tipo || "veículos")} na sua cidade`
     } else if (query.get('marca')) {
         titulo = `${tipoNome} ${query.get('marca')} à Venda`
-        sub = `Ofertas da marca ${query.get('marca')} no Temcar`
+        sub = `Ofertas da marca ${query.get('marca')} no TEMCAR`
     } else if (query.get('carroceria')) {
         titulo = `${tipoNome} por Carroceria: ${capitalize(query.get('carroceria'))}`
         sub = `Encontre veículos do tipo ${capitalize(query.get('carroceria'))}`
@@ -117,12 +173,7 @@ function renderizarLista() {
     container.innerHTML = ""
 
     if (!listaVeiculos.length) {
-        container.innerHTML = `
-            <div class="col-12 text-center py-5">
-                <i class="bi bi-search" style="font-size:3rem;color:#ccc;"></i>
-                <p class="mt-3 text-muted">Nenhum veículo encontrado com esses filtros</p>
-            </div>
-        `
+        renderizarSemResultados(container)
         return
     }
 
@@ -177,9 +228,9 @@ function renderizarLista() {
 
                   <p class="small fw-bold mb-1 d-flex align-items-center gap-1">
                     ${item.tipo_anunciante === "particular"
-                        ? '<i class="bi bi-person-fill"></i> Particular'
-                        : '<i class="bi bi-building"></i> ' + (item.nome || "Revenda")
-                    }
+                ? '<i class="bi bi-person-fill"></i> Particular'
+                : '<i class="bi bi-building"></i> ' + (item.nome || "Revenda")
+            }
                   </p>
 
                   <p class="small mb-0">
@@ -193,6 +244,42 @@ function renderizarLista() {
 
         container.appendChild(col)
     })
+}
+
+function renderizarSemResultados(container) {
+    const tituloResultados = document.getElementById("titulo-resultados")
+    const localizacao = obterLocalizacaoEmptyState()
+    const tipo = obterTipoEmptyState()
+
+    if (tituloResultados) tituloResultados.textContent = ""
+
+    container.innerHTML = `
+        <div class="col-12">
+            <h2 class="veiculos-empty-heading">${escaparHtml(localizacao.titulo)}</h2>
+
+            <div class="veiculos-empty-state">
+                <div class="veiculos-empty-icon">
+                    <i class="bi ${tipo.icon}"></i>
+                </div>
+
+                <p class="veiculos-empty-title">
+                    ${tipo.chamada} ${localizacao.preposicao}
+                    <strong>${escaparHtml(localizacao.texto)}</strong>
+                </p>
+
+                <p class="veiculos-empty-promo">
+                    <strong>Atenção Particulares e Revendas</strong><br>
+                    Aproveite nossa promoção de lançamento e anuncie ${tipo.artigo} ${tipo.nome} gratuitamente até agosto de 2026.
+                </p>
+
+                <div class="veiculos-empty-actions">
+                    <a class="btn btn-danger" href="/vender">
+                        Anunciar grátis
+                    </a>
+                </div>
+            </div>
+        </div>
+    `
 }
 
 // ===============================
