@@ -4,16 +4,16 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<%- include('reutilizavel/seo-head', { seo: typeof seo !== 'undefined' ? seo : {} }) %>
-	<%- include('reutilizavel/jsonld-organization') %>
+	<%- include('reutilizavel/seo-head', { seo: typeof seo !=='undefined' ? seo : {} }) %>
+		<%- include('reutilizavel/jsonld-organization') %>
 
-	<script src="./../js/site-config.js" defers></script>
+			<script src="./../js/site-config.js" defers></script>
 
-	<!-- Bootstrap 5 -->
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+			<!-- Bootstrap 5 -->
+			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+			<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 </head>
 
 
@@ -46,7 +46,7 @@
 	.bannerSwiper {
 		width: 100%;
 		max-width: 100vw;
-		height: clamp(190px, 24vw, 300px);
+		height: clamp(190px, 24vw, 250px);
 		overflow: hidden;
 	}
 
@@ -54,6 +54,10 @@
 		width: 100%;
 		height: 100%;
 		overflow: hidden;
+	}
+
+	.bannerSwiper .swiper-wrapper {
+		height: 100%;
 	}
 
 	.bannerSwiper a {
@@ -76,6 +80,12 @@
 		.bannerSwiper {
 			height: auto;
 			background: #C90B0C;
+		}
+
+		.bannerSwiper .swiper-wrapper,
+		.bannerSwiper .swiper-slide,
+		.bannerSwiper a {
+			height: auto;
 		}
 
 		.bannerSwiper img {
@@ -285,55 +295,57 @@
 <body>
 	<%- include('./reutilizavel/header-public') %>
 
-		<% if (typeof seo !== 'undefined' && seo.texto_h1) { %>
-		<h1 class="visually-hidden"><%= seo.texto_h1 %></h1>
-		<% } else { %>
-		<h1 class="visually-hidden">TEMCAR - Compre e Venda Veículos Novos e Seminovos</h1>
-		<% } %>
+		<% if (typeof seo !=='undefined' && seo.texto_h1) { %>
+			<h1 class="visually-hidden">
+				<%= seo.texto_h1 %>
+			</h1>
+			<% } else { %>
+				<h1 class="visually-hidden">TEMCAR - Compre e Venda Veículos Novos e Seminovos</h1>
+				<% } %>
 
-		<!-- 🔹 SLIDER PADRÃO -->
-		<div class="swiper bannerSwiper" id="sliderPadrao">
-			<div class="swiper-wrapper" id="bannerWrapper">
-				<!-- já existente -->
-			</div>
-		</div>
-
-		<!-- 🔹 SLIDER POR CIDADE -->
-		<div class="swiper bannerSwiper d-none" id="sliderCidade">
-			<div class="swiper-wrapper" id="bannerWrapperCidade">
-				<!-- carregado dinamicamente -->
-			</div>
-		</div>
-
-		<section class="container my-5" style="display: none;">
-			<div class="bg-white shadow-sm rounded p-4">
-
-				<div class="row align-items-center g-3">
-
-					<div class="col-lg-7 col-md-12">
-						<h4 class="fw-bold m-0">
-							Pesquise no TEMCAR seu veículo novo ou seminovo
-						</h4>
-					</div>
-
-					<div class="col-lg-5 col-md-12">
-						<div class="input-group">
-							<input id="buscaCidadeInput" type="text" class="form-control"
-								placeholder="Pesquisar por cidade...">
-							<button id="btnBuscaCidade" class="btn btn-anuncie">Buscar</button>
+					<!-- 🔹 SLIDER PADRÃO -->
+					<div class="swiper bannerSwiper" id="sliderPadrao">
+						<div class="swiper-wrapper" id="bannerWrapper">
+							<!-- já existente -->
 						</div>
 					</div>
 
-				</div>
+					<!-- 🔹 SLIDER POR CIDADE -->
+					<div class="swiper bannerSwiper d-none" id="sliderCidade">
+						<div class="swiper-wrapper" id="bannerWrapperCidade">
+							<!-- carregado dinamicamente -->
+						</div>
+					</div>
 
-			</div>
-		</section>
+					<section class="container my-5" style="display: none;">
+						<div class="bg-white shadow-sm rounded p-4">
 
-		<!-- ÁREA DE BUSCA -->
-		<section class="container my-5" style="position: relative; top: -80px; height: 110px; z-index: 999;">
+							<div class="row align-items-center g-3">
 
-			<!-- Abas -->
-			<!-- <ul class="nav nav-tabs" id="searchTabs" role="tablist" style="border-bottom: none;">
+								<div class="col-lg-7 col-md-12">
+									<h4 class="fw-bold m-0">
+										Pesquise no TEMCAR seu veículo novo ou seminovo
+									</h4>
+								</div>
+
+								<div class="col-lg-5 col-md-12">
+									<div class="input-group">
+										<input id="buscaCidadeInput" type="text" class="form-control"
+											placeholder="Pesquisar por cidade...">
+										<button id="btnBuscaCidade" class="btn btn-anuncie">Buscar</button>
+									</div>
+								</div>
+
+							</div>
+
+						</div>
+					</section>
+
+					<!-- ÁREA DE BUSCA -->
+					<section class="container my-4 home-search-section">
+
+						<!-- Abas -->
+						<!-- <ul class="nav nav-tabs" id="searchTabs" role="tablist" style="border-bottom: none;">
 				<li class="nav-item">
 					<button class="nav-link active" data-bs-toggle="tab" data-bs-target="#rapida">Busca
 						Rápida</button>
@@ -346,65 +358,69 @@
 				</li>
 			</ul> -->
 
-			<div class="tab-content border p-4 box-filtros d-none">
+						<div class="tab-content border p-4 box-filtros d-none">
 
-				<!-- BUSCA RÁPIDA -->
-				<div class="tab-pane fade show active d-none" id="rapida">
+							<!-- BUSCA RÁPIDA -->
+							<div class="tab-pane fade show active d-none" id="rapida">
 
-					<ul class="nav nav-tabs" id="searchTabs" role="tablist" style="border-bottom: none;">
-						<li class="nav-item">
-							<button class="nav-link active" data-bs-toggle="tab" data-bs-target="#rapida">Busca
-								Rápida</button>
-						</li>
-						<li class="nav-item">
-							<button class="nav-link" data-bs-toggle="tab" data-bs-target="#filtro">Filtro</button>
-						</li>
-						<li class="nav-item">
-							<button class="nav-link" data-bs-toggle="tab" data-bs-target="#revenda">Revenda</button>
-						</li>
-					</ul>
+								<ul class="nav nav-tabs" id="searchTabs" role="tablist" style="border-bottom: none;">
+									<li class="nav-item">
+										<button class="nav-link active" data-bs-toggle="tab"
+											data-bs-target="#rapida">Busca
+											Rápida</button>
+									</li>
+									<li class="nav-item">
+										<button class="nav-link" data-bs-toggle="tab"
+											data-bs-target="#filtro">Filtro</button>
+									</li>
+									<li class="nav-item">
+										<button class="nav-link" data-bs-toggle="tab"
+											data-bs-target="#revenda">Revenda</button>
+									</li>
+								</ul>
 
-					<div class="row g-3">
-						<div class="col-md-9">
-							<input id="buscaRapidaInput" class="form-control" placeholder="Digite sua busca...">
-						</div>
+								<div class="row g-3">
+									<div class="col-md-9">
+										<input id="buscaRapidaInput" class="form-control"
+											placeholder="Digite sua busca...">
+									</div>
 
-						<div class="col-md-3">
-							<button id="btnBuscaRapida" class="btn btn-anuncie w-100">Buscar</button>
-						</div>
-						<div class="col-md-3">
-							<button onclick="window.location.href='/'" class="btn w-10"
-								style="border: 1px solid rgb(170, 170, 170);">Zerar filtro</button>
-						</div>
-					</div>
-				</div>
+									<div class="col-md-3">
+										<button id="btnBuscaRapida" class="btn btn-anuncie w-100">Buscar</button>
+									</div>
+									<div class="col-md-3">
+										<button onclick="window.location.href='/'" class="btn w-10"
+											style="border: 1px solid rgb(170, 170, 170);">Zerar filtro</button>
+									</div>
+								</div>
+							</div>
 
-				<!-- FILTRO -->
-				<div class="tab-pane fade d-none" id="filtro">
-					<div class="row g-3">
+							<!-- FILTRO -->
+							<div class="tab-pane fade d-none" id="filtro">
+								<div class="row g-3">
 
-						<!-- <div class="col-md-4">
+									<!-- <div class="col-md-4">
 							<label>Tipo de Automóvel</label>
 							<select id="filtroTipo" class="form-select">
 								<option value="">Selecione</option>
 							</select>
 						</div> -->
 
-						<!-- <div class="col-md-4">
+									<!-- <div class="col-md-4">
 							<label>Marca</label>
 							<select id="filtroMarca" class="form-select">
 								<option value="">Selecione</option>
 							</select>
 						</div> -->
 
-						<!-- <div class="col-md-4">
+									<!-- <div class="col-md-4">
 							<label>Modelo</label>
 							<select id="filtroModelo" class="form-select">
 								<option value="">Selecione</option>
 							</select>
 						</div> -->
 
-						<!-- <div class="col-md-3">
+									<!-- <div class="col-md-3">
 							<label>De (ano)</label>
 							<input id="filtroAnoMin" type="number" class="form-control">
 						</div>
@@ -414,12 +430,12 @@
 							<input id="filtroAnoMax" type="number" class="form-control">
 						</div> -->
 
-						<!-- <div class="col-md-3">
+									<!-- <div class="col-md-3">
 							<label>Preço Máximo</label>
 							<input id="filtroPrecoMax" type="number" class="form-control">
 						</div> -->
 
-						<!-- <div class="col-md-3 d-flex align-items-end">
+									<!-- <div class="col-md-3 d-flex align-items-end">
 							<button id="btnFiltroAvancado" class="btn btn-anuncie w-100">Buscar</button>
 						</div>
 
@@ -428,1003 +444,1014 @@
 								style="border: 1px solid rgb(170, 170, 170);">Zerar filtro</button>
 						</div> -->
 
-					</div>
-				</div>
+								</div>
+							</div>
 
-				<!-- REVENDA -->
-				<div class="tab-pane fade" id="revenda">
-					<div class="row g-3">
+							<!-- REVENDA -->
+							<div class="tab-pane fade" id="revenda">
+								<div class="row g-3">
 
-						<!-- <div class="col-md-4">
+									<!-- <div class="col-md-4">
 							<label>Cidade</label>
 							<select id="filtroRevendaCidade" class="form-select">
 								<option value="">Selecione a cidade</option>
 							</select>
 						</div> -->
 
-						<div class="col-md-5">
-							<label>Pesquisar Revenda</label>
-							<input id="filtroRevendaNome" class="form-control" placeholder="Digite o nome da revenda">
+									<div class="col-md-5">
+										<label>Pesquisar Revenda</label>
+										<input id="filtroRevendaNome" class="form-control"
+											placeholder="Digite o nome da revenda">
+									</div>
+
+									<div class="col-md-3 d-flex align-items-end">
+										<button id="btnFiltroRevenda" class="btn btn-anuncie w-100">Buscar</button>
+									</div>
+
+									<div class="col-md-3">
+										<button onclick="window.location.href='/'" class="btn w-10"
+											style="border: 1px solid rgb(170, 170, 170);">Zerar filtro</button>
+									</div>
+
+								</div>
+							</div>
+
 						</div>
 
-						<div class="col-md-3 d-flex align-items-end">
-							<button id="btnFiltroRevenda" class="btn btn-anuncie w-100">Buscar</button>
-						</div>
-
-						<div class="col-md-3">
-							<button onclick="window.location.href='/'" class="btn w-10"
-								style="border: 1px solid rgb(170, 170, 170);">Zerar filtro</button>
-						</div>
-
-					</div>
-				</div>
-
-			</div>
-
-			<!-- Novo container de filtro de buscas -->
-			<style>
-				.busca-box {
-					border-radius: 10px;
-					background: white;
-					padding: 25px;
-					display: flex;
-					flex-direction: column;
-					gap: 20px;
-					border: 1px solid #eee;
-					font-family: Arial, Helvetica, sans-serif;
-					box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-				}
-
-				/* TITULO */
-
-				.busca-titulo {
-					font-weight: bold;
-					letter-spacing: 1px;
-					position: relative;
-					display: inline-block;
-					margin-bottom: 10px;
-				}
-
-				.busca-titulo::after {
-					content: "";
-					width: 40%;
-					height: 3px;
-					background: #C90B0C;
-					position: absolute;
-					left: 0;
-					bottom: -6px;
-					border-radius: 2px;
-				}
-
-				/* CATEGORIAS */
-
-				.categorias {
-					display: flex;
-					gap: 10px;
-					flex-wrap: wrap;
-				}
-
-				.categorias button {
-					border-radius: 8px;
-					border: 1px solid #ddd;
-					padding: 10px 18px;
-					background: #f7f7f7;
-					cursor: pointer;
-					font-weight: 500;
-					transition: all .25s ease;
-				}
-
-				.categorias button:hover {
-					background: #C90B0C;
-					color: white;
-					border-color: #C90B0C;
-					transform: translateY(-2px);
-				}
-
-				.categorias button.active {
-					background: #C90B0C;
-					color: white;
-					border-color: #C90B0C;
-				}
-
-				/* BUSCA */
-
-				.busca-input {
-					display: flex;
-					gap: 10px;
-				}
-
-				.busca-input input {
-					border-radius: 8px;
-					width: 100%;
-					padding: 11px;
-					border: 1px solid #ddd;
-					outline: none;
-					transition: .2s;
-				}
-
-				.busca-input input:focus {
-					border-color: #C90B0C;
-					box-shadow: 0 0 0 2px rgba(201, 11, 12, 0.15);
-				}
-
-				/* BOTAO FILTRO */
-
-				.btn-filtro {
-					border-radius: 8px;
-					padding: 11px 16px;
-					border: none;
-					background: #C90B0C;
-					color: white;
-					cursor: pointer;
-					font-weight: 500;
-					transition: .25s;
-					width: 250px;
-				}
-
-				.btn-filtro:hover {
-					background: #a50909;
-					transform: translateY(-2px);
-				}
-
-				@media(max-width:767px) {
-					.busca-input {
-						display: flex;
-						flex-direction: column;
-						justify-content: center;
-						align-items: center;
-					}
-				}
-
-				/* FILTROS */
-
-				.filtros {
-					display: none;
-					grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-					gap: 15px;
-					padding-top: 10px;
-					border-top: 1px solid #eee;
-					animation: fade .25s ease;
-				}
-
-				@keyframes fade {
-					from {
-						opacity: 0;
-						transform: translateY(-5px);
-					}
-
-					to {
-						opacity: 1;
-						transform: translateY(0);
-					}
-				}
-
-				.filtro-item {
-					display: flex;
-					flex-direction: column;
-					gap: 5px;
-				}
-
-				.filtro-item label {
-					font-size: 13px;
-					font-weight: bold;
-					color: #555;
-				}
-
-				.filtro-item select {
-					border-radius: 6px;
-					padding: 9px;
-					border: 1px solid #ddd;
-					outline: none;
-				}
-
-				.filtro-item select:focus {
-					border-color: #C90B0C;
-				}
-
-				/* BOTAO PESQUISAR */
-
-				.btn-pesquisar {
-					border: none;
-					border-radius: 8px;
-					padding: 0px !important;
-					background: #C90B0C;
-					color: white;
-					font-weight: bold;
-					cursor: pointer;
-					transition: .25s;
-					min-width: 250px;
-					max-width: 100%;
-					height: 50px;
-					margin-top: 20px;
-				}
-
-				.btn-pesquisar:hover {
-					background: #a50909;
-					transform: translateY(-2px);
-				}
-			</style>
-
-			<div class="tab-content busca-box">
-
-				<h5 class="busca-titulo">BUSCA</h5>
-
-				<div class="categorias">
-					<button class="active" data-tipo="carro">Carro</button>
-					<button data-tipo="moto">Moto</button>
-					<button data-tipo="utilitario">Utilitários</button>
-					<div class="filtro-item" style="display: flex; gap: 10px; flex-direction: row; flex-wrap: wrap;">
-						<select name="" id="selectRevendaFilter">
-							<option value="">Filtre por revendas</option>
-						</select>
-						<select name="" id="selectCidadeFilter">
-							<option value="">Filtre por cidades</option>
-						</select>
-					</div>
-				</div>
-
-
-				<div class="busca-input">
-					<input type="text" id="barraBuscaMarcaModelo" placeholder="DIGITE UMA MARCA, MODELO...">
-					<button class="btn-filtro" onclick="toggleFiltros()">Ver filtros</button>
-				</div>
-
-				<div class="filtros" id="filtros">
-
-					<div style="display: flex; flex-direction: column; gap: 15px;">
-						<div class="filtro-item">
-							<label>Marca</label>
-							<select id="filtroMarca" class="form-select" style="padding: 6px;">
-								<option>Selecione</option>
-							</select>
-						</div>
-
-						<div class="filtro-item">
-							<label>Modelos</label>
-							<select id="filtroModelo" class="form-select" style="padding: 6px;">
-								<option>Selecione</option>
-							</select>
-						</div>
-					</div>
-
-					<div class="filtro-item">
-						<label>Ano</label>
-						<div style="display: flex; flex-direction: column; gap: 10px;">
-							<select id="filtroAnoMin" style="width: 100%;">
-								<option>A partir</option>
-								<option>2026</option>
-								<option>2025</option>
-								<option>2024</option>
-								<option>2023</option>
-								<option>2022</option>
-								<option>2021</option>
-								<option>2020</option>
-								<option>2019</option>
-								<option>2018</option>
-								<option>2017</option>
-								<option>2016</option>
-								<option>2015</option>
-								<option>2014</option>
-								<option>2013</option>
-								<option>2012</option>
-								<option>2011</option>
-								<option>2010</option>
-								<option>2009</option>
-								<option>2008</option>
-								<option>2007</option>
-								<option>2006</option>
-								<option>2005</option>
-								<option>2004</option>
-								<option>2003</option>
-								<option>2002</option>
-								<option>2001</option>
-								<option>2000</option>
-								<option>1999</option>
-								<option>1998</option>
-								<option>1997</option>
-								<option>1996</option>
-								<option>1995</option>
-								<option>1994</option>
-								<option>1993</option>
-								<option>1992</option>
-								<option>1991</option>
-								<option>1990</option>
-							</select>
-
-							<label>Ano</label>
-							<select id="filtroAnoMax" style="width: 100%;">
-								<option>Até</option>
-								<option>2026</option>
-								<option>2025</option>
-								<option>2024</option>
-								<option>2023</option>
-								<option>2022</option>
-								<option>2021</option>
-								<option>2020</option>
-								<option>2019</option>
-								<option>2018</option>
-								<option>2017</option>
-								<option>2016</option>
-								<option>2015</option>
-								<option>2014</option>
-								<option>2013</option>
-								<option>2012</option>
-								<option>2011</option>
-								<option>2010</option>
-								<option>2009</option>
-								<option>2008</option>
-								<option>2007</option>
-								<option>2006</option>
-								<option>2005</option>
-								<option>2004</option>
-								<option>2003</option>
-								<option>2002</option>
-								<option>2001</option>
-								<option>2000</option>
-								<option>1999</option>
-								<option>1998</option>
-								<option>1997</option>
-								<option>1996</option>
-								<option>1995</option>
-								<option>1994</option>
-								<option>1993</option>
-								<option>1992</option>
-								<option>1991</option>
-								<option>1990</option>
-							</select>
-						</div>
-					</div>
-
-					<div class="filtro-item">
-						<label>Valor</label>
-						<div style="display: flex; flex-direction: column; gap: 10px;">
-							<select id="filtroPrecoMin" style="width: 100%;">
-								<option>A partir</option>
-								<option value="5000">R$5.000</option>
-								<option value="10000">R$10.000</option>
-								<option value="15000">R$15.000</option>
-								<option value="20000">R$20.000</option>
-								<option value="25000">R$25.000</option>
-								<option value="30000">R$30.000</option>
-								<option value="35000">R$35.000</option>
-								<option value="40000">R$40.000</option>
-								<option value="45000">R$45.000</option>
-								<option value="50000">R$50.000</option>
-								<option value="60000">R$60.000</option>
-								<option value="70000">R$70.000</option>
-								<option value="80000">R$80.000</option>
-								<option value="90000">R$90.000</option>
-								<option value="100000">R$100.000</option>
-								<option value="120000">R$120.000</option>
-								<option value="140000">R$140.000</option>
-								<option value="160000">R$160.000</option>
-								<option value="180000">R$180.000</option>
-								<option value="200000">R$200.000</option>
-								<option value="250000">R$250.000</option>
-								<option value="300000">R$300.000</option>
-								<option value="400000">R$400.000</option>
-								<option value="500000">R$500.000</option>
-							</select>
-
-							<label>Valor</label>
-							<select id="filtroPrecoMax" style="width: 100%;">
-								<option>Até</option>
-								<option value="5000">R$5.000</option>
-								<option value="10000">R$10.000</option>
-								<option value="15000">R$15.000</option>
-								<option value="20000">R$20.000</option>
-								<option value="25000">R$25.000</option>
-								<option value="30000">R$30.000</option>
-								<option value="35000">R$35.000</option>
-								<option value="40000">R$40.000</option>
-								<option value="45000">R$45.000</option>
-								<option value="50000">R$50.000</option>
-								<option value="60000">R$60.000</option>
-								<option value="70000">R$70.000</option>
-								<option value="80000">R$80.000</option>
-								<option value="90000">R$90.000</option>
-								<option value="100000">R$100.000</option>
-								<option value="120000">R$120.000</option>
-								<option value="140000">R$140.000</option>
-								<option value="160000">R$160.000</option>
-								<option value="180000">R$180.000</option>
-								<option value="200000">R$200.000</option>
-								<option value="250000">R$250.000</option>
-								<option value="300000">R$300.000</option>
-								<option value="400000">R$400.000</option>
-								<option value="500000">R$500.000</option>
-							</select>
-						</div>
-					</div>
-
-					<div>
-						<button id="btnFiltroAvancado" class="btn-pesquisar">Pesquisar</button>
-
-						<!-- <button id="btnZerarFiltro" class="btn-pesquisar"
-							style="border: 1px solid rgb(170, 170, 170); width: 100px !important; margin-top: 25px; background-color: #55555521; color: #555; border: 1px solid #55555521;">Zerar
-							filtro</button> -->
-					</div>
-				</div>
-
-			</div>
-
-		</section>
-
-		<style>
-			.container-lista-de-anuncios {
-				margin-top: 50px !important;
-			}
-
-			.home-carousel {
-				position: relative;
-				padding: 0 42px 28px;
-			}
-
-			.home-carousel .swiper {
-				overflow: hidden;
-			}
-
-			.home-carousel .swiper-slide {
-				width: 280px;
-				height: auto;
-			}
-
-			.home-carousel .swiper-button-next,
-			.home-carousel .swiper-button-prev {
-				width: 36px;
-				height: 36px;
-				border-radius: 50%;
-				background: rgba(20, 20, 20, .55);
-				color: #fff;
-			}
-
-			.home-carousel .swiper-button-next::after,
-			.home-carousel .swiper-button-prev::after {
-				font-size: 16px;
-			}
-
-			.home-carousel .swiper-pagination {
-				bottom: 0;
-			}
-
-			.home-carousel .swiper-pagination-bullet-active {
-				background: #C90B0C;
-			}
-
-			@media(max-width: 767px) {
-				.container-lista-de-anuncios {
-					margin-top: 200px !important;
-				}
-
-				.home-carousel {
-					padding: 0 0 28px;
-				}
-
-				.home-carousel .swiper-button-next,
-				.home-carousel .swiper-button-prev {
-					display: none;
-				}
-			}
-		</style>
-
-		<!-- LISTA DE ANÚNCIOS -->
-		<section class="container my-5 container-lista-de-anuncios">
-
-			<div class="bg-white shadow-sm p-3 rounded mt-4">
-				<h4 class="mb-4 fw-bold" style="color: #C90B0C;">Veículos em Destaque</h4>
-
-				<div class="home-carousel">
-					<div class="swiper" id="destaquesSwiper">
-						<div id="container-card-primary" class="swiper-wrapper"></div>
-					</div>
-					<div class="swiper-button-prev destaque-prev"></div>
-					<div class="swiper-button-next destaque-next"></div>
-					<div class="swiper-pagination destaque-pagination"></div>
-				</div>
-			</div>
-
-		</section>
-
-		<!-- SECTION ESPECIAIS -->
-		<section class="container my-5">
-
-			<div class="row g-4">
-				<!-- PESQUISE POR CARROCERIA -->
-				<div style="width: 100%;">
-					<div class="bg-white shadow-sm p-3 rounded">
-						<h5 class="fw-bold mb-3" style="color: #C90B0C;">Pesquise também por Carroceria</h5>
-
+						<!-- Novo container de filtro de buscas -->
 						<style>
-							.container-carrocerias {
+							.busca-box {
+								border-radius: 10px;
+								background: white;
+								padding: 25px;
 								display: flex;
-								flex-direction: row;
-								overflow-x: auto;
-								overflow-y: hidden;
+								flex-direction: column;
+								gap: 20px;
+								border: 1px solid #eee;
+								font-family: Arial, Helvetica, sans-serif;
+								box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+							}
+
+							/* TITULO */
+
+							.busca-titulo {
+								font-weight: bold;
+								letter-spacing: 1px;
+								position: relative;
+								display: inline-block;
+								margin-bottom: 10px;
+							}
+
+							.busca-titulo::after {
+								content: "";
+								width: 40%;
+								height: 3px;
+								background: #C90B0C;
+								position: absolute;
+								left: 0;
+								bottom: -6px;
+								border-radius: 2px;
+							}
+
+							/* CATEGORIAS */
+
+							.categorias {
+								display: flex;
+								gap: 10px;
+								flex-wrap: wrap;
+							}
+
+							.categorias button {
+								border-radius: 8px;
+								border: 1px solid #ddd;
+								padding: 10px 18px;
+								background: #f7f7f7;
+								cursor: pointer;
+								font-weight: 500;
+								transition: all .25s ease;
+							}
+
+							.categorias button:hover {
+								background: #C90B0C;
+								color: white;
+								border-color: #C90B0C;
+								transform: translateY(-2px);
+							}
+
+							.categorias button.active {
+								background: #C90B0C;
+								color: white;
+								border-color: #C90B0C;
+							}
+
+							/* BUSCA */
+
+							.busca-input {
+								display: flex;
+								gap: 10px;
+							}
+
+							.busca-input input {
+								border-radius: 8px;
 								width: 100%;
-								flex-wrap: nowrap;
-								gap: 14px;
-								padding: 6px 4px 12px;
-								scroll-snap-type: x proximity;
+								padding: 11px;
+								border: 1px solid #ddd;
+								outline: none;
+								transition: .2s;
 							}
 
-							.container-carrocerias::-webkit-scrollbar {
-								height: 8px;
+							.busca-input input:focus {
+								border-color: #C90B0C;
+								box-shadow: 0 0 0 2px rgba(201, 11, 12, 0.15);
 							}
 
-							.container-carrocerias::-webkit-scrollbar-thumb {
-								background: rgba(201, 11, 12, .45);
-								border-radius: 999px;
+							/* BOTAO FILTRO */
+
+							.btn-filtro {
+								border-radius: 8px;
+								padding: 11px 16px;
+								border: none;
+								background: #C90B0C;
+								color: white;
+								cursor: pointer;
+								font-weight: 500;
+								transition: .25s;
+								width: 250px;
 							}
 
-							.container-carrocerias::-webkit-scrollbar-track {
-								background: #f1f1f1;
-								border-radius: 999px;
+							.btn-filtro:hover {
+								background: #a50909;
+								transform: translateY(-2px);
+							}
+
+							@media(max-width:767px) {
+								.busca-input {
+									display: flex;
+									flex-direction: column;
+									justify-content: center;
+									align-items: center;
+								}
+							}
+
+							/* FILTROS */
+
+							.filtros {
+								display: none;
+								grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+								gap: 15px;
+								padding-top: 10px;
+								border-top: 1px solid #eee;
+								animation: fade .25s ease;
+							}
+
+							@keyframes fade {
+								from {
+									opacity: 0;
+									transform: translateY(-5px);
+								}
+
+								to {
+									opacity: 1;
+									transform: translateY(0);
+								}
+							}
+
+							.filtro-item {
+								display: flex;
+								flex-direction: column;
+								gap: 5px;
+							}
+
+							.filtro-item label {
+								font-size: 13px;
+								font-weight: bold;
+								color: #555;
+							}
+
+							.filtro-item select {
+								border-radius: 6px;
+								padding: 9px;
+								border: 1px solid #ddd;
+								outline: none;
+							}
+
+							.filtro-item select:focus {
+								border-color: #C90B0C;
+							}
+
+							/* BOTAO PESQUISAR */
+
+							.btn-pesquisar {
+								border: none;
+								border-radius: 8px;
+								padding: 0px !important;
+								background: #C90B0C;
+								color: white;
+								font-weight: bold;
+								cursor: pointer;
+								transition: .25s;
+								min-width: 250px;
+								max-width: 100%;
+								height: 50px;
+								margin-top: 20px;
+							}
+
+							.btn-pesquisar:hover {
+								background: #a50909;
+								transform: translateY(-2px);
 							}
 						</style>
 
-						<div class="container-carrocerias">
+						<div class="tab-content busca-box">
 
+							<h5 class="busca-titulo">BUSCA</h5>
 
-							<div class="carroceria-item" data-carroceria="Conversível">
-								<img src="./../imagens/img/carrocerias/conversivel.webp" width="100">
-								<p class="m-0 small">Conversível</p>
+							<div class="categorias">
+								<button class="active" data-tipo="carro">Carro</button>
+								<button data-tipo="moto">Moto</button>
+								<button data-tipo="utilitario">Utilitários</button>
+								<div class="filtro-item"
+									style="display: flex; gap: 10px; flex-direction: row; flex-wrap: wrap;">
+									<select name="" id="selectRevendaFilter">
+										<option value="">Filtre por revendas</option>
+									</select>
+									<select name="" id="selectCidadeFilter">
+										<option value="">Filtre por cidades</option>
+									</select>
+								</div>
 							</div>
 
-							<div class="carroceria-item" data-carroceria="coupe">
-								<img src="./../imagens/img/carrocerias/coupe.webp" width="100">
-								<p class="m-0 small">Coupé</p>
+
+							<div class="busca-input">
+								<input type="text" id="barraBuscaMarcaModelo" placeholder="DIGITE UMA MARCA, MODELO...">
+								<button class="btn-filtro" onclick="toggleFiltros()">Ver filtros</button>
 							</div>
 
-							<div class="carroceria-item" data-carroceria="sedan">
-								<img src="./../imagens/img/carrocerias/sedan.webp" width="100">
-								<p class="m-0 small">Sedan</p>
-							</div>
+							<div class="filtros" id="filtros">
 
-							<div class="carroceria-item" data-carroceria="suv">
-								<img src="./../imagens/img/carrocerias/suv.webp" width="100">
-								<p class="m-0 small">SUV</p>
-							</div>
+								<div style="display: flex; flex-direction: column; gap: 15px;">
+									<div class="filtro-item">
+										<label>Marca</label>
+										<select id="filtroMarca" class="form-select" style="padding: 6px;">
+											<option>Selecione</option>
+										</select>
+									</div>
 
-							<div class="carroceria-item" data-carroceria="picape">
-								<img src="./../imagens/img/carrocerias/picape.webp" width="100">
-								<p class="m-0 small">Pickup</p>
-							</div>
+									<div class="filtro-item">
+										<label>Modelos</label>
+										<select id="filtroModelo" class="form-select" style="padding: 6px;">
+											<option>Selecione</option>
+										</select>
+									</div>
+								</div>
 
-							<div class="carroceria-item" data-carroceria="hatch">
-								<img src="./../imagens/img/carrocerias/hatch.webp" width="100">
-								<p class="m-0 small">Hatch</p>
-							</div>
+								<div class="filtro-item">
+									<label>Ano</label>
+									<div style="display: flex; flex-direction: column; gap: 10px;">
+										<select id="filtroAnoMin" style="width: 100%;">
+											<option>A partir</option>
+											<option>2026</option>
+											<option>2025</option>
+											<option>2024</option>
+											<option>2023</option>
+											<option>2022</option>
+											<option>2021</option>
+											<option>2020</option>
+											<option>2019</option>
+											<option>2018</option>
+											<option>2017</option>
+											<option>2016</option>
+											<option>2015</option>
+											<option>2014</option>
+											<option>2013</option>
+											<option>2012</option>
+											<option>2011</option>
+											<option>2010</option>
+											<option>2009</option>
+											<option>2008</option>
+											<option>2007</option>
+											<option>2006</option>
+											<option>2005</option>
+											<option>2004</option>
+											<option>2003</option>
+											<option>2002</option>
+											<option>2001</option>
+											<option>2000</option>
+											<option>1999</option>
+											<option>1998</option>
+											<option>1997</option>
+											<option>1996</option>
+											<option>1995</option>
+											<option>1994</option>
+											<option>1993</option>
+											<option>1992</option>
+											<option>1991</option>
+											<option>1990</option>
+										</select>
 
-							<div class="carroceria-item" data-carroceria="furgao">
-								<img src="./../imagens/img/carrocerias/furgaop.webp" width="100">
-								<p class="m-0 small">Furgão Pequeno</p>
-							</div>
+										<label>Ano</label>
+										<select id="filtroAnoMax" style="width: 100%;">
+											<option>Até</option>
+											<option>2026</option>
+											<option>2025</option>
+											<option>2024</option>
+											<option>2023</option>
+											<option>2022</option>
+											<option>2021</option>
+											<option>2020</option>
+											<option>2019</option>
+											<option>2018</option>
+											<option>2017</option>
+											<option>2016</option>
+											<option>2015</option>
+											<option>2014</option>
+											<option>2013</option>
+											<option>2012</option>
+											<option>2011</option>
+											<option>2010</option>
+											<option>2009</option>
+											<option>2008</option>
+											<option>2007</option>
+											<option>2006</option>
+											<option>2005</option>
+											<option>2004</option>
+											<option>2003</option>
+											<option>2002</option>
+											<option>2001</option>
+											<option>2000</option>
+											<option>1999</option>
+											<option>1998</option>
+											<option>1997</option>
+											<option>1996</option>
+											<option>1995</option>
+											<option>1994</option>
+											<option>1993</option>
+											<option>1992</option>
+											<option>1991</option>
+											<option>1990</option>
+										</select>
+									</div>
+								</div>
 
-							<div class="carroceria-item" data-carroceria="minivan">
-								<img src="./../imagens/img/carrocerias/minivan.webp" width="100">
-								<p class="m-0 small">Minivan</p>
-							</div>
+								<div class="filtro-item">
+									<label>Valor</label>
+									<div style="display: flex; flex-direction: column; gap: 10px;">
+										<select id="filtroPrecoMin" style="width: 100%;">
+											<option>A partir</option>
+											<option value="5000">R$5.000</option>
+											<option value="10000">R$10.000</option>
+											<option value="15000">R$15.000</option>
+											<option value="20000">R$20.000</option>
+											<option value="25000">R$25.000</option>
+											<option value="30000">R$30.000</option>
+											<option value="35000">R$35.000</option>
+											<option value="40000">R$40.000</option>
+											<option value="45000">R$45.000</option>
+											<option value="50000">R$50.000</option>
+											<option value="60000">R$60.000</option>
+											<option value="70000">R$70.000</option>
+											<option value="80000">R$80.000</option>
+											<option value="90000">R$90.000</option>
+											<option value="100000">R$100.000</option>
+											<option value="120000">R$120.000</option>
+											<option value="140000">R$140.000</option>
+											<option value="160000">R$160.000</option>
+											<option value="180000">R$180.000</option>
+											<option value="200000">R$200.000</option>
+											<option value="250000">R$250.000</option>
+											<option value="300000">R$300.000</option>
+											<option value="400000">R$400.000</option>
+											<option value="500000">R$500.000</option>
+										</select>
 
-							<div class="carroceria-item" data-carroceria="monovolume">
-								<img src="./../imagens/img/carrocerias/monovolume.webp" width="100">
-								<p class="m-0 small">Monovolume</p>
-							</div>
+										<label>Valor</label>
+										<select id="filtroPrecoMax" style="width: 100%;">
+											<option>Até</option>
+											<option value="5000">R$5.000</option>
+											<option value="10000">R$10.000</option>
+											<option value="15000">R$15.000</option>
+											<option value="20000">R$20.000</option>
+											<option value="25000">R$25.000</option>
+											<option value="30000">R$30.000</option>
+											<option value="35000">R$35.000</option>
+											<option value="40000">R$40.000</option>
+											<option value="45000">R$45.000</option>
+											<option value="50000">R$50.000</option>
+											<option value="60000">R$60.000</option>
+											<option value="70000">R$70.000</option>
+											<option value="80000">R$80.000</option>
+											<option value="90000">R$90.000</option>
+											<option value="100000">R$100.000</option>
+											<option value="120000">R$120.000</option>
+											<option value="140000">R$140.000</option>
+											<option value="160000">R$160.000</option>
+											<option value="180000">R$180.000</option>
+											<option value="200000">R$200.000</option>
+											<option value="250000">R$250.000</option>
+											<option value="300000">R$300.000</option>
+											<option value="400000">R$400.000</option>
+											<option value="500000">R$500.000</option>
+										</select>
+									</div>
+								</div>
 
-							<div class="carroceria-item" data-carroceria="van">
-								<img src="./../imagens/img/carrocerias/van.webp" width="100">
-								<p class="m-0 small">Van</p>
-							</div>
+								<div>
+									<button id="btnFiltroAvancado" class="btn-pesquisar">Pesquisar</button>
 
-							<div class="carroceria-item" data-carroceria="swperua">
-								<img src="./../imagens/img/carrocerias/swperua.webp" width="100">
-								<p class="m-0 small">SW-Perua</p>
-							</div>
-
-							<div class="carroceria-item" data-carroceria="eletrico">
-								<img src="./../imagens/img/carrocerias/eletrico.webp" width="100">
-								<p class="m-0 small">Elétrico</p>
-							</div>
-
-						</div>
-
-					</div>
-				</div>
-			</div>
-
-			<div class="row g-4" style="margin-top: 20px;">
-
-				<style>
-					.carroceria-item {
-						text-align: center;
-						cursor: pointer;
-						flex: 0 0 118px;
-						min-height: 96px;
-						display: flex;
-						flex-direction: column;
-						align-items: center;
-						justify-content: center;
-						scroll-snap-align: start;
-					}
-
-					.carroceria-item img {
-						width: 100px;
-						height: 48px;
-						object-fit: contain;
-					}
-
-					.carroceria-item p {
-						white-space: nowrap;
-					}
-
-					.container-marcas {
-						overflow-x: auto;
-						overflow-y: hidden;
-						display: flex;
-						align-items: center;
-						gap: 16px;
-						text-align: center;
-						flex-wrap: nowrap;
-						padding: 6px 4px 12px;
-						scroll-snap-type: x proximity;
-					}
-
-					.container-marcas::-webkit-scrollbar {
-						height: 8px;
-					}
-
-					.container-marcas::-webkit-scrollbar-thumb {
-						background: rgba(201, 11, 12, .45);
-						border-radius: 999px;
-					}
-
-					.container-marcas::-webkit-scrollbar-track {
-						background: #f1f1f1;
-						border-radius: 999px;
-					}
-
-					.marca-item {
-						flex: 0 0 140px;
-						min-height: 118px;
-						display: flex;
-						flex-direction: column;
-						align-items: center;
-						justify-content: center;
-						scroll-snap-align: start;
-					}
-
-					.marca-item img {
-						width: 130px;
-						height: 70px;
-						object-fit: contain;
-					}
-
-					.marca-item p {
-						white-space: nowrap;
-					}
-				</style>
-
-				<div style="width: 100%;">
-					<div class="bg-white shadow-sm p-3 rounded">
-						<h5 class="fw-bold mb-3" style="color: #C90B0C;">Marcas mais buscadas</h5>
-
-						<div class="container-marcas">
-
-							<div class="marca-item" data-marca="AUDI">
-								<img src="./../imagens/img/logomarca-de-fabricantes/AUDI.png" width="130">
-								<p class="m-0 small">AUDI</p>
-							</div>
-
-							<div class="marca-item" data-marca="BMW">
-								<img src="./../imagens/img/logomarca-de-fabricantes/BMW.png" width="130">
-								<p class="m-0 small">BMW</p>
-							</div>
-
-							<div class="marca-item" data-marca="CAOA CHERY">
-								<img src="./../imagens/img/logomarca-de-fabricantes/CAOA CHERY.png" width="130">
-								<p class="m-0 small">CAOA CHERY</p>
-							</div>
-
-							<div class="marca-item" data-marca="CHEVROLET">
-								<img src="./../imagens/img/logomarca-de-fabricantes/CHEVROLET.png" width="130">
-								<p class="m-0 small">CHEVROLET</p>
-							</div>
-
-							<div class="marca-item" data-marca="CITROEN">
-								<img src="./../imagens/img/logomarca-de-fabricantes/CITROEN.png" width="130">
-								<p class="m-0 small">CITROEN</p>
-							</div>
-
-							<div class="marca-item" data-marca="FIAT">
-								<img src="./../imagens/img/logomarca-de-fabricantes/FIAT.png" width="130">
-								<p class="m-0 small">FIAT</p>
-							</div>
-
-							<div class="marca-item" data-marca="FORD">
-								<img src="./../imagens/img/logomarca-de-fabricantes/FORD.png" width="130">
-								<p class="m-0 small">FORD</p>
-							</div>
-
-							<div class="marca-item" data-marca="HONDA">
-								<img src="./../imagens/img/logomarca-de-fabricantes/HONDA.png" width="130">
-								<p class="m-0 small">HONDA</p>
-							</div>
-
-							<div class="marca-item" data-marca="HYUNDAI">
-								<img src="./../imagens/img/logomarca-de-fabricantes/HYUNDAI.png" width="130">
-								<p class="m-0 small">HYUNDAI</p>
-							</div>
-
-							<div class="marca-item" data-marca="JEEP">
-								<img src="./../imagens/img/logomarca-de-fabricantes/JEEP.png" width="130">
-								<p class="m-0 small">JEEP</p>
-							</div>
-
-							<div class="marca-item" data-marca="LAND ROVER">
-								<img src="./../imagens/img/logomarca-de-fabricantes/LAND ROVER.png" width="130">
-								<p class="m-0 small">LAND ROVER</p>
-							</div>
-
-							<div class="marca-item" data-marca="MERCEDES">
-								<img src="./../imagens/img/logomarca-de-fabricantes/MERCEDES BENZ.png" width="130">
-								<p class="m-0 small">MERCEDES</p>
-							</div>
-
-							<div class="marca-item" data-marca="MITSUBISHI">
-								<img src="./../imagens/img/logomarca-de-fabricantes/MITSUBISHI.png" width="130">
-								<p class="m-0 small">MITSUBISHI</p>
-							</div>
-
-							<div class="marca-item" data-marca="NISSAN">
-								<img src="./../imagens/img/logomarca-de-fabricantes/NISSAN.png" width="130">
-								<p class="m-0 small">NISSAN</p>
-							</div>
-
-							<div class="marca-item" data-marca="PEUGEOT">
-								<img src="./../imagens/img/logomarca-de-fabricantes/PEUGEOT.png" width="130">
-								<p class="m-0 small">PEUGEOT</p>
-							</div>
-
-							<div class="marca-item" data-marca="RENAULT">
-								<img src="./../imagens/img/logomarca-de-fabricantes/Renaut.png" width="130">
-								<p class="m-0 small">RENAULT</p>
-							</div>
-
-							<div class="marca-item" data-marca="TOYOTA">
-								<img src="./../imagens/img/logomarca-de-fabricantes/TOYOTA.png" width="130">
-								<p class="m-0 small">TOYOTA</p>
-							</div>
-
-							<div class="marca-item" data-marca="VOLKSWAGEN">
-								<img src="./../imagens/img/logomarca-de-fabricantes/VOLKSWAGEM.png" width="130">
-								<p class="m-0 small">VOLKSWAGEN</p>
-							</div>
-
-							<div class="marca-item" data-marca="VOLVO">
-								<img src="./../imagens/img/logomarca-de-fabricantes/VOLVO.png" width="130">
-								<p class="m-0 small">VOLVO</p>
+									<!-- <button id="btnZerarFiltro" class="btn-pesquisar"
+							style="border: 1px solid rgb(170, 170, 170); width: 100px !important; margin-top: 25px; background-color: #55555521; color: #555; border: 1px solid #55555521;">Zerar
+							filtro</button> -->
+								</div>
 							</div>
 
 						</div>
 
-					</div>
-				</div>
-			</div>
+					</section>
 
-			<!-- CARROS MAIS BUSCADOS -->
-			<div class="home-models-section mt-4">
-				<div class="home-models-eyebrow"></div>
-				<h5 class="home-models-title">Carros mais buscados</h5>
+					<style>
+						.container-lista-de-anuncios {
+							margin-top: 32px !important;
+						}
 
-				<div class="home-carousel px-0">
-					<div class="swiper" id="modelosSwiper">
-						<div id="container-card-secundary" class="swiper-wrapper home-models-list"></div>
-					</div>
-					<div class="swiper-button-prev modelos-prev"></div>
-					<div class="swiper-button-next modelos-next"></div>
-					<div class="swiper-pagination modelos-pagination"></div>
-				</div>
-			</div>
+						.home-carousel {
+							position: relative;
+							padding: 0 42px 28px;
+						}
 
-		</section>
+						.home-carousel .swiper {
+							overflow: hidden;
+						}
 
-		<%- include('./reutilizavel/footer-public') %>
-			<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-			<script src="./../js/home.js"></script>
+						.home-carousel .swiper-slide {
+							width: 280px;
+							height: auto;
+						}
 
-			<script>
+						.home-carousel .swiper-button-next,
+						.home-carousel .swiper-button-prev {
+							width: 36px;
+							height: 36px;
+							border-radius: 50%;
+							background: rgba(20, 20, 20, .55);
+							color: #fff;
+						}
 
-				function toggleFiltros() {
-					const filtros = document.getElementById("filtros");
+						.home-carousel .swiper-button-next::after,
+						.home-carousel .swiper-button-prev::after {
+							font-size: 16px;
+						}
 
-					if (filtros.style.display === "grid") {
-						filtros.style.display = "none";
-					} else {
-						filtros.style.display = "grid";
-					}
-				}
+						.home-carousel .swiper-pagination {
+							bottom: 0;
+						}
 
-				/* botão categoria ativo */
+						.home-carousel .swiper-pagination-bullet-active {
+							background: #C90B0C;
+						}
 
-				document.querySelectorAll(".categorias button").forEach(btn => {
-					btn.addEventListener("click", function () {
-						// troca botão ativo
-						document.querySelectorAll(".categorias button")
-							.forEach(b => b.classList.remove("active"))
+						@media(max-width: 767px) {
+							.container-lista-de-anuncios {
+								margin-top: 32px !important;
+							}
 
-						this.classList.add("active")
+							.home-carousel {
+								padding: 0 0 28px;
+							}
 
-						// pega o tipo do botão clicado
-						const tipoSelecionado = this.dataset.tipo
+							.home-carousel .swiper-button-next,
+							.home-carousel .swiper-button-prev {
+								display: none;
+							}
+						}
+					</style>
 
-						// aplica o filtro
-						aplicarFiltroTipoCarro(tipoSelecionado)
-					})
-				})
+					<!-- LISTA DE ANÚNCIOS -->
+					<section class="container my-5 container-lista-de-anuncios">
 
-				function aplicarFiltroTipoCarro(tipo) {
-					let listaFiltrada = itensOriginais
+						<div class="bg-white shadow-sm p-3 rounded mt-4">
+							<h4 class="mb-4 fw-bold" style="color: #C90B0C;">Veículos em Destaque</h4>
 
-					if (tipo) {
-						listaFiltrada = listaFiltrada.filter(item =>
-							item.tipo_carro &&
-							item.tipo_carro.toLowerCase() === tipo.toLowerCase()
-						)
-					}
+							<div class="home-carousel">
+								<div class="swiper" id="destaquesSwiper">
+									<div id="container-card-primary" class="swiper-wrapper"></div>
+								</div>
+								<div class="swiper-button-prev destaque-prev"></div>
+								<div class="swiper-button-next destaque-next"></div>
+								<div class="swiper-pagination destaque-pagination"></div>
+							</div>
+						</div>
 
-					itens = listaFiltrada // 🔥 atualiza lista global
+					</section>
 
-					paginaAtual = 1
-					renderizarCards()
-					renderizarPaginacao()
-				}
+					<!-- SECTION ESPECIAIS -->
+					<section class="container my-5">
 
-			</script>
+						<div class="row g-4">
+							<!-- PESQUISE POR CARROCERIA -->
+							<div style="width: 100%;">
+								<div class="bg-white shadow-sm p-3 rounded">
+									<h5 class="fw-bold mb-3" style="color: #C90B0C;">Pesquise também por Carroceria</h5>
 
-			<!-- Banner -->
-			<script>
+									<style>
+										.container-carrocerias {
+											display: flex;
+											flex-direction: row;
+											overflow-x: auto;
+											overflow-y: hidden;
+											width: 100%;
+											flex-wrap: nowrap;
+											gap: 14px;
+											padding: 6px 4px 12px;
+											scroll-snap-type: x proximity;
+										}
 
-				let swiper = null;
+										.container-carrocerias::-webkit-scrollbar {
+											height: 8px;
+										}
 
-				async function carregarBannerHome() {
+										.container-carrocerias::-webkit-scrollbar-thumb {
+											background: rgba(201, 11, 12, .45);
+											border-radius: 999px;
+										}
 
-					try {
+										.container-carrocerias::-webkit-scrollbar-track {
+											background: #f1f1f1;
+											border-radius: 999px;
+										}
+									</style>
 
-						const resposta = await fetch("/api/admin/home/carrossel");
-						const slides = await resposta.json();
+									<div class="container-carrocerias">
 
-						const wrapper = document.getElementById("bannerWrapper");
-						wrapper.innerHTML = "";
 
-						const slidesAtivos = slides
-							.filter(s => s.ativo)
-							.sort((a, b) => a.ordem - b.ordem);
+										<div class="carroceria-item" data-carroceria="Conversível">
+											<img src="./../imagens/img/carrocerias/conversivel.webp" width="100">
+											<p class="m-0 small">Conversível</p>
+										</div>
 
-						slidesAtivos.forEach(slide => {
+										<div class="carroceria-item" data-carroceria="coupe">
+											<img src="./../imagens/img/carrocerias/coupe.webp" width="100">
+											<p class="m-0 small">Coupé</p>
+										</div>
 
-							const slideDiv = document.createElement("div");
-							slideDiv.className = "swiper-slide";
+										<div class="carroceria-item" data-carroceria="sedan">
+											<img src="./../imagens/img/carrocerias/sedan.webp" width="100">
+											<p class="m-0 small">Sedan</p>
+										</div>
 
-							const img = document.createElement("img");
-							img.src = "/uploads/anuncios/" + slide.imagem;
-							img.loading = "lazy";
-							img.alt = "Banner";
+										<div class="carroceria-item" data-carroceria="suv">
+											<img src="./../imagens/img/carrocerias/suv.webp" width="100">
+											<p class="m-0 small">SUV</p>
+										</div>
 
-							if (slide.link) {
+										<div class="carroceria-item" data-carroceria="picape">
+											<img src="./../imagens/img/carrocerias/picape.webp" width="100">
+											<p class="m-0 small">Pickup</p>
+										</div>
 
-								const link = document.createElement("a");
-								link.href = slide.link;
-								link.appendChild(img);
-								slideDiv.appendChild(link);
+										<div class="carroceria-item" data-carroceria="hatch">
+											<img src="./../imagens/img/carrocerias/hatch.webp" width="100">
+											<p class="m-0 small">Hatch</p>
+										</div>
 
-							} else {
+										<div class="carroceria-item" data-carroceria="furgao">
+											<img src="./../imagens/img/carrocerias/furgaop.webp" width="100">
+											<p class="m-0 small">Furgão Pequeno</p>
+										</div>
 
-								slideDiv.appendChild(img);
+										<div class="carroceria-item" data-carroceria="minivan">
+											<img src="./../imagens/img/carrocerias/minivan.webp" width="100">
+											<p class="m-0 small">Minivan</p>
+										</div>
+
+										<div class="carroceria-item" data-carroceria="monovolume">
+											<img src="./../imagens/img/carrocerias/monovolume.webp" width="100">
+											<p class="m-0 small">Monovolume</p>
+										</div>
+
+										<div class="carroceria-item" data-carroceria="van">
+											<img src="./../imagens/img/carrocerias/van.webp" width="100">
+											<p class="m-0 small">Van</p>
+										</div>
+
+										<div class="carroceria-item" data-carroceria="swperua">
+											<img src="./../imagens/img/carrocerias/swperua.webp" width="100">
+											<p class="m-0 small">SW-Perua</p>
+										</div>
+
+										<div class="carroceria-item" data-carroceria="eletrico">
+											<img src="./../imagens/img/carrocerias/eletrico.webp" width="100">
+											<p class="m-0 small">Elétrico</p>
+										</div>
+
+									</div>
+
+								</div>
+							</div>
+						</div>
+
+						<div class="row g-4" style="margin-top: 20px;">
+
+							<style>
+								.carroceria-item {
+									text-align: center;
+									cursor: pointer;
+									flex: 0 0 118px;
+									min-height: 96px;
+									display: flex;
+									flex-direction: column;
+									align-items: center;
+									justify-content: center;
+									scroll-snap-align: start;
+								}
+
+								.carroceria-item img {
+									width: 100px;
+									height: 48px;
+									object-fit: contain;
+								}
+
+								.carroceria-item p {
+									white-space: nowrap;
+								}
+
+								.container-marcas {
+									overflow-x: auto;
+									overflow-y: hidden;
+									display: flex;
+									align-items: center;
+									gap: 16px;
+									text-align: center;
+									flex-wrap: nowrap;
+									padding: 6px 4px 12px;
+									scroll-snap-type: x proximity;
+								}
+
+								.container-marcas::-webkit-scrollbar {
+									height: 8px;
+								}
+
+								.container-marcas::-webkit-scrollbar-thumb {
+									background: rgba(201, 11, 12, .45);
+									border-radius: 999px;
+								}
+
+								.container-marcas::-webkit-scrollbar-track {
+									background: #f1f1f1;
+									border-radius: 999px;
+								}
+
+								.marca-item {
+									flex: 0 0 140px;
+									min-height: 118px;
+									display: flex;
+									flex-direction: column;
+									align-items: center;
+									justify-content: center;
+									scroll-snap-align: start;
+								}
+
+								.marca-item img {
+									width: 130px;
+									height: 70px;
+									object-fit: contain;
+								}
+
+								.marca-item p {
+									white-space: nowrap;
+								}
+							</style>
+
+							<div style="width: 100%;">
+								<div class="bg-white shadow-sm p-3 rounded">
+									<h5 class="fw-bold mb-3" style="color: #C90B0C;">Marcas mais buscadas</h5>
+
+									<div class="container-marcas">
+
+										<div class="marca-item" data-marca="AUDI">
+											<img src="./../imagens/img/logomarca-de-fabricantes/AUDI.png" width="130">
+											<p class="m-0 small">AUDI</p>
+										</div>
+
+										<div class="marca-item" data-marca="BMW">
+											<img src="./../imagens/img/logomarca-de-fabricantes/BMW.png" width="130">
+											<p class="m-0 small">BMW</p>
+										</div>
+
+										<div class="marca-item" data-marca="CAOA CHERY">
+											<img src="./../imagens/img/logomarca-de-fabricantes/CAOA CHERY.png"
+												width="130">
+											<p class="m-0 small">CAOA CHERY</p>
+										</div>
+
+										<div class="marca-item" data-marca="CHEVROLET">
+											<img src="./../imagens/img/logomarca-de-fabricantes/CHEVROLET.png"
+												width="130">
+											<p class="m-0 small">CHEVROLET</p>
+										</div>
+
+										<div class="marca-item" data-marca="CITROEN">
+											<img src="./../imagens/img/logomarca-de-fabricantes/CITROEN.png"
+												width="130">
+											<p class="m-0 small">CITROEN</p>
+										</div>
+
+										<div class="marca-item" data-marca="FIAT">
+											<img src="./../imagens/img/logomarca-de-fabricantes/FIAT.png" width="130">
+											<p class="m-0 small">FIAT</p>
+										</div>
+
+										<div class="marca-item" data-marca="FORD">
+											<img src="./../imagens/img/logomarca-de-fabricantes/FORD.png" width="130">
+											<p class="m-0 small">FORD</p>
+										</div>
+
+										<div class="marca-item" data-marca="HONDA">
+											<img src="./../imagens/img/logomarca-de-fabricantes/HONDA.png" width="130">
+											<p class="m-0 small">HONDA</p>
+										</div>
+
+										<div class="marca-item" data-marca="HYUNDAI">
+											<img src="./../imagens/img/logomarca-de-fabricantes/HYUNDAI.png"
+												width="130">
+											<p class="m-0 small">HYUNDAI</p>
+										</div>
+
+										<div class="marca-item" data-marca="JEEP">
+											<img src="./../imagens/img/logomarca-de-fabricantes/JEEP.png" width="130">
+											<p class="m-0 small">JEEP</p>
+										</div>
+
+										<div class="marca-item" data-marca="LAND ROVER">
+											<img src="./../imagens/img/logomarca-de-fabricantes/LAND ROVER.png"
+												width="130">
+											<p class="m-0 small">LAND ROVER</p>
+										</div>
+
+										<div class="marca-item" data-marca="MERCEDES">
+											<img src="./../imagens/img/logomarca-de-fabricantes/MERCEDES BENZ.png"
+												width="130">
+											<p class="m-0 small">MERCEDES</p>
+										</div>
+
+										<div class="marca-item" data-marca="MITSUBISHI">
+											<img src="./../imagens/img/logomarca-de-fabricantes/MITSUBISHI.png"
+												width="130">
+											<p class="m-0 small">MITSUBISHI</p>
+										</div>
+
+										<div class="marca-item" data-marca="NISSAN">
+											<img src="./../imagens/img/logomarca-de-fabricantes/NISSAN.png" width="130">
+											<p class="m-0 small">NISSAN</p>
+										</div>
+
+										<div class="marca-item" data-marca="PEUGEOT">
+											<img src="./../imagens/img/logomarca-de-fabricantes/PEUGEOT.png"
+												width="130">
+											<p class="m-0 small">PEUGEOT</p>
+										</div>
+
+										<div class="marca-item" data-marca="RENAULT">
+											<img src="./../imagens/img/logomarca-de-fabricantes/Renaut.png" width="130">
+											<p class="m-0 small">RENAULT</p>
+										</div>
+
+										<div class="marca-item" data-marca="TOYOTA">
+											<img src="./../imagens/img/logomarca-de-fabricantes/TOYOTA.png" width="130">
+											<p class="m-0 small">TOYOTA</p>
+										</div>
+
+										<div class="marca-item" data-marca="VOLKSWAGEN">
+											<img src="./../imagens/img/logomarca-de-fabricantes/VOLKSWAGEM.png"
+												width="130">
+											<p class="m-0 small">VOLKSWAGEN</p>
+										</div>
+
+										<div class="marca-item" data-marca="VOLVO">
+											<img src="./../imagens/img/logomarca-de-fabricantes/VOLVO.png" width="130">
+											<p class="m-0 small">VOLVO</p>
+										</div>
+
+									</div>
+
+								</div>
+							</div>
+						</div>
+
+						<!-- CARROS MAIS BUSCADOS -->
+						<div class="home-models-section mt-4">
+							<div class="home-models-eyebrow"></div>
+							<h5 class="home-models-title">Carros mais buscados</h5>
+
+							<div class="home-carousel px-0">
+								<div class="swiper" id="modelosSwiper">
+									<div id="container-card-secundary" class="swiper-wrapper home-models-list"></div>
+								</div>
+								<div class="swiper-button-prev modelos-prev"></div>
+								<div class="swiper-button-next modelos-next"></div>
+								<div class="swiper-pagination modelos-pagination"></div>
+							</div>
+						</div>
+
+					</section>
+
+					<%- include('./reutilizavel/footer-public') %>
+						<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+						<script src="./../js/home.js"></script>
+
+						<script>
+
+							function toggleFiltros() {
+								const filtros = document.getElementById("filtros");
+
+								if (filtros.style.display === "grid") {
+									filtros.style.display = "none";
+								} else {
+									filtros.style.display = "grid";
+								}
+							}
+
+							/* botão categoria ativo */
+
+							document.querySelectorAll(".categorias button").forEach(btn => {
+								btn.addEventListener("click", function () {
+									// troca botão ativo
+									document.querySelectorAll(".categorias button")
+										.forEach(b => b.classList.remove("active"))
+
+									this.classList.add("active")
+
+									// pega o tipo do botão clicado
+									const tipoSelecionado = this.dataset.tipo
+
+									// aplica o filtro
+									aplicarFiltroTipoCarro(tipoSelecionado)
+								})
+							})
+
+							function aplicarFiltroTipoCarro(tipo) {
+								let listaFiltrada = itensOriginais
+
+								if (tipo) {
+									listaFiltrada = listaFiltrada.filter(item =>
+										item.tipo_carro &&
+										item.tipo_carro.toLowerCase() === tipo.toLowerCase()
+									)
+								}
+
+								itens = listaFiltrada // 🔥 atualiza lista global
+
+								paginaAtual = 1
+								renderizarCards()
+								renderizarPaginacao()
+							}
+
+						</script>
+
+						<!-- Banner -->
+						<script>
+
+							let swiper = null;
+
+							async function carregarBannerHome() {
+
+								try {
+
+									const resposta = await fetch("/api/admin/home/carrossel");
+									const slides = await resposta.json();
+
+									const wrapper = document.getElementById("bannerWrapper");
+									wrapper.innerHTML = "";
+
+									const slidesAtivos = slides
+										.filter(s => s.ativo)
+										.sort((a, b) => a.ordem - b.ordem);
+
+									slidesAtivos.forEach(slide => {
+
+										const slideDiv = document.createElement("div");
+										slideDiv.className = "swiper-slide";
+
+										const img = document.createElement("img");
+										img.src = "/uploads/anuncios/" + slide.imagem;
+										img.loading = "lazy";
+										img.alt = "Banner";
+
+										if (slide.link) {
+
+											const link = document.createElement("a");
+											link.href = slide.link;
+											link.appendChild(img);
+											slideDiv.appendChild(link);
+
+										} else {
+
+											slideDiv.appendChild(img);
+
+										}
+
+										wrapper.appendChild(slideDiv);
+
+									});
+
+									iniciarSwiper();
+
+								} catch (erro) {
+
+									console.error("Erro ao carregar banner:", erro);
+
+								}
 
 							}
 
-							wrapper.appendChild(slideDiv);
+							function iniciarSwiper() {
 
-						});
+								if (swiper) {
+									swiper.destroy(true, true);
+								}
 
-						iniciarSwiper();
+								swiper = new Swiper("#sliderPadrao", {
 
-					} catch (erro) {
-
-						console.error("Erro ao carregar banner:", erro);
-
-					}
-
-				}
-
-				function iniciarSwiper() {
-
-					if (swiper) {
-						swiper.destroy(true, true);
-					}
-
-					swiper = new Swiper("#sliderPadrao", {
-
-						loop: true,
-						initialSlide: 0,
-						slidesPerView: 1,
-						spaceBetween: 0,
-						speed: 800,
-						effect: "fade",
-						fadeEffect: {
-							crossFade: true
-						},
+									loop: true,
+									initialSlide: 0,
+									slidesPerView: 1,
+									spaceBetween: 0,
+									speed: 800,
+									effect: "fade",
+									fadeEffect: {
+										crossFade: true
+									},
 
 						autoplay: {
-							delay: 3500,
+							delay: 2800,
 							disableOnInteraction: false,
 							pauseOnMouseEnter: true
 						},
 
-						on: {
+									on: {
 
-							init: function () {
+										init: function () {
 
-								// força começar do primeiro slide real
-								this.slideToLoop(0, 0);
+											// força começar do primeiro slide real
+											this.slideToLoop(0, 0);
 
-							},
+										},
 
-							touchEnd: function () {
+										touchEnd: function () {
 
-								this.autoplay.start();
+											this.autoplay.start();
+
+										}
+
+									}
+
+								});
 
 							}
 
-						}
+							document.addEventListener("DOMContentLoaded", carregarBannerHome);
 
-					});
+						</script>
+						<style>
+							/* CONTAINER */
+							.container-img-cidade {
+								width: 100%;
+								height: 100%;
+								overflow: hidden;
+								position: relative;
+							}
 
-				}
+							/* IMAGEM */
+							.img-cidade {
+								width: 100%;
+								height: 100%;
+								object-fit: cover;
+							}
 
-				document.addEventListener("DOMContentLoaded", carregarBannerHome);
+							/* 📱 MOBILE */
+							@media (max-width: 768px) {
+								.container-img-cidade {
+									height: auto;
+								}
+							}
+						</style>
+						<script>
+							let swiperCidade = null;
 
-			</script>
-			<style>
-				/* CONTAINER */
-				.container-img-cidade {
-					width: 100%;
-					height: 420px;
-					overflow: hidden;
-					position: relative;
-				}
+							async function carregarSliderCidade(cidade) {
+								try {
+									const res = await fetch(`/api/admin/regioes/imagens?cidade=${encodeURIComponent(cidade)}`);
+									const imagens = await res.json();
 
-				/* IMAGEM */
-				.img-cidade {
-					width: 100%;
-					height: 100%;
-					object-fit: cover;
-				}
+									const wrapper = document.getElementById("bannerWrapperCidade");
+									wrapper.innerHTML = "";
 
-				/* 📱 MOBILE */
-				@media (max-width: 768px) {
-					.container-img-cidade {
-						height: 220px;
-					}
-				}
-			</style>
-			<script>
-				let swiperCidade = null;
+									if (!imagens.length) return false; // 🔴 não tem imagens
 
-				async function carregarSliderCidade(cidade) {
-					try {
-						const res = await fetch(`/api/admin/regioes/imagens?cidade=${encodeURIComponent(cidade)}`);
-						const imagens = await res.json();
+									imagens.forEach(img => {
+										const slide = document.createElement("div");
+										slide.classList.add("swiper-slide");
 
-						const wrapper = document.getElementById("bannerWrapperCidade");
-						wrapper.innerHTML = "";
-
-						if (!imagens.length) return false; // 🔴 não tem imagens
-
-						imagens.forEach(img => {
-							const slide = document.createElement("div");
-							slide.classList.add("swiper-slide");
-
-							slide.innerHTML = `
+										slide.innerHTML = `
 							<div class="container-img-cidade">
 								<img 
 								src="/uploads/anuncios/${img.imagem}" 
@@ -1433,58 +1460,58 @@
 							</div>
 							`;
 
-							wrapper.appendChild(slide);
-						});
+										wrapper.appendChild(slide);
+									});
 
-						/* 🔁 recriar swiper */
-						if (swiperCidade) swiperCidade.destroy(true, true);
+									/* 🔁 recriar swiper */
+									if (swiperCidade) swiperCidade.destroy(true, true);
 
-						swiperCidade = new Swiper("#sliderCidade", {
-							loop: true,
+									swiperCidade = new Swiper("#sliderCidade", {
+										loop: true,
 
 							autoplay: {
-								delay: 3500,
+								delay: 2800,
 								disableOnInteraction: false
 							},
 
-							effect: "fade",
-							fadeEffect: {
-								crossFade: true
-							},
+										effect: "fade",
+										fadeEffect: {
+											crossFade: true
+										},
 
-							speed: 1000
-						});
+										speed: 1000
+									});
 
-						return true; // 🔥 tem imagens
+									return true; // 🔥 tem imagens
 
-					} catch (err) {
-						console.error("Erro ao carregar slider da cidade:", err);
-						return false;
-					}
-				}
+								} catch (err) {
+									console.error("Erro ao carregar slider da cidade:", err);
+									return false;
+								}
+							}
 
 
-				async function atualizarSliderPorCidade(cidade) {
-					const sliderPadrao = document.getElementById("sliderPadrao");
-					const sliderCidade = document.getElementById("sliderCidade");
+							async function atualizarSliderPorCidade(cidade) {
+								const sliderPadrao = document.getElementById("sliderPadrao");
+								const sliderCidade = document.getElementById("sliderCidade");
 
-					if (!cidade) {
-						sliderPadrao.classList.remove("d-none");
-						sliderCidade.classList.add("d-none");
-						return;
-					}
+								if (!cidade) {
+									sliderPadrao.classList.remove("d-none");
+									sliderCidade.classList.add("d-none");
+									return;
+								}
 
-					const temImagens = await carregarSliderCidade(cidade);
+								const temImagens = await carregarSliderCidade(cidade);
 
-					if (temImagens) {
-						sliderPadrao.classList.add("d-none");
-						sliderCidade.classList.remove("d-none");
-					} else {
-						sliderPadrao.classList.remove("d-none");
-						sliderCidade.classList.add("d-none");
-					}
-				}
-			</script>
+								if (temImagens) {
+									sliderPadrao.classList.add("d-none");
+									sliderCidade.classList.remove("d-none");
+								} else {
+									sliderPadrao.classList.remove("d-none");
+									sliderCidade.classList.add("d-none");
+								}
+							}
+						</script>
 
 </body>
 
