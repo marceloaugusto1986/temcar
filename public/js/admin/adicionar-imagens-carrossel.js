@@ -16,7 +16,9 @@ window.adicionarSlide = function (dados = {}) {
 
   const inputId = slide.querySelector(".input-id");
   const inputImagem = slide.querySelector(".input-imagem");
-  const preview = slide.querySelector(".preview");
+  const inputImagemMobile = slide.querySelector(".input-imagem-mobile");
+  const preview = slide.querySelector(".preview-desktop");
+  const previewMobile = slide.querySelector(".preview-mobile");
 
   const inputTitulo = slide.querySelector(".input-titulo");
   const inputDescricao = slide.querySelector(".input-descricao");
@@ -29,6 +31,8 @@ window.adicionarSlide = function (dados = {}) {
   /* ===== PREENCHER DADOS EXISTENTES ===== */
   if (dados.id) inputId.value = dados.id;
   if (dados.imagem) preview.src = dados.imagem;
+  if (dados.imagemMobile) previewMobile.src = dados.imagemMobile;
+  else if (dados.imagem) previewMobile.src = dados.imagem;
   if (dados.titulo) inputTitulo.value = dados.titulo;
   if (dados.descricao) inputDescricao.value = dados.descricao;
   if (dados.link) inputLink.value = dados.link;
@@ -39,6 +43,11 @@ window.adicionarSlide = function (dados = {}) {
   inputImagem.addEventListener("change", () => {
     const file = inputImagem.files[0];
     if (file) preview.src = URL.createObjectURL(file);
+  });
+
+  inputImagemMobile.addEventListener("change", () => {
+    const file = inputImagemMobile.files[0];
+    if (file) previewMobile.src = URL.createObjectURL(file);
   });
 
   /* ===== EXCLUIR ===== */
@@ -89,6 +98,7 @@ window.carregarSlidesExistentes = async function () {
       adicionarSlide({
         id: slide.id,
         imagem: "/uploads/anuncios/" + slide.imagem,
+        imagemMobile: slide.imagem_mobile ? "/uploads/anuncios/" + slide.imagem_mobile : "",
         titulo: slide.titulo,
         descricao: slide.descricao,
         link: slide.link,
@@ -118,6 +128,7 @@ window.salvarImagensSite = async function () {
   slides.forEach(slide => {
     const id = slide.querySelector(".input-id").value;
     const fileInput = slide.querySelector(".input-imagem");
+    const fileInputMobile = slide.querySelector(".input-imagem-mobile");
     const titulo = slide.querySelector(".input-titulo").value;
     const descricao = slide.querySelector(".input-descricao").value;
     const link = slide.querySelector(".input-link").value;
@@ -125,6 +136,7 @@ window.salvarImagensSite = async function () {
     const ativo = slide.querySelector(".input-ativo").checked;
 
     const file = fileInput.files[0];
+    const fileMobile = fileInputMobile.files[0];
 
     formData.append("ids[]", id || "");
     formData.append("titulos[]", titulo);
@@ -135,8 +147,10 @@ window.salvarImagensSite = async function () {
 
     /* 🔴 CHAVE DA SOLUÇÃO */
     formData.append("temImagem[]", file ? "true" : "false");
+    formData.append("temImagemMobile[]", fileMobile ? "true" : "false");
 
     if (file) formData.append("imagens", file);
+    if (fileMobile) formData.append("imagensMobile", fileMobile);
   });
 
   try {

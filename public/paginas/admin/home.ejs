@@ -143,6 +143,71 @@
   }
 </style>
 
+<style>
+  .home-carousel-card {
+    border-color: #d9dee5;
+    border-radius: 8px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.05);
+  }
+
+  .home-carousel-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 330px) minmax(260px, 1fr) 112px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .home-carousel-media-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .home-carousel-media label,
+  .home-carousel-fields label {
+    font-weight: 600;
+  }
+
+  .home-carousel-media .preview {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: none !important;
+    object-fit: cover;
+    background: #f6f7f9;
+  }
+
+  .home-carousel-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .home-carousel-options {
+    display: flex;
+    gap: 20px;
+    align-items: end;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 992px) {
+    .home-carousel-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .home-carousel-actions {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .home-carousel-media-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
 
 <body>
   <section class="container my-5">
@@ -493,13 +558,23 @@
 
           <div id="box-editar" class="card p-3 mb-4 d-none">
             <h5>Editar Cidade</h5>
-            <form id="form-editar-cidade" enctype="multipart/form-data">
-              <input class="form-control mb-2" type="text" name="nome" placeholder="Nome" />
-              <input class="form-control mb-2" type="text" name="estado" placeholder="Estado" />
-              <input class="form-control mb-2" type="file" name="imagem" />
-              <img id="preview-imagem" class="mb-2" style="width:120px; display:none;" />
-              <textarea class="form-control mb-2" name="descricao"></textarea>
-              <div class="d-flex gap-2">
+	            <form id="form-editar-cidade" enctype="multipart/form-data">
+	              <input class="form-control mb-2" type="text" name="nome" placeholder="Nome" />
+	              <input class="form-control mb-2" type="text" name="estado" placeholder="Estado" />
+	              <div class="row g-3 mb-2">
+	                <div class="col-md-6">
+	                  <label class="form-label small text-muted">Imagem desktop</label>
+	                  <input class="form-control mb-2" type="file" name="imagem" accept="image/*" />
+	                  <img id="preview-imagem" class="mb-2 border rounded" style="width:180px; display:none;" />
+	                </div>
+	                <div class="col-md-6">
+	                  <label class="form-label small text-muted">Imagem mobile</label>
+	                  <input class="form-control mb-2" type="file" name="imagem_mobile" accept="image/*" />
+	                  <img id="preview-imagem-mobile" class="mb-2 border rounded" style="width:120px; display:none;" />
+	                </div>
+	              </div>
+	              <textarea class="form-control mb-2" name="descricao"></textarea>
+	              <div class="d-flex gap-2">
                 <button class="btn btn-success" type="submit">Salvar</button>
                 <button class="btn btn-danger" type="button" id="btn-excluir">Excluir</button>
               </div>
@@ -508,11 +583,20 @@
 
           <div id="box-cadastrar" class="card p-3 d-none">
             <h5>Nova Cidade</h5>
-            <form id="form-cadastrar-cidade" enctype="multipart/form-data">
-              <input class="form-control mb-2" type="text" name="nome" placeholder="Nome" required />
-              <input class="form-control mb-2" type="text" name="estado" placeholder="Estado" required />
-              <input class="form-control mb-2" type="file" name="imagem" />
-              <textarea class="form-control mb-2" name="descricao"></textarea>
+	            <form id="form-cadastrar-cidade" enctype="multipart/form-data">
+	              <input class="form-control mb-2" type="text" name="nome" placeholder="Nome" required />
+	              <input class="form-control mb-2" type="text" name="estado" placeholder="Estado" required />
+	              <div class="row g-3 mb-2">
+	                <div class="col-md-6">
+	                  <label class="form-label small text-muted">Imagem desktop</label>
+	                  <input class="form-control" type="file" name="imagem" accept="image/*" />
+	                </div>
+	                <div class="col-md-6">
+	                  <label class="form-label small text-muted">Imagem mobile</label>
+	                  <input class="form-control" type="file" name="imagem_mobile" accept="image/*" />
+	                </div>
+	              </div>
+	              <textarea class="form-control mb-2" name="descricao"></textarea>
               <button class="btn btn-primary" type="submit">Cadastrar</button>
             </form>
           </div>
@@ -525,9 +609,10 @@
         const boxCadastrar = document.getElementById("box-cadastrar");
         const btnMostrarCadastro = document.getElementById("btn-mostrar-cadastro");
         const formEditar = document.getElementById("form-editar-cidade");
-        const formCadastrar = document.getElementById("form-cadastrar-cidade");
-        const preview = document.getElementById("preview-imagem");
-        const btnExcluir = document.getElementById("btn-excluir");
+	        const formCadastrar = document.getElementById("form-cadastrar-cidade");
+	        const preview = document.getElementById("preview-imagem");
+	        const previewMobile = document.getElementById("preview-imagem-mobile");
+	        const btnExcluir = document.getElementById("btn-excluir");
 
         let cidadeSelecionada = null;
 
@@ -551,18 +636,34 @@
           boxEditar.classList.remove("d-none");
           boxCadastrar.classList.add("d-none");
           formEditar.nome.value = cidadeSelecionada.nome;
-          formEditar.estado.value = cidadeSelecionada.estado;
-          formEditar.descricao.value = cidadeSelecionada.descricao;
-          if (cidadeSelecionada.imagem) { preview.src = cidadeSelecionada.imagem; preview.style.display = "block"; }
-          else { preview.style.display = "none"; }
-        });
+	          formEditar.estado.value = cidadeSelecionada.estado;
+	          formEditar.descricao.value = cidadeSelecionada.descricao;
+	          if (cidadeSelecionada.imagem) { preview.src = cidadeSelecionada.imagem; preview.style.display = "block"; }
+	          else { preview.style.display = "none"; }
+	          if (cidadeSelecionada.imagem_mobile) { previewMobile.src = cidadeSelecionada.imagem_mobile; previewMobile.style.display = "block"; }
+	          else { previewMobile.style.display = "none"; }
+	        });
 
         btnMostrarCadastro.addEventListener("click", () => {
           boxCadastrar.classList.remove("d-none");
           boxEditar.classList.add("d-none");
-          select.value = "";
-          cidadeSelecionada = null;
-        });
+	          select.value = "";
+	          cidadeSelecionada = null;
+	        });
+
+	        formEditar.imagem.addEventListener("change", () => {
+	          const file = formEditar.imagem.files[0];
+	          if (!file) return;
+	          preview.src = URL.createObjectURL(file);
+	          preview.style.display = "block";
+	        });
+
+	        formEditar.imagem_mobile.addEventListener("change", () => {
+	          const file = formEditar.imagem_mobile.files[0];
+	          if (!file) return;
+	          previewMobile.src = URL.createObjectURL(file);
+	          previewMobile.style.display = "block";
+	        });
 
         formEditar.addEventListener("submit", async (e) => {
           e.preventDefault();
@@ -1344,15 +1445,21 @@ carregarBannersAdmin();
             <template id="templateRegiao">
               <div class="slide-item border p-3 rounded">
                 <input type="hidden" class="input-id">
-                <div class="row">
-                  <div class="col-md-3">
-                    <img class="preview img-fluid rounded" src="/uploads/anuncios/regioes/1774637770227-851750240.png" />
-                  </div>
-                  <div class="col-md-9">
-                    <input type="file" class="form-control input-imagem mb-2">
-                    <input type="url" class="form-control input-link mb-2" placeholder="URL de direcionamento (opcional)">
-                    <button type="button" class="btn btn-danger btn-remover">Remover</button>
-                  </div>
+	                <div class="row g-3">
+	                  <div class="col-md-3">
+	                    <label class="form-label small text-muted">Desktop</label>
+	                    <img class="preview preview-desktop img-fluid rounded border mb-2" src="/uploads/anuncios/regioes/1774637770227-851750240.png" />
+	                    <input type="file" class="form-control input-imagem mb-2" accept="image/*">
+	                  </div>
+	                  <div class="col-md-3">
+	                    <label class="form-label small text-muted">Mobile</label>
+	                    <img class="preview preview-mobile img-fluid rounded border mb-2" src="/uploads/anuncios/regioes/1774637770227-851750240.png" />
+	                    <input type="file" class="form-control input-imagem-mobile mb-2" accept="image/*">
+	                  </div>
+	                  <div class="col-md-6">
+	                    <input type="url" class="form-control input-link mb-2" placeholder="URL de direcionamento (opcional)">
+	                    <button type="button" class="btn btn-danger btn-remover">Remover</button>
+	                  </div>
                 </div>
               </div>
             </template>
@@ -1388,18 +1495,26 @@ carregarBannersAdmin();
               const template = document.getElementById("templateRegiao");
               const clone = template.content.cloneNode(true);
               const item = clone.querySelector(".slide-item");
-              const inputId = item.querySelector(".input-id");
-              const inputImagem = item.querySelector(".input-imagem");
-              const inputLink = item.querySelector(".input-link");
-              const preview = item.querySelector(".preview");
-              const btnRemover = item.querySelector(".btn-remover");
-              if (dados.id) inputId.value = dados.id;
-              if (dados.imagem) preview.src = dados.imagem;
-              if (dados.link) inputLink.value = dados.link;
-              inputImagem.addEventListener("change", () => {
-                const file = inputImagem.files[0];
-                if (file) preview.src = URL.createObjectURL(file);
-              });
+	              const inputId = item.querySelector(".input-id");
+	              const inputImagem = item.querySelector(".input-imagem");
+	              const inputImagemMobile = item.querySelector(".input-imagem-mobile");
+	              const inputLink = item.querySelector(".input-link");
+	              const preview = item.querySelector(".preview-desktop");
+	              const previewMobile = item.querySelector(".preview-mobile");
+	              const btnRemover = item.querySelector(".btn-remover");
+	              if (dados.id) inputId.value = dados.id;
+	              if (dados.imagem) preview.src = dados.imagem;
+	              if (dados.imagemMobile) previewMobile.src = dados.imagemMobile;
+	              else if (dados.imagem) previewMobile.src = dados.imagem;
+	              if (dados.link) inputLink.value = dados.link;
+	              inputImagem.addEventListener("change", () => {
+	                const file = inputImagem.files[0];
+	                if (file) preview.src = URL.createObjectURL(file);
+	              });
+	              inputImagemMobile.addEventListener("change", () => {
+	                const file = inputImagemMobile.files[0];
+	                if (file) previewMobile.src = URL.createObjectURL(file);
+	              });
               btnRemover.addEventListener("click", async () => {
                 const id = inputId.value;
                 if (!id) { item.remove(); verificarEmptyState(); return; }
@@ -1427,10 +1542,11 @@ carregarBannersAdmin();
                 empty.classList.add("d-none");
                 imagens.forEach(img => {
                   adicionarImagemRegiao({
-                    id: img.id,
-                    imagem: `/uploads/anuncios/${img.imagem}`,
-                    link: img.link || ""
-                  });
+	                    id: img.id,
+	                    imagem: `/uploads/anuncios/${img.imagem}`,
+	                    imagemMobile: img.imagem_mobile ? `/uploads/anuncios/${img.imagem_mobile}` : "",
+	                    link: img.link || ""
+	                  });
                 });
               } catch (err) { console.error("Erro ao carregar imagens:", err); }
             }
@@ -1444,14 +1560,18 @@ carregarBannersAdmin();
               formData.append("cidade", cidade);
               itens.forEach(item => {
                 const id = item.querySelector(".input-id").value;
-                const fileInput = item.querySelector(".input-imagem");
-                const linkInput = item.querySelector(".input-link");
-                const file = fileInput.files[0];
-                formData.append("ids[]", id || "");
-                formData.append("temImagem[]", file ? "true" : "false");
-                formData.append("links[]", linkInput.value.trim());
-                if (file) formData.append("imagens", file);
-              });
+	                const fileInput = item.querySelector(".input-imagem");
+	                const fileInputMobile = item.querySelector(".input-imagem-mobile");
+	                const linkInput = item.querySelector(".input-link");
+	                const file = fileInput.files[0];
+	                const fileMobile = fileInputMobile.files[0];
+	                formData.append("ids[]", id || "");
+	                formData.append("temImagem[]", file ? "true" : "false");
+	                formData.append("temImagemMobile[]", fileMobile ? "true" : "false");
+	                formData.append("links[]", linkInput.value.trim());
+	                if (file) formData.append("imagens", file);
+	                if (fileMobile) formData.append("imagensMobile", fileMobile);
+	              });
               try {
                 const res = await fetch(API_SALVAR_CIDADES, { method: "POST", body: formData });
                 const json = await res.json();
@@ -1532,37 +1652,44 @@ carregarBannersAdmin();
           </div>
 
           <template id="templateSlide">
-            <div class="card slide-item border">
-              <input type="hidden" class="input-id">
-              <div class="card-body">
-                <div class="row g-3 align-items-center">
-                  <div class="col-md-3 text-center">
-                    <img class="preview img-fluid rounded mb-2 border" style="max-height:120px; object-fit:cover;">
-                    <input type="file" class="form-control input-imagem" accept="image/*">
-                    <small class="text-muted">Nova imagem (opcional)</small>
-                  </div>
-                  <div class="col-md-7">
-                    <input type="text" class="form-control mb-2 input-titulo" placeholder="Título exibido sobre a imagem">
-                    <input type="text" class="form-control mb-2 input-descricao" placeholder="Descrição">
-                    <input type="text" class="form-control mb-3 input-link" placeholder="Link ao clicar">
-                    <div class="d-flex align-items-center gap-4">
-                      <div class="form-check">
-                        <input class="form-check-input input-ativo" type="checkbox" checked>
-                        <label class="form-check-label">Visível no site</label>
+	            <div class="card slide-item home-carousel-card border">
+	              <input type="hidden" class="input-id">
+	              <div class="card-body">
+	                <div class="home-carousel-grid">
+		              <div class="home-carousel-media-grid">
+		                  <div class="home-carousel-media">
+		                    <label class="form-label small text-muted">Desktop</label>
+		                    <img class="preview preview-desktop img-fluid rounded mb-2 border" style="max-height:120px; object-fit:cover;">
+		                    <input type="file" class="form-control input-imagem" accept="image/*">
+		                    <small class="text-muted">Nova imagem desktop</small>
+		                  </div>
+		                  <div class="home-carousel-media">
+		                    <label class="form-label small text-muted">Mobile</label>
+		                    <img class="preview preview-mobile img-fluid rounded mb-2 border" style="max-height:120px; object-fit:cover;">
+		                    <input type="file" class="form-control input-imagem-mobile" accept="image/*">
+		                    <small class="text-muted">Nova imagem mobile</small>
+		                  </div>
+		              </div>
+		                  <div class="home-carousel-fields">
+	                    <input type="text" class="form-control mb-2 input-titulo" placeholder="Título exibido sobre a imagem">
+	                    <input type="text" class="form-control mb-2 input-descricao" placeholder="Descrição">
+	                    <input type="text" class="form-control mb-3 input-link" placeholder="Link ao clicar">
+	                    <div class="home-carousel-options">
+	                      <div class="form-check">
+	                        <input class="form-check-input input-ativo" type="checkbox" checked>
+	                        <label class="form-check-label">Visível no site</label>
                       </div>
                       <div>
                         <label class="form-label mb-0">Ordem</label>
                         <input type="number" class="form-control input-ordem" value="0" style="width:90px;">
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-md-2">
-                    <div class="d-grid gap-2">
-                      <button type="button" class="btn btn-outline-danger btn-remover">Excluir</button>
-                      <small class="text-muted text-center">Marcar para remover</small>
-                    </div>
-                  </div>
-                </div>
+	                      </div>
+	                    </div>
+	                  </div>
+		                  <div class="home-carousel-actions">
+	                      <button type="button" class="btn btn-outline-danger btn-remover">Excluir</button>
+	                      <small class="text-muted text-center">Marcar para remover</small>
+	                  </div>
+	                </div>
               </div>
             </div>
           </template>

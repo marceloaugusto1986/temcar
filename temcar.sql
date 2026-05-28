@@ -131,6 +131,7 @@ CREATE TABLE `cidades` (
   `estado` varchar(100) NOT NULL,
   `descricao` text,
   `imagem` varchar(255) DEFAULT NULL,
+  `imagem_mobile` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -3973,6 +3974,7 @@ CREATE TABLE `fale_conosco_blocos` (
 CREATE TABLE `home_carousel_imagens` (
   `id` int NOT NULL,
   `imagem` varchar(255) NOT NULL,
+  `imagem_mobile` varchar(255) DEFAULT NULL,
   `titulo` varchar(150) DEFAULT NULL,
   `descricao` varchar(255) DEFAULT NULL,
   `link` varchar(255) DEFAULT NULL,
@@ -4036,6 +4038,7 @@ CREATE TABLE `regioes_imagens` (
   `id` int NOT NULL,
   `cidade` varchar(150) NOT NULL,
   `imagem` varchar(255) NOT NULL,
+  `imagem_mobile` varchar(255) DEFAULT NULL,
   `link` varchar(500) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

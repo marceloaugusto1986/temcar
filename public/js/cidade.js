@@ -386,6 +386,7 @@ async function carregarBannersCidade() {
         const banners = (await res.json())
             .map(banner => ({
                 src: obterUrlBannerCidade(banner.imagem),
+                srcMobile: obterUrlBannerCidade(banner.imagem_mobile || banner.imagem),
                 link: normalizarUrlDirecionamento(banner.link)
             }))
             .filter(banner => banner.src)
@@ -398,13 +399,16 @@ async function carregarBannersCidade() {
         wrapper.innerHTML = banners.map((banner, index) => `
             <div class="swiper-slide">
                 ${banner.link ? `<a href="${escaparHtml(banner.link)}" class="cidade-banner-link">` : ""}
-                    <img
-                        src="${escaparHtml(banner.src)}"
-                        class="cidade-banner-img"
-                        alt="Banner de ${escaparHtml(obterNomeCidadeAtual())}${index > 0 ? ` ${index + 1}` : ""}"
-                        loading="${index === 0 ? "eager" : "lazy"}"
-                        onerror="this.closest('.swiper-slide').remove()"
-                    >
+                    <picture class="cidade-banner-picture">
+                        <source media="(max-width: 768px)" srcset="${escaparHtml(banner.srcMobile)}">
+                        <img
+                            src="${escaparHtml(banner.src)}"
+                            class="cidade-banner-img"
+                            alt="Banner de ${escaparHtml(obterNomeCidadeAtual())}${index > 0 ? ` ${index + 1}` : ""}"
+                            loading="${index === 0 ? "eager" : "lazy"}"
+                            onerror="this.closest('.swiper-slide').remove()"
+                        >
+                    </picture>
                 ${banner.link ? "</a>" : ""}
             </div>
         `).join("")

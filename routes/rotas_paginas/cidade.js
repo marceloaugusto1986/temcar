@@ -15,19 +15,44 @@ function capitalize(texto) {
   return (texto || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
-async function garantirColunaLinkRegioesImagens() {
+async function garantirColunasRegioesImagens() {
   const [colunas] = await db.query(`
     SELECT COLUMN_NAME
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE()
       AND TABLE_NAME = 'regioes_imagens'
-      AND COLUMN_NAME = 'link'
+  `);
+
+  const nomes = colunas.map(coluna => coluna.COLUMN_NAME);
+
+  if (!nomes.includes('link')) {
+    await db.query(`
+      ALTER TABLE regioes_imagens
+      ADD COLUMN link varchar(500) DEFAULT NULL AFTER imagem
+    `);
+  }
+
+  if (!nomes.includes('imagem_mobile')) {
+    await db.query(`
+      ALTER TABLE regioes_imagens
+      ADD COLUMN imagem_mobile varchar(255) DEFAULT NULL AFTER imagem
+    `);
+  }
+}
+
+async function garantirColunaImagemMobileCidades() {
+  const [colunas] = await db.query(`
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'cidades'
+      AND COLUMN_NAME = 'imagem_mobile'
   `);
 
   if (!colunas.length) {
     await db.query(`
-      ALTER TABLE regioes_imagens
-      ADD COLUMN link varchar(500) DEFAULT NULL AFTER imagem
+      ALTER TABLE cidades
+      ADD COLUMN imagem_mobile varchar(255) DEFAULT NULL AFTER imagem
     `);
   }
 }
@@ -125,19 +150,29 @@ router.get("/veiculos/:estado", async (req, res) => {
 router.get("/api/cidades/:slug/:uf/banners", async (req, res) => {
   try {
     const { slug, uf } = req.params;
+    await garantirColunaImagemMobileCidades();
     const [cidades] = await db.query(`SELECT * FROM cidades`);
     const cidade = cidades.find(c =>
       slugify(c.nome) === slug && c.estado.toLowerCase() === uf.toLowerCase()
     );
     if (!cidade) return res.status(404).json({ message: "Cidade não encontrada" });
-    await garantirColunaLinkRegioesImagens();
+    await garantirColunasRegioesImagens();
     const [banners] = await db.query(
-      `SELECT id, imagem, link FROM regioes_imagens WHERE cidade = ? ORDER BY id ASC`,
+      `SELECT id, imagem, imagem_mobile, link FROM regioes_imagens WHERE cidade = ? ORDER BY id ASC`,
       [cidade.nome]
     );
-    const imagens = banners.map(b => ({ id: b.id, imagem: `/uploads/anuncios/${b.imagem}`, link: b.link || '' }));
-    if (!imagens.length && cidade.imagem) {
-      imagens.push({ id: `cidade-${cidade.id}`, imagem: cidade.imagem });
+    const imagens = banners.map(b => ({
+      id: b.id,
+      imagem: `/uploads/anuncios/${b.imagem}`,
+      imagem_mobile: b.imagem_mobile ? `/uploads/anuncios/${b.imagem_mobile}` : null,
+      link: b.link || ''
+    }));
+    if (!imagens.length && (cidade.imagem || cidade.imagem_mobile)) {
+      imagens.push({
+        id: `cidade-${cidade.id}`,
+        imagem: cidade.imagem || cidade.imagem_mobile,
+        imagem_mobile: cidade.imagem_mobile || null
+      });
     }
     res.json(imagens);
   } catch (error) {

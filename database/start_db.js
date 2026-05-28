@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS anuncios_imagens (
 CREATE TABLE IF NOT EXISTS home_carousel_imagens (
     id INT AUTO_INCREMENT PRIMARY KEY,
     imagem VARCHAR(255) NOT NULL,
+    imagem_mobile VARCHAR(255),
     titulo VARCHAR(150),
     descricao VARCHAR(255),
     link VARCHAR(255),
@@ -323,6 +324,8 @@ CREATE TABLE IF NOT EXISTS regioes_imagens (
   id INT AUTO_INCREMENT PRIMARY KEY,
   cidade VARCHAR(150) NOT NULL,
   imagem VARCHAR(255) NOT NULL,
+  imagem_mobile VARCHAR(255),
+  link VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 `;
@@ -336,6 +339,7 @@ CREATE TABLE IF NOT EXISTS cidades (
     estado VARCHAR(100) NOT NULL,
     descricao TEXT,
     imagem VARCHAR(255),
+    imagem_mobile VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

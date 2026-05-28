@@ -45,6 +45,16 @@
             object-fit: cover;
         }
 
+        .revenda-page .btn-abrir-filtro,
+        .revenda-page .barra_lateral,
+        .revenda-page .overlay {
+            display: none !important;
+        }
+
+        .revenda-page .conteudo {
+            width: 100%;
+        }
+
 
         @media(max-width: 576px) {
             .vehicle-card {
@@ -58,7 +68,7 @@
     </style>
 </head>
 
-<body>
+    <body class="revenda-page">
 
     <%- include('./reutilizavel/header-public') %>
 

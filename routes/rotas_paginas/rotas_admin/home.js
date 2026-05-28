@@ -7,19 +7,61 @@ const fs = require("fs");
 const path = require("path");
 const upload = require("../../../middlewares/uploadImagens");
 
-async function garantirColunaLinkRegioesImagens() {
+async function garantirColunasRegioesImagens() {
   const [colunas] = await db.query(`
     SELECT COLUMN_NAME
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE()
       AND TABLE_NAME = 'regioes_imagens'
-      AND COLUMN_NAME = 'link'
+  `);
+
+  const nomes = colunas.map(coluna => coluna.COLUMN_NAME);
+
+  if (!nomes.includes('link')) {
+    await db.query(`
+      ALTER TABLE regioes_imagens
+      ADD COLUMN link varchar(500) DEFAULT NULL AFTER imagem
+    `);
+  }
+
+  if (!nomes.includes('imagem_mobile')) {
+    await db.query(`
+      ALTER TABLE regioes_imagens
+      ADD COLUMN imagem_mobile varchar(255) DEFAULT NULL AFTER imagem
+    `);
+  }
+}
+
+async function garantirColunaImagemMobileCidades() {
+  const [colunas] = await db.query(`
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'cidades'
+      AND COLUMN_NAME = 'imagem_mobile'
   `);
 
   if (!colunas.length) {
     await db.query(`
-      ALTER TABLE regioes_imagens
-      ADD COLUMN link varchar(500) DEFAULT NULL AFTER imagem
+      ALTER TABLE cidades
+      ADD COLUMN imagem_mobile varchar(255) DEFAULT NULL AFTER imagem
+    `);
+  }
+}
+
+async function garantirColunaImagemMobileHomeCarousel() {
+  const [colunas] = await db.query(`
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'home_carousel_imagens'
+      AND COLUMN_NAME = 'imagem_mobile'
+  `);
+
+  if (!colunas.length) {
+    await db.query(`
+      ALTER TABLE home_carousel_imagens
+      ADD COLUMN imagem_mobile varchar(255) DEFAULT NULL AFTER imagem
     `);
   }
 }
@@ -340,6 +382,8 @@ router.put('/api/admin/reprovar-anuncio/:id', checkAuth('private'), async (req, 
 
 router.get("/api/admin/home/carrossel", async (req, res) => {
   try {
+    await garantirColunaImagemMobileHomeCarousel();
+
     const [slides] = await db.query(`
       SELECT * FROM home_carousel_imagens
       ORDER BY ordem ASC
@@ -354,7 +398,7 @@ router.get("/api/admin/home/carrossel", async (req, res) => {
 
 router.post(
   "/api/admin/home/carrossel",
-  upload.array("imagens", 10),
+  upload.any(),
   async (req, res) => {
     try {
       const {
@@ -364,28 +408,40 @@ router.post(
         links = [],
         ordens = [],
         ativos = [],
-        temImagem = []
+        temImagem = [],
+        temImagemMobile = []
       } = req.body;
 
       let fileIndex = 0;
+      let fileMobileIndex = 0;
+      const arquivos = Array.isArray(req.files) ? req.files : [];
+      const imagensDesktop = arquivos.filter(file => file.fieldname === "imagens");
+      const imagensMobile = arquivos.filter(file => file.fieldname === "imagensMobile");
+
+      await garantirColunaImagemMobileHomeCarousel();
 
       for (let i = 0; i < titulos.length; i++) {
         const id = ids[i];
         const possuiNovaImagem = temImagem[i] === "true";
-        const novaImagem = possuiNovaImagem ? req.files[fileIndex++] : null;
+        const possuiNovaImagemMobile = temImagemMobile[i] === "true";
+        const novaImagem = possuiNovaImagem ? imagensDesktop[fileIndex++] : null;
+        const novaImagemMobile = possuiNovaImagemMobile ? imagensMobile[fileMobileIndex++] : null;
 
         /* ==========================
            ATUALIZAR EXISTENTE
         ========================== */
         if (id) {
           let imagemFinal = null;
+          let imagemMobileFinal = null;
+
+          const [[slideAtual]] = (novaImagem || novaImagemMobile)
+            ? await db.query(
+              "SELECT imagem, imagem_mobile FROM home_carousel_imagens WHERE id = ?",
+              [id]
+            )
+            : [[]];
 
           if (novaImagem) {
-            const [[slideAtual]] = await db.query(
-              "SELECT imagem FROM home_carousel_imagens WHERE id = ?",
-              [id]
-            );
-
             if (slideAtual?.imagem) {
               const caminho = path.join(
                 "public/uploads/anuncios",
@@ -400,11 +456,27 @@ router.post(
             imagemFinal = novaImagem.filename;
           }
 
+          if (novaImagemMobile) {
+            if (slideAtual?.imagem_mobile) {
+              const caminho = path.join(
+                "public/uploads/anuncios",
+                slideAtual.imagem_mobile
+              );
+
+              if (fs.existsSync(caminho)) {
+                fs.unlinkSync(caminho);
+              }
+            }
+
+            imagemMobileFinal = novaImagemMobile.filename;
+          }
+
           await db.query(
             `
             UPDATE home_carousel_imagens
             SET
               imagem = COALESCE(?, imagem),
+              imagem_mobile = COALESCE(?, imagem_mobile),
               titulo = ?,
               descricao = ?,
               link = ?,
@@ -414,6 +486,7 @@ router.post(
             `,
             [
               imagemFinal,
+              imagemMobileFinal,
               titulos[i],
               descricoes[i],
               links[i],
@@ -432,11 +505,12 @@ router.post(
           await db.query(
             `
             INSERT INTO home_carousel_imagens
-            (imagem, titulo, descricao, link, ordem, ativo)
-            VALUES (?, ?, ?, ?, ?, ?)
+            (imagem, imagem_mobile, titulo, descricao, link, ordem, ativo)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             `,
             [
               novaImagem.filename,
+              novaImagemMobile?.filename || null,
               titulos[i],
               descricoes[i],
               links[i],
@@ -460,8 +534,10 @@ router.delete("/api/admin/home/carrossel/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    await garantirColunaImagemMobileHomeCarousel();
+
     const [[slide]] = await db.query(
-      "SELECT imagem FROM home_carousel_imagens WHERE id = ?",
+      "SELECT imagem, imagem_mobile FROM home_carousel_imagens WHERE id = ?",
       [id]
     );
 
@@ -477,6 +553,17 @@ router.delete("/api/admin/home/carrossel/:id", async (req, res) => {
 
       if (fs.existsSync(caminho)) {
         fs.unlinkSync(caminho);
+      }
+    }
+
+    if (slide?.imagem_mobile) {
+      const caminhoMobile = path.join(
+        "public/uploads/anuncios",
+        slide.imagem_mobile
+      );
+
+      if (fs.existsSync(caminhoMobile)) {
+        fs.unlinkSync(caminhoMobile);
       }
     }
 
@@ -1366,7 +1453,7 @@ router.get("/api/admin/regioes/imagens", async (req, res) => {
       return res.status(400).json({ message: "Cidade é obrigatória" });
     }
 
-    await garantirColunaLinkRegioesImagens();
+    await garantirColunasRegioesImagens();
 
     const [imagens] = await db.query(`
       SELECT *
@@ -1385,13 +1472,17 @@ router.get("/api/admin/regioes/imagens", async (req, res) => {
 
 router.post(
   "/api/admin/regioes/imagens",
-  upload.array("imagens", 10),
+  upload.fields([
+    { name: "imagens", maxCount: 10 },
+    { name: "imagensMobile", maxCount: 10 }
+  ]),
   async (req, res) => {
     try {
       const {
         cidade,
         ids = [],
         temImagem = [],
+        temImagemMobile = [],
         links = []
       } = req.body;
 
@@ -1400,16 +1491,22 @@ router.post(
       }
 
       let fileIndex = 0;
+      let fileMobileIndex = 0;
       const listaIds = Array.isArray(ids) ? ids : [ids];
       const listaTemImagem = Array.isArray(temImagem) ? temImagem : [temImagem];
+      const listaTemImagemMobile = Array.isArray(temImagemMobile) ? temImagemMobile : [temImagemMobile];
       const listaLinks = Array.isArray(links) ? links : [links];
+      const imagensDesktop = req.files?.imagens || [];
+      const imagensMobile = req.files?.imagensMobile || [];
 
-      await garantirColunaLinkRegioesImagens();
+      await garantirColunasRegioesImagens();
 
       for (let i = 0; i < listaIds.length; i++) {
         const id = listaIds[i];
         const possuiNovaImagem = listaTemImagem[i] === "true";
-        const novaImagem = possuiNovaImagem ? req.files[fileIndex++] : null;
+        const possuiNovaImagemMobile = listaTemImagemMobile[i] === "true";
+        const novaImagem = possuiNovaImagem ? imagensDesktop[fileIndex++] : null;
+        const novaImagemMobile = possuiNovaImagemMobile ? imagensMobile[fileMobileIndex++] : null;
         const link = String(listaLinks[i] || "").trim() || null;
 
         /* ==========================
@@ -1417,13 +1514,16 @@ router.post(
         ========================== */
         if (id) {
           let imagemFinal = null;
+          let imagemMobileFinal = null;
+
+          const [[imgAtual]] = (novaImagem || novaImagemMobile)
+            ? await db.query(
+              "SELECT imagem, imagem_mobile FROM regioes_imagens WHERE id = ?",
+              [id]
+            )
+            : [[]];
 
           if (novaImagem) {
-            const [[imgAtual]] = await db.query(
-              "SELECT imagem FROM regioes_imagens WHERE id = ?",
-              [id]
-            );
-
             if (imgAtual?.imagem) {
               const caminho = path.join(
                 "public/uploads/anuncios",
@@ -1438,14 +1538,30 @@ router.post(
             imagemFinal = novaImagem.filename;
           }
 
+          if (novaImagemMobile) {
+            if (imgAtual?.imagem_mobile) {
+              const caminho = path.join(
+                "public/uploads/anuncios",
+                imgAtual.imagem_mobile
+              );
+
+              if (fs.existsSync(caminho)) {
+                fs.unlinkSync(caminho);
+              }
+            }
+
+            imagemMobileFinal = novaImagemMobile.filename;
+          }
+
           await db.query(
             `
             UPDATE regioes_imagens
             SET imagem = COALESCE(?, imagem),
+                imagem_mobile = COALESCE(?, imagem_mobile),
                 link = ?
             WHERE id = ?
             `,
-            [imagemFinal, link, id]
+            [imagemFinal, imagemMobileFinal, link, id]
           );
 
         /* ==========================
@@ -1456,10 +1572,10 @@ router.post(
 
           await db.query(
             `
-            INSERT INTO regioes_imagens (cidade, imagem, link)
-            VALUES (?, ?, ?)
+            INSERT INTO regioes_imagens (cidade, imagem, imagem_mobile, link)
+            VALUES (?, ?, ?, ?)
             `,
-            [cidade, novaImagem.filename, link]
+            [cidade, novaImagem.filename, novaImagemMobile?.filename || null, link]
           );
         }
       }
@@ -1477,8 +1593,10 @@ router.delete("/api/admin/regioes/imagens/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    await garantirColunasRegioesImagens();
+
     const [[imagem]] = await db.query(
-      "SELECT imagem FROM regioes_imagens WHERE id = ?",
+      "SELECT imagem, imagem_mobile FROM regioes_imagens WHERE id = ?",
       [id]
     );
 
@@ -1497,6 +1615,17 @@ router.delete("/api/admin/regioes/imagens/:id", async (req, res) => {
       }
     }
 
+    if (imagem.imagem_mobile) {
+      const caminhoMobile = path.join(
+        "public/uploads/anuncios",
+        imagem.imagem_mobile
+      );
+
+      if (fs.existsSync(caminhoMobile)) {
+        fs.unlinkSync(caminhoMobile);
+      }
+    }
+
     await db.query("DELETE FROM regioes_imagens WHERE id = ?", [id]);
 
     res.json({ message: "Imagem excluída com sucesso!" });
@@ -1510,13 +1639,16 @@ router.delete("/api/admin/regioes/imagens/:id", async (req, res) => {
 /* Cidades */
 router.get("/api/cidades", async (req, res) => {
   try {
+    await garantirColunaImagemMobileCidades();
+
     const [cidades] = await db.query(`
       SELECT 
         id,
         nome,
         estado,
         descricao,
-        imagem
+        imagem,
+        imagem_mobile
       FROM cidades
       ORDER BY nome ASC
     `);
@@ -1531,7 +1663,10 @@ router.get("/api/cidades", async (req, res) => {
 
 router.post(
   "/api/cidades",
-  upload.single("imagem"),
+  upload.fields([
+    { name: "imagem", maxCount: 1 },
+    { name: "imagem_mobile", maxCount: 1 }
+  ]),
   async (req, res) => {
     try {
       const { nome, estado, descricao } = req.body;
@@ -1540,12 +1675,15 @@ router.post(
         return res.status(400).json({ message: "Nome e estado são obrigatórios" });
       }
 
-      const imagem = req.file ? `/uploads/anuncios/${req.file.filename}` : null;
+      await garantirColunaImagemMobileCidades();
+
+      const imagem = req.files?.imagem?.[0] ? `/uploads/anuncios/${req.files.imagem[0].filename}` : null;
+      const imagemMobile = req.files?.imagem_mobile?.[0] ? `/uploads/anuncios/${req.files.imagem_mobile[0].filename}` : null;
 
       const [result] = await db.query(`
-        INSERT INTO cidades (nome, estado, descricao, imagem)
-        VALUES (?, ?, ?, ?)
-      `, [nome, estado, descricao, imagem]);
+        INSERT INTO cidades (nome, estado, descricao, imagem, imagem_mobile)
+        VALUES (?, ?, ?, ?, ?)
+      `, [nome, estado, descricao, imagem, imagemMobile]);
 
       return res.json({
         id: result.insertId,
@@ -1561,25 +1699,42 @@ router.post(
 
 router.put(
   "/api/cidades/:id",
-  upload.single("imagem"),
+  upload.fields([
+    { name: "imagem", maxCount: 1 },
+    { name: "imagem_mobile", maxCount: 1 }
+  ]),
   async (req, res) => {
     try {
       const { id } = req.params;
       const { nome, estado, descricao } = req.body;
 
+      await garantirColunaImagemMobileCidades();
+
       // busca imagem antiga
       const [[cidade]] = await db.query(`
-        SELECT imagem FROM cidades WHERE id = ?
+        SELECT imagem, imagem_mobile FROM cidades WHERE id = ?
       `, [id]);
 
       let novaImagem = cidade?.imagem;
+      let novaImagemMobile = cidade?.imagem_mobile;
 
-      if (req.file) {
-        novaImagem = `/uploads/cidades/${req.file.filename}`;
+      if (req.files?.imagem?.[0]) {
+        novaImagem = `/uploads/anuncios/${req.files.imagem[0].filename}`;
 
         // remove imagem antiga
         if (cidade?.imagem) {
           const caminho = path.join("public", cidade.imagem);
+          if (fs.existsSync(caminho)) {
+            fs.unlinkSync(caminho);
+          }
+        }
+      }
+
+      if (req.files?.imagem_mobile?.[0]) {
+        novaImagemMobile = `/uploads/anuncios/${req.files.imagem_mobile[0].filename}`;
+
+        if (cidade?.imagem_mobile) {
+          const caminho = path.join("public", cidade.imagem_mobile);
           if (fs.existsSync(caminho)) {
             fs.unlinkSync(caminho);
           }
@@ -1592,9 +1747,10 @@ router.put(
           nome = ?,
           estado = ?,
           descricao = ?,
-          imagem = ?
+          imagem = ?,
+          imagem_mobile = ?
         WHERE id = ?
-      `, [nome, estado, descricao, novaImagem, id]);
+      `, [nome, estado, descricao, novaImagem, novaImagemMobile, id]);
 
       return res.json({ message: "Cidade atualizada com sucesso" });
 
@@ -1609,12 +1765,21 @@ router.delete("/api/cidades/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    await garantirColunaImagemMobileCidades();
+
     const [[cidade]] = await db.query(`
-      SELECT imagem FROM cidades WHERE id = ?
+      SELECT imagem, imagem_mobile FROM cidades WHERE id = ?
     `, [id]);
 
     if (cidade?.imagem) {
       const caminho = path.join("public", cidade.imagem);
+      if (fs.existsSync(caminho)) {
+        fs.unlinkSync(caminho);
+      }
+    }
+
+    if (cidade?.imagem_mobile) {
+      const caminho = path.join("public", cidade.imagem_mobile);
       if (fs.existsSync(caminho)) {
         fs.unlinkSync(caminho);
       }
@@ -1691,6 +1856,103 @@ const uploadBanner = multer({
     cb(null, file.mimetype.startsWith("image/"));
   },
   limits: { fileSize: 5 * 1024 * 1024 }
+});
+
+const uploadCapaUsuario = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = "public/uploads/logos";
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname);
+      cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    cb(null, file.mimetype.startsWith("image/"));
+  },
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
+router.get("/api/admin/usuarios/:id/capa", checkAuth('private'), async (req, res) => {
+  try {
+    const [[usuario]] = await db.query(
+      "SELECT id, tipo FROM usuarios WHERE id = ? AND id > 1 LIMIT 1",
+      [req.params.id]
+    );
+
+    if (!usuario) {
+      return res.status(404).json({ message: "Usuário não encontrado." });
+    }
+
+    if (usuario.tipo !== "revenda") {
+      return res.status(400).json({ message: "Imagem de capa disponível apenas para revendas." });
+    }
+
+    const [[logo]] = await db.query(
+      "SELECT logo FROM revendas_logos WHERE usuario_id = ? LIMIT 1",
+      [req.params.id]
+    );
+
+    res.json({ capa: logo?.logo || "/icones/logo_pad_revenda.jpg" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Erro interno" });
+  }
+});
+
+router.put("/api/admin/usuarios/:id/capa", checkAuth('private'), uploadCapaUsuario.single("capa"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Envie uma imagem." });
+    }
+
+    const [[usuario]] = await db.query(
+      "SELECT id, tipo FROM usuarios WHERE id = ? AND id > 1 LIMIT 1",
+      [req.params.id]
+    );
+
+    if (!usuario) {
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ message: "Usuário não encontrado." });
+    }
+
+    if (usuario.tipo !== "revenda") {
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: "Imagem de capa disponível apenas para revendas." });
+    }
+
+    const capaPath = `/uploads/logos/${req.file.filename}`;
+    const [[capaAtual]] = await db.query(
+      "SELECT logo FROM revendas_logos WHERE usuario_id = ? LIMIT 1",
+      [req.params.id]
+    );
+
+    if (capaAtual?.logo && !capaAtual.logo.includes("logo_pad_revenda.jpg")) {
+      const caminhoAntigo = path.join("public", capaAtual.logo);
+      if (fs.existsSync(caminhoAntigo)) fs.unlinkSync(caminhoAntigo);
+    }
+
+    if (capaAtual) {
+      await db.query(
+        "UPDATE revendas_logos SET logo = ? WHERE usuario_id = ?",
+        [capaPath, req.params.id]
+      );
+    } else {
+      await db.query(
+        "INSERT INTO revendas_logos (usuario_id, logo) VALUES (?, ?)",
+        [req.params.id, capaPath]
+      );
+    }
+
+    res.json({ message: "Imagem de capa atualizada.", capa: capaPath });
+  } catch (e) {
+    if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    console.error(e);
+    res.status(500).json({ message: "Erro interno" });
+  }
 });
 
 router.get("/api/admin/banners", checkAuth('private'), async (req, res) => {

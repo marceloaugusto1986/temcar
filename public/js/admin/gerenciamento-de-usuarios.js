@@ -54,9 +54,9 @@ async function verUsuario(id) {
 
     <div class="row g-4">
 
-  <!-- 🔹 DADOS BÁSICOS -->
-  <div class="col-12">
-    <div class="border rounded-3 p-4 bg-white shadow-sm">
+	  <!-- 🔹 DADOS BÁSICOS -->
+	  <div class="col-12">
+	    <div class="border rounded-3 p-4 bg-white shadow-sm">
       <h6 class="text-uppercase text-muted mb-3">Informações Básicas</h6>
 
       <div class="row g-3">
@@ -90,11 +90,49 @@ async function verUsuario(id) {
           </div>
         </div>
       </div>
-    </div>
-  </div>
+	    </div>
+	  </div>
 
-  <!-- 🔹 CONTATO -->
-  <div class="col-12">
+	  ${usuario.tipo === 'revenda' ? `
+	  <div class="col-12">
+	    <div class="border rounded-3 p-4 bg-white shadow-sm">
+	      <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-3">
+	        <h6 class="text-uppercase text-muted mb-0">Imagem de capa</h6>
+	        <a id="btnDownloadCapaUsuario" class="btn btn-sm btn-outline-secondary d-none" href="#" download>
+	          Baixar imagem
+	        </a>
+	      </div>
+
+	      <div class="row g-3 align-items-end">
+	        <div class="col-sm-12 col-md-4">
+	          <img id="imagemCapaUsuario"
+	            src="/icones/logo_pad_revenda.jpg"
+	            alt="Imagem de capa"
+	            class="img-fluid rounded border bg-light"
+	            style="width:100%;max-width:260px;aspect-ratio:16/9;object-fit:contain;">
+	        </div>
+
+	        <div class="col-sm-12 col-md-5">
+	          <label class="form-label small text-muted">Nova imagem</label>
+	          <input type="file" id="inputCapaUsuario" class="form-control" accept="image/*">
+	        </div>
+
+	        <div class="col-sm-12 col-md-3">
+	          <button class="btn btn-danger w-100" onclick="uploadCapaUsuario()">
+	            Enviar imagem
+	          </button>
+	        </div>
+
+	        <div class="col-12">
+	          <div id="capaFeedback" class="small"></div>
+	        </div>
+	      </div>
+	    </div>
+	  </div>
+	  ` : ''}
+	
+	  <!-- 🔹 CONTATO -->
+	  <div class="col-12">
     <div class="border rounded-3 p-4 bg-white shadow-sm">
       <h6 class="text-uppercase text-muted mb-3">Contato</h6>
 
@@ -193,8 +231,91 @@ async function verUsuario(id) {
 
 </div>
 
-  `;
-  carregarAnunciosDoUsuario(id);
+	  `;
+	  if (usuario.tipo === 'revenda') {
+	    carregarCapaUsuario(id);
+	  }
+	  carregarAnunciosDoUsuario(id);
+	}
+
+async function carregarCapaUsuario(usuarioId) {
+  const img = document.getElementById('imagemCapaUsuario');
+  const download = document.getElementById('btnDownloadCapaUsuario');
+  const feedback = document.getElementById('capaFeedback');
+
+  if (!img || !download) return;
+
+  try {
+    const response = await fetch(`/api/admin/usuarios/${usuarioId}/capa`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Erro ao carregar imagem.');
+    }
+
+    const capa = data.capa || '/icones/logo_pad_revenda.jpg';
+    img.src = capa;
+
+    if (capa && capa !== '/icones/logo_pad_revenda.jpg') {
+      download.href = capa;
+      download.classList.remove('d-none');
+    } else {
+      download.classList.add('d-none');
+    }
+
+    if (feedback) {
+      feedback.textContent = '';
+      feedback.className = 'small';
+    }
+  } catch (err) {
+    console.error(err);
+    if (feedback) {
+      feedback.textContent = 'Não foi possível carregar a imagem de capa.';
+      feedback.className = 'small text-danger';
+    }
+  }
+}
+
+async function uploadCapaUsuario() {
+  const input = document.getElementById('inputCapaUsuario');
+  const feedback = document.getElementById('capaFeedback');
+
+  if (!input?.files?.length) {
+    feedback.textContent = 'Selecione uma imagem para enviar.';
+    feedback.className = 'small text-danger';
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('capa', input.files[0]);
+
+  try {
+    feedback.textContent = 'Enviando imagem...';
+    feedback.className = 'small text-muted';
+
+    const response = await fetch(`/api/admin/usuarios/${usuarioAtualId}/capa`, {
+      method: 'PUT',
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      feedback.textContent = data.message || 'Erro ao enviar imagem.';
+      feedback.className = 'small text-danger';
+      return;
+    }
+
+    input.value = '';
+    feedback.textContent = 'Imagem atualizada com sucesso.';
+    feedback.className = 'small text-success';
+    carregarCapaUsuario(usuarioAtualId);
+
+  } catch (err) {
+    console.error(err);
+    feedback.textContent = 'Erro de comunicação com o servidor.';
+    feedback.className = 'small text-danger';
+  }
 }
 
 /* ALTERAR SENHA DO USUÁRIO */
