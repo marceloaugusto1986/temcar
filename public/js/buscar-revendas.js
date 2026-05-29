@@ -265,8 +265,7 @@ function criarCard(r) {
                 ${r.cidade} - ${r.estado}
             </div>
 
-            <button class="ver-estoque"
-                style="background:#C90B0C;color:#fff;border:1px solid #C90B0C">
+            <button class="ver-estoque" type="button">
                 Ver Estoque
             </button>
 

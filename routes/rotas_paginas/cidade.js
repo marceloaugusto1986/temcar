@@ -15,6 +15,12 @@ function capitalize(texto) {
   return (texto || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
+function obterUrlUpload(imagem) {
+  if (!imagem) return null;
+  if (imagem.startsWith('/')) return imagem;
+  return `/uploads/anuncios/${imagem}`;
+}
+
 async function garantirColunasRegioesImagens() {
   const [colunas] = await db.query(`
     SELECT COLUMN_NAME
@@ -163,8 +169,8 @@ router.get("/api/cidades/:slug/:uf/banners", async (req, res) => {
     );
     const imagens = banners.map(b => ({
       id: b.id,
-      imagem: `/uploads/anuncios/${b.imagem}`,
-      imagem_mobile: b.imagem_mobile ? `/uploads/anuncios/${b.imagem_mobile}` : null,
+      imagem: obterUrlUpload(b.imagem),
+      imagem_mobile: obterUrlUpload(b.imagem_mobile),
       link: b.link || ''
     }));
     if (!imagens.length && (cidade.imagem || cidade.imagem_mobile)) {

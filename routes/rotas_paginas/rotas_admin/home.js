@@ -66,6 +66,11 @@ async function garantirColunaImagemMobileHomeCarousel() {
   }
 }
 
+function obterListaCampo(body, nome) {
+  const valor = body[nome] ?? body[`${nome}[]`] ?? [];
+  return Array.isArray(valor) ? valor : [valor];
+}
+
 router.get('/home', checkAuth('private'), (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -1478,13 +1483,7 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const {
-        cidade,
-        ids = [],
-        temImagem = [],
-        temImagemMobile = [],
-        links = []
-      } = req.body;
+      const { cidade } = req.body;
 
       if (!cidade) {
         return res.status(400).json({ message: "Cidade é obrigatória" });
@@ -1492,10 +1491,10 @@ router.post(
 
       let fileIndex = 0;
       let fileMobileIndex = 0;
-      const listaIds = Array.isArray(ids) ? ids : [ids];
-      const listaTemImagem = Array.isArray(temImagem) ? temImagem : [temImagem];
-      const listaTemImagemMobile = Array.isArray(temImagemMobile) ? temImagemMobile : [temImagemMobile];
-      const listaLinks = Array.isArray(links) ? links : [links];
+      const listaIds = obterListaCampo(req.body, "ids");
+      const listaTemImagem = obterListaCampo(req.body, "temImagem");
+      const listaTemImagemMobile = obterListaCampo(req.body, "temImagemMobile");
+      const listaLinks = obterListaCampo(req.body, "links");
       const imagensDesktop = req.files?.imagens || [];
       const imagensMobile = req.files?.imagensMobile || [];
 
