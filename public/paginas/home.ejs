@@ -1446,6 +1446,12 @@
 						<script>
 							let swiperCidade = null;
 
+							function normalizarImagemRegiao(imagem) {
+								if (!imagem) return "";
+								if (/^https?:\/\//i.test(imagem) || imagem.startsWith("/")) return imagem;
+								return `/uploads/anuncios/${imagem}`;
+							}
+
 							async function carregarSliderCidade(cidade) {
 								try {
 									const res = await fetch(`/api/admin/regioes/imagens?cidade=${encodeURIComponent(cidade)}`);
@@ -1459,13 +1465,20 @@
 									imagens.forEach(img => {
 										const slide = document.createElement("div");
 										slide.classList.add("swiper-slide");
+										const imagemDesktop = normalizarImagemRegiao(img.imagem);
+										const imagemMobile = normalizarImagemRegiao(img.imagem_mobile || img.imagem);
 
 										slide.innerHTML = `
 							<div class="container-img-cidade">
-								<img 
-								src="/uploads/anuncios/${img.imagem}" 
-								class="img-cidade"
-								/>
+								<picture>
+									<source media="(max-width: 768px)" srcset="${imagemMobile}">
+									<img 
+									src="${imagemDesktop}" 
+									class="img-cidade"
+									alt="Banner de ${cidade}"
+									loading="lazy"
+									/>
+								</picture>
 							</div>
 							`;
 
