@@ -1,5 +1,77 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("formRevenda");
+    const selectCidadeAtendimento = document.getElementById("cidadeAtendimento");
+    const btnAdicionarCidade = document.getElementById("btnAdicionarCidade");
+    const listaCidadesAtendimento = document.getElementById("cidadesAtendimentoLista");
+    const cidadesSelecionadas = [];
+
+    function chaveCidade(cidade) {
+        return `${cidade.nome}|${cidade.estado}`.toLowerCase();
+    }
+
+    function renderizarCidadesAtendimento() {
+        if (!listaCidadesAtendimento) return;
+
+        listaCidadesAtendimento.innerHTML = "";
+
+        cidadesSelecionadas.forEach((cidade, index) => {
+            const item = document.createElement("span");
+            item.className = "cidade-atendimento-pill";
+            item.textContent = `${cidade.nome} / ${cidade.estado}`;
+
+            const remover = document.createElement("button");
+            remover.type = "button";
+            remover.setAttribute("aria-label", `Remover ${cidade.nome}`);
+            remover.textContent = "x";
+            remover.addEventListener("click", () => {
+                cidadesSelecionadas.splice(index, 1);
+                renderizarCidadesAtendimento();
+            });
+
+            item.appendChild(remover);
+            listaCidadesAtendimento.appendChild(item);
+        });
+    }
+
+    async function carregarCidadesAtendimento() {
+        if (!selectCidadeAtendimento) return;
+
+        try {
+            const response = await fetch("/api/cidades");
+            if (!response.ok) throw new Error("Erro ao carregar cidades");
+
+            const cidades = await response.json();
+
+            cidades
+                .sort((a, b) => `${a.nome} ${a.estado}`.localeCompare(`${b.nome} ${b.estado}`, "pt-BR"))
+                .forEach(cidade => {
+                    const option = document.createElement("option");
+                    option.value = JSON.stringify({ nome: cidade.nome, estado: cidade.estado });
+                    option.textContent = `${cidade.nome} / ${cidade.estado}`;
+                    selectCidadeAtendimento.appendChild(option);
+                });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    if (btnAdicionarCidade && selectCidadeAtendimento) {
+        btnAdicionarCidade.addEventListener("click", () => {
+            if (!selectCidadeAtendimento.value) return;
+
+            const cidade = JSON.parse(selectCidadeAtendimento.value);
+            const jaExiste = cidadesSelecionadas.some(item => chaveCidade(item) === chaveCidade(cidade));
+
+            if (!jaExiste) {
+                cidadesSelecionadas.push(cidade);
+                renderizarCidadesAtendimento();
+            }
+
+            selectCidadeAtendimento.value = "";
+        });
+    }
+
+    carregarCidadesAtendimento();
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -22,6 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
             bairro: document.getElementById("bairro").value.trim(),
             cidade: document.getElementById("cidade").value.trim(),
             estado: document.getElementById("estado").value,
+            cidadesAtendimento: cidadesSelecionadas,
             senha: document.getElementById("senha").value
         };
 

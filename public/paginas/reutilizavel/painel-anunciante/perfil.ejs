@@ -25,6 +25,34 @@
     font-weight: 500;
     word-break: break-word;
   }
+
+  .cidade-atendimento-lista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .cidade-atendimento-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #e1e1e1;
+    border-radius: 999px;
+    background: #fff;
+    color: #2b2f36;
+    padding: 7px 10px 7px 12px;
+    font-weight: 600;
+    font-size: .9rem;
+  }
+
+  .cidade-atendimento-pill button {
+    border: 0;
+    background: transparent;
+    color: #C90B0C;
+    font-weight: 800;
+    line-height: 1;
+  }
 </style>
 <!-- Logo da Revenda -->
 <div id="logo-container" style="text-align:center; padding: 10px;"></div>
@@ -208,6 +236,25 @@ renderizarLogo();
     return usuario.id;
   }
 
+  function obterCidadesAtendimentoPerfil(usuario) {
+    if (!usuario || !usuario.cidades_atendimento) return [];
+    if (Array.isArray(usuario.cidades_atendimento)) return usuario.cidades_atendimento;
+
+    try {
+      return JSON.parse(usuario.cidades_atendimento) || [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function renderizarPillsCidades(cidades) {
+    if (!cidades || !cidades.length) return '<span class="text-muted">Nenhuma cidade adicional cadastrada.</span>';
+
+    return cidades
+      .map(cidade => `<span class="cidade-atendimento-pill">${cidade.cidade || cidade.nome} / ${cidade.estado}</span>`)
+      .join('');
+  }
+
   /* PREENCHER IFORMAÇÕES DO USUÁRIO */
   (async () => {
   try {
@@ -372,6 +419,18 @@ renderizarLogo();
             </div>
           </div>
         </div>
+
+        ${isRevenda ? `
+          <!-- 🔹 CIDADES DE ATUAÇÃO -->
+          <div class="col-12">
+            <div class="border rounded-3 p-4 bg-white shadow-sm">
+              <h6 class="text-uppercase text-muted mb-3">Cidades onde seus anúncios são encontrados</h6>
+              <div class="cidade-atendimento-lista">
+                ${renderizarPillsCidades(obterCidadesAtendimentoPerfil(usuario))}
+              </div>
+            </div>
+          </div>
+        ` : ''}
 
         <!-- 🔹 SEGURANÇA -->
         <div class="col-12">
@@ -560,6 +619,27 @@ renderizarLogo();
             <input type="text" id="editEstado" class="form-control">
           </div>
 
+          ${isRevenda ? `
+            <div class="col-12">
+              <hr class="my-2">
+              <h6 class="text-uppercase text-muted mb-2">Cidades onde seus anúncios são encontrados</h6>
+              <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                  <label class="form-label">Cidade de atuação</label>
+                  <select id="editCidadeAtendimento" class="form-control">
+                    <option value="">Selecione uma cidade</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <button type="button" id="btnAddCidadeAtendimento" class="btn btn-outline-danger w-100">
+                    Adicionar cidade
+                  </button>
+                </div>
+              </div>
+              <div id="editCidadesAtendimentoLista" class="cidade-atendimento-lista"></div>
+            </div>
+          ` : ''}
+
           <div class="col-12 d-flex gap-2">
             <button type="submit" class="btn btn-success">Salvar</button>
             <button type="button" class="btn btn-secondary" onclick="fecharFormDeEdicao()">Cancelar</button>
@@ -644,6 +724,96 @@ renderizarLogo();
       editCidade.value = usuario.cidade ?? '';
       editEstado.value = usuario.estado ?? '';
 
+      const cidadesAtendimentoSelecionadas = obterCidadesAtendimentoPerfil(usuario)
+        .map(item => ({
+          nome: item.nome || item.cidade,
+          cidade: item.cidade || item.nome,
+          estado: item.estado
+        }))
+        .filter(item => (item.nome || item.cidade) && item.estado);
+
+      function chaveCidadeAtendimento(cidade) {
+        return `${cidade.nome || cidade.cidade}|${cidade.estado}`.toLowerCase();
+      }
+
+      function renderizarCidadesAtendimentoEdicao() {
+        const lista = document.getElementById('editCidadesAtendimentoLista');
+        if (!lista) return;
+
+        lista.innerHTML = '';
+
+        if (!cidadesAtendimentoSelecionadas.length) {
+          lista.innerHTML = '<span class="text-muted">Nenhuma cidade adicional cadastrada.</span>';
+          return;
+        }
+
+        cidadesAtendimentoSelecionadas.forEach((cidade, index) => {
+          const item = document.createElement('span');
+          item.className = 'cidade-atendimento-pill';
+          item.textContent = `${cidade.nome || cidade.cidade} / ${cidade.estado}`;
+
+          const remover = document.createElement('button');
+          remover.type = 'button';
+          remover.setAttribute('aria-label', `Remover ${cidade.nome || cidade.cidade}`);
+          remover.textContent = 'x';
+          remover.addEventListener('click', () => {
+            cidadesAtendimentoSelecionadas.splice(index, 1);
+            renderizarCidadesAtendimentoEdicao();
+          });
+
+          item.appendChild(remover);
+          lista.appendChild(item);
+        });
+      }
+
+      async function carregarSelectCidadesAtendimentoEdicao() {
+        const select = document.getElementById('editCidadeAtendimento');
+        if (!select) return;
+
+        try {
+          const res = await fetch('/api/cidades');
+          if (!res.ok) throw new Error('Erro ao carregar cidades');
+
+          const cidades = await res.json();
+          cidades
+            .sort((a, b) => `${a.nome} ${a.estado}`.localeCompare(`${b.nome} ${b.estado}`, 'pt-BR'))
+            .forEach(cidade => {
+              const option = document.createElement('option');
+              option.value = JSON.stringify({ nome: cidade.nome, estado: cidade.estado });
+              option.textContent = `${cidade.nome} / ${cidade.estado}`;
+              select.appendChild(option);
+            });
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      if (isRevenda) {
+        renderizarCidadesAtendimentoEdicao();
+        carregarSelectCidadesAtendimentoEdicao();
+
+        document.getElementById('btnAddCidadeAtendimento')?.addEventListener('click', () => {
+          const select = document.getElementById('editCidadeAtendimento');
+          if (!select || !select.value) return;
+
+          const cidade = JSON.parse(select.value);
+          const jaExiste = cidadesAtendimentoSelecionadas.some(item =>
+            chaveCidadeAtendimento(item) === chaveCidadeAtendimento(cidade)
+          );
+
+          if (!jaExiste) {
+            cidadesAtendimentoSelecionadas.push({
+              nome: cidade.nome,
+              cidade: cidade.nome,
+              estado: cidade.estado
+            });
+            renderizarCidadesAtendimentoEdicao();
+          }
+
+          select.value = '';
+        });
+      }
+
       /* =========================
          PUT – SALVAR ALTERAÇÕES
       ========================== */
@@ -668,6 +838,7 @@ renderizarLogo();
           if (isRevenda) {
             dadosAtualizados.cnpj = editCnpj.value;
             dadosAtualizados.telefone = editTelefone.value;
+            dadosAtualizados.cidadesAtendimento = cidadesAtendimentoSelecionadas;
           }
 
           try {

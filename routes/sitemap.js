@@ -31,6 +31,7 @@ router.get('/sitemap.xml', async (req, res) => {
       { loc: '/planos-revenda', priority: '0.5', changefreq: 'monthly', lastmod: hoje },
       { loc: '/carros', priority: '0.8', changefreq: 'daily', lastmod: hoje },
       { loc: '/motos', priority: '0.8', changefreq: 'daily', lastmod: hoje },
+      { loc: '/utilitarios', priority: '0.8', changefreq: 'daily', lastmod: hoje },
       { loc: '/comprar', priority: '0.7', changefreq: 'daily', lastmod: hoje },
       { loc: '/vender', priority: '0.7', changefreq: 'monthly', lastmod: hoje },
     ];
@@ -49,6 +50,7 @@ router.get('/sitemap.xml', async (req, res) => {
         cidadesUrls.push({ loc: `/cidade/${slug}/${uf}`, priority: '0.6', changefreq: 'daily', lastmod: hoje });
         cidadesUrls.push({ loc: `/carros/${slug}/${uf}`, priority: '0.6', changefreq: 'daily', lastmod: hoje });
         cidadesUrls.push({ loc: `/motos/${slug}/${uf}`, priority: '0.5', changefreq: 'daily', lastmod: hoje });
+        cidadesUrls.push({ loc: `/utilitarios/${slug}/${uf}`, priority: '0.5', changefreq: 'daily', lastmod: hoje });
       });
     } catch (e) {
       console.error('Sitemap: erro ao buscar cidades', e);

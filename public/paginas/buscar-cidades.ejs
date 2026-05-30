@@ -76,25 +76,36 @@
         display: none;
         max-height: 260px;
         overflow-y: auto;
-        border: 1px solid #ddd;
+        border: 1px solid #e1e1e1;
         border-radius: 8px;
         background: #fff;
         box-shadow: 0 12px 24px rgba(0, 0, 0, .12);
+        padding: 6px;
     }
 
     .cidade-sugestao {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         width: 100%;
         border: 0;
-        background: #fff;
-        padding: 11px 14px;
+        border-radius: 6px;
+        background: #fff !important;
+        padding: 12px 14px;
         text-align: left;
-        color: #222;
+        color: #24272d !important;
+        font-weight: 600;
+    }
+
+    .cidade-sugestao + .cidade-sugestao {
+        margin-top: 4px;
+        border-top: 1px solid #f0f1f3;
     }
 
     .cidade-sugestao:hover,
     .cidade-sugestao:focus {
-        background: rgba(201, 11, 12, .08);
+        background: #f4f5f7 !important;
+        color: #C90B0C !important;
         outline: none;
     }
 

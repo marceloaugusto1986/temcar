@@ -66,6 +66,23 @@ async function garantirColunaImagemMobileHomeCarousel() {
   }
 }
 
+async function garantirTabelaCidadesRevendas() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS revendas_cidades (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      usuario_id INT NOT NULL,
+      cidade VARCHAR(150) NOT NULL,
+      estado VARCHAR(2) NOT NULL,
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_revenda_cidade (usuario_id, cidade, estado),
+      CONSTRAINT fk_revenda_cidade_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuarios(id)
+        ON DELETE CASCADE
+    )
+  `);
+}
+
 function obterListaCampo(body, nome) {
   const valor = body[nome] ?? body[`${nome}[]`] ?? [];
   return Array.isArray(valor) ? valor : [valor];
@@ -111,6 +128,8 @@ router.get('/api/admin/usuarios/:id', checkAuth('private'), async (req, res) => 
   try {
     const { id } = req.params;
 
+    await garantirTabelaCidadesRevendas();
+
     const [usuarios] = await db.query(
       'SELECT * FROM usuarios WHERE id = ? AND id > 1 LIMIT 1',
       [id]
@@ -122,6 +141,18 @@ router.get('/api/admin/usuarios/:id', checkAuth('private'), async (req, res) => 
       });
     }
 
+    const [cidadesAtendimento] = await db.query(
+      `
+      SELECT cidade, estado
+      FROM revendas_cidades
+      WHERE usuario_id = ?
+      ORDER BY cidade ASC, estado ASC
+      `,
+      [id]
+    );
+
+    usuarios[0].cidades_atendimento = cidadesAtendimento;
+
     return res.status(200).json({
       usuario: usuarios[0]
     });
@@ -131,6 +162,66 @@ router.get('/api/admin/usuarios/:id', checkAuth('private'), async (req, res) => 
     return res.status(500).json({
       message: 'Erro interno do servidor.'
     });
+  }
+});
+
+router.put('/api/admin/usuarios/:id/cidades-atendimento', checkAuth('private'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { cidadesAtendimento = [] } = req.body;
+
+    if (!Array.isArray(cidadesAtendimento)) {
+      return res.status(400).json({ message: 'Lista de cidades inválida.' });
+    }
+
+    await garantirTabelaCidadesRevendas();
+
+    const [[usuario]] = await db.query(
+      'SELECT id, tipo FROM usuarios WHERE id = ? AND id > 1 LIMIT 1',
+      [id]
+    );
+
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    if (usuario.tipo !== 'revenda') {
+      return res.status(400).json({ message: 'Cidades de atuação disponíveis apenas para revendas.' });
+    }
+
+    const cidadesValidas = cidadesAtendimento
+      .map(item => ({
+        cidade: String(item?.nome || item?.cidade || '').trim(),
+        estado: String(item?.estado || '').trim().toUpperCase()
+      }))
+      .filter(item => item.cidade && /^[A-Z]{2}$/.test(item.estado));
+
+    const conn = await db.getConnection();
+
+    try {
+      await conn.beginTransaction();
+      await conn.query('DELETE FROM revendas_cidades WHERE usuario_id = ?', [id]);
+
+      if (cidadesValidas.length) {
+        const valores = cidadesValidas.map(item => [id, item.cidade, item.estado]);
+        await conn.query(
+          'INSERT IGNORE INTO revendas_cidades (usuario_id, cidade, estado) VALUES ?',
+          [valores]
+        );
+      }
+
+      await conn.commit();
+    } catch (error) {
+      await conn.rollback();
+      throw error;
+    } finally {
+      conn.release();
+    }
+
+    return res.json({ message: 'Cidades atualizadas com sucesso.' });
+  } catch (err) {
+    console.error('Erro ao atualizar cidades da revenda:', err);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 });
 

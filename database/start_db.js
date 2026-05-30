@@ -51,6 +51,24 @@ async function start_DB() {
 
         await db.query(criarTabelaDeUsuarios);
 
+        const criarTabelaCidadesRevendas = `
+CREATE TABLE IF NOT EXISTS revendas_cidades (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    cidade VARCHAR(150) NOT NULL,
+    estado VARCHAR(2) NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uniq_revenda_cidade (usuario_id, cidade, estado),
+    CONSTRAINT fk_revenda_cidade_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuarios(id)
+        ON DELETE CASCADE
+);
+`;
+
+        await db.query(criarTabelaCidadesRevendas);
+
         const criarTabelaDeAnuncios = `
 CREATE TABLE IF NOT EXISTS anuncios (
     id INT AUTO_INCREMENT PRIMARY KEY,

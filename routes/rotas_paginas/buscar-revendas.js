@@ -3,6 +3,23 @@ const router = express.Router();
 const db = require("./../../database/pool_connection");
 const { getSeo } = require('../../helpers/seo');
 
+async function garantirTabelaCidadesRevendas() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS revendas_cidades (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      usuario_id INT NOT NULL,
+      cidade VARCHAR(150) NOT NULL,
+      estado VARCHAR(2) NOT NULL,
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_revenda_cidade (usuario_id, cidade, estado),
+      CONSTRAINT fk_revenda_cidade_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuarios(id)
+        ON DELETE CASCADE
+    )
+  `);
+}
+
 router.get('/buscar-revendas', async (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -53,6 +70,8 @@ router.get("/api/revendas-ativas", async (req, res) => {
 
 router.get("/api/anuncios-revenda-ativos", async (req, res) => {
   try {
+    await garantirTabelaCidadesRevendas();
+
     const [anuncios] = await db.query(`
      SELECT 
   a.id,
@@ -76,6 +95,11 @@ router.get("/api/anuncios-revenda-ativos", async (req, res) => {
   u.cidade,
   u.estado,
   u.tipo AS tipo_anunciante,
+  (
+    SELECT JSON_ARRAYAGG(JSON_OBJECT('cidade', rc.cidade, 'estado', rc.estado))
+    FROM revendas_cidades rc
+    WHERE rc.usuario_id = u.id
+  ) AS cidades_atendimento,
   img.imagem
 FROM anuncios a
 INNER JOIN usuarios u 

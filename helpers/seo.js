@@ -36,18 +36,26 @@ const SEO_DEFAULTS = {
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/motos`
   },
+  utilitarios: {
+    titulo: 'Utilitários à Venda Novos, Seminovos e Usados | TEMCAR',
+    descricao: 'Encontre utilitários à venda no TEMCAR. Compare ofertas de utilitários novos, seminovos e usados anunciados por revendas e particulares.',
+    keywords: 'utilitários à venda, comprar utilitário, utilitários usados, utilitários seminovos',
+    texto_h1: 'Utilitários à Venda no TEMCAR',
+    texto_conteudo: '',
+    link_canonico: `${SITE_URL}/utilitarios`
+  },
   comprar: {
     titulo: 'Comprar Veículos Novos e Usados | TEMCAR',
-    descricao: 'Busque carros e motos à venda no TEMCAR. Encontre veículos novos, seminovos e usados com filtros por cidade, preço e categoria.',
-    keywords: 'comprar veículos, comprar carro, comprar moto, veículos usados',
+    descricao: 'Busque carros, motos e utilitários à venda no TEMCAR. Encontre veículos novos, seminovos e usados com filtros por cidade, preço e categoria.',
+    keywords: 'comprar veículos, comprar carro, comprar moto, comprar utilitário, veículos usados',
     texto_h1: 'Comprar Veículos no TEMCAR',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/comprar`
   },
   vender: {
     titulo: 'Vender Veículo Online | Anuncie no TEMCAR',
-    descricao: 'Anuncie seu carro ou moto no TEMCAR e alcance compradores interessados em veículos novos, seminovos e usados.',
-    keywords: 'vender carro, vender moto, anunciar veículo, anunciar carro',
+    descricao: 'Anuncie seu carro, moto ou utilitário no TEMCAR e alcance compradores interessados em veículos novos, seminovos e usados.',
+    keywords: 'vender carro, vender moto, vender utilitário, anunciar veículo, anunciar carro',
     texto_h1: 'Venda seu Veículo no TEMCAR',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/vender`
@@ -61,12 +69,28 @@ const SEO_DEFAULTS = {
     link_canonico: `${SITE_URL}/buscar-cidades`
   },
   buscar_revendas: {
-    titulo: 'Buscar Revendas de Veículos | TEMCAR',
-    descricao: 'Encontre revendas de veículos no TEMCAR e veja carros e motos anunciados por lojistas.',
-    keywords: 'revendas de veículos, lojas de carros, lojas de motos',
-    texto_h1: 'Buscar Revendas no TEMCAR',
+    titulo: 'Revendas de Veículos no Brasil | TEMCAR',
+    descricao: 'Encontre revendas, lojas e concessionárias de veículos no TEMCAR. Veja carros, motos e utilitários anunciados por lojistas.',
+    keywords: 'revendas de veículos, lojas de carros, lojas de motos, concessionárias, buscar revendas',
+    texto_h1: 'Buscar Revendas de Veículos',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/buscar-revendas`
+  },
+  revenda: {
+    titulo: '#revenda - Veículos à Venda em #cidade | TEMCAR',
+    descricao: 'Confira os veículos à venda na #revenda em #cidade, #estado. Encontre carros, motos e utilitários com preços de revenda.',
+    keywords: 'revenda de veículos, carros de revenda, motos de revenda, utilitários de revenda',
+    texto_h1: '#revenda no TEMCAR',
+    texto_conteudo: '',
+    link_canonico: ''
+  },
+  particular: {
+    titulo: 'Veículos de Particular à Venda | TEMCAR',
+    descricao: 'Compre carros, motos e utilitários direto de particulares no TEMCAR. Compare ofertas e negocie diretamente com o proprietário.',
+    keywords: 'carros de particular, motos de particular, veículos de particular, comprar direto do proprietário',
+    texto_h1: 'Veículos de Particular à Venda',
+    texto_conteudo: '',
+    link_canonico: `${SITE_URL}/particular`
   },
   venda: {
     titulo: 'Veículo à Venda | TEMCAR',

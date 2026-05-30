@@ -22,11 +22,28 @@ async function buscarCidadePorSlugUf(cidadeSlug, ufSlug) {
   return cidades.find(cidade => slugify(cidade.nome) === cidadeSlug) || null;
 }
 
+async function garantirTabelaCidadesRevendas() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS revendas_cidades (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      usuario_id INT NOT NULL,
+      cidade VARCHAR(150) NOT NULL,
+      estado VARCHAR(2) NOT NULL,
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_revenda_cidade (usuario_id, cidade, estado),
+      CONSTRAINT fk_revenda_cidade_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuarios(id)
+        ON DELETE CASCADE
+    )
+  `);
+}
+
 // =========================================================
-// PÁGINAS: /carros e /motos (com variações de cidade/bairro)
+// PÁGINAS: /carros, /motos e /utilitarios (com variações de cidade/bairro)
 // =========================================================
 
-const tiposValidos = { carros: 'Carro', motos: 'Moto' };
+const tiposValidos = { carros: 'Carro', motos: 'Moto', utilitarios: 'Utilitário' };
 
 const seoBrasilPorTipo = {
   carros: {
@@ -42,6 +59,13 @@ const seoBrasilPorTipo = {
     keywords: 'motos a venda no Brasil, comprar moto, motos usadas, motos seminovas',
     texto_h1: 'Motos a venda no Brasil',
     link_canonico: `${SITE_URL}/motos`
+  },
+  utilitarios: {
+    titulo: 'Utilitários a venda no Brasil | TEMCAR',
+    descricao: 'Encontre utilitários a venda no Brasil no TEMCAR. Compare ofertas de utilitários novos, seminovos e usados anunciados por revendas e particulares.',
+    keywords: 'utilitários a venda no Brasil, comprar utilitário, utilitários usados, utilitários seminovos',
+    texto_h1: 'Utilitários a venda no Brasil',
+    link_canonico: `${SITE_URL}/utilitarios`
   }
 };
 
@@ -53,8 +77,8 @@ async function getSeoBrasil(tipoSlug) {
   };
 }
 
-// /carros ou /motos (geral)
-router.get('/:tipo(carros|motos)', async (req, res) => {
+// /carros, /motos ou /utilitarios (geral)
+router.get('/:tipo(carros|motos|utilitarios)', async (req, res) => {
   const tipoSlug = req.params.tipo;
   const seo = await getSeoBrasil(tipoSlug);
   const breadcrumbs = [
@@ -64,8 +88,8 @@ router.get('/:tipo(carros|motos)', async (req, res) => {
   res.render('veiculos', { seo, breadcrumbs, filtro: { tipo: tipoSlug } });
 });
 
-// /carros/:cidade/:uf ou /motos/:cidade/:uf
-router.get('/:tipo(carros|motos)/:cidade/:uf', async (req, res) => {
+// /carros/:cidade/:uf, /motos/:cidade/:uf ou /utilitarios/:cidade/:uf
+router.get('/:tipo(carros|motos|utilitarios)/:cidade/:uf', async (req, res) => {
   const { tipo, cidade, uf } = req.params;
   res.set('X-Temcar-Route', 'veiculos-cidade');
   const cidadeSlug = slugify(cidade);
@@ -105,8 +129,8 @@ router.get('/:tipo(carros|motos)/:cidade/:uf', async (req, res) => {
   });
 });
 
-// /carros/:bairro/:cidade/:uf ou /motos/:bairro/:cidade/:uf (Task 11)
-router.get('/:tipo(carros|motos)/:bairro/:cidade/:uf', async (req, res) => {
+// /carros/:bairro/:cidade/:uf, /motos/:bairro/:cidade/:uf ou /utilitarios/:bairro/:cidade/:uf (Task 11)
+router.get('/:tipo(carros|motos|utilitarios)/:bairro/:cidade/:uf', async (req, res) => {
   const { tipo, bairro, cidade, uf } = req.params;
   const bairroSlug = slugify(bairro);
   const cidadeSlug = slugify(cidade);
@@ -175,6 +199,8 @@ router.get('/vender', async (req, res) => {
 
 router.get('/api/veiculos', async (req, res) => {
   try {
+    await garantirTabelaCidadesRevendas();
+
     const { tipo, cidade, uf, bairro, marca, carroceria, busca } = req.query;
 
     let where = "a.status = 'ativo'";
@@ -196,8 +222,14 @@ router.get('/api/veiculos', async (req, res) => {
             AND LOWER(ac.cidade) LIKE ?
             AND LOWER(ac.estado) = ?
           )
+          OR EXISTS (
+            SELECT 1 FROM revendas_cidades rc
+            WHERE rc.usuario_id = u.id
+            AND LOWER(rc.cidade) LIKE ?
+            AND LOWER(rc.estado) = ?
+          )
         )`;
-        params.push(cidadeNorm, uf.toLowerCase(), cidadeNorm, uf.toLowerCase());
+        params.push(cidadeNorm, uf.toLowerCase(), cidadeNorm, uf.toLowerCase(), cidadeNorm, uf.toLowerCase());
       } else {
         where += ` AND (
           LOWER(u.cidade) LIKE ?
@@ -205,8 +237,12 @@ router.get('/api/veiculos', async (req, res) => {
             SELECT 1 FROM anuncios_cidades ac
             WHERE ac.anuncio_id = a.id AND LOWER(ac.cidade) LIKE ?
           )
+          OR EXISTS (
+            SELECT 1 FROM revendas_cidades rc
+            WHERE rc.usuario_id = u.id AND LOWER(rc.cidade) LIKE ?
+          )
         )`;
-        params.push(cidadeNorm, cidadeNorm);
+        params.push(cidadeNorm, cidadeNorm, cidadeNorm);
       }
     } else if (uf) {
       where += ` AND (
@@ -215,8 +251,12 @@ router.get('/api/veiculos', async (req, res) => {
           SELECT 1 FROM anuncios_cidades ac
           WHERE ac.anuncio_id = a.id AND LOWER(ac.estado) = ?
         )
+        OR EXISTS (
+          SELECT 1 FROM revendas_cidades rc
+          WHERE rc.usuario_id = u.id AND LOWER(rc.estado) = ?
+        )
       )`;
-      params.push(uf.toLowerCase(), uf.toLowerCase());
+      params.push(uf.toLowerCase(), uf.toLowerCase(), uf.toLowerCase());
     }
 
     if (bairro) {

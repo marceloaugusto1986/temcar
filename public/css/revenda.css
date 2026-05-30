@@ -159,4 +159,21 @@
      .layout {
          display: block;
      }
+
+     .banner {
+         align-items: stretch;
+         gap: 16px;
+         padding: 18px;
+     }
+
+     #logoRevendaPagina {
+         width: 100% !important;
+         max-width: 100%;
+         height: auto;
+         aspect-ratio: 16 / 9;
+         object-fit: cover;
+         object-position: center;
+         display: block;
+         border-radius: 10px !important;
+     }
  }

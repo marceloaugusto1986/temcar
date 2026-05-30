@@ -49,6 +49,10 @@
 		padding: 5px !important;
 	}
 
+	.navbar .nav-link {
+		white-space: nowrap;
+	}
+
 	.btn-anuncie {
 		background: #C90B0C;
 		color: #fff;
@@ -75,7 +79,8 @@
 
 		<script src="/js/site-config.js" defer></script>
 
-		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-label="Abrir menu">
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu"
+			aria-label="Abrir menu">
 			<span class="navbar-toggler-icon"></span>
 		</button>
 
@@ -91,53 +96,29 @@
 				</li>
 
 				<li class="nav-item">
-					<a class="nav-link" href="/buscar-revendas">Revenda</a>
+					<a class="nav-link" href="/buscar-revendas">Revendas</a>
 				</li>
 
 				<li class="nav-item">
 					<a class="nav-link" href="/particular">Particular</a>
 				</li>
+
 				<li class="nav-item">
-					<a class="nav-link" href="/buscar-cidades">Cidades</a>
+					<a class="nav-link" href="/comprar">Comprar</a>
 				</li>
 
 				<li class="nav-item">
-					<select id="tipoPlano" class="form-select">
-						<option value="">Planos</option>
-						<option value="planosParticular">Particular</option>
-						<option value="planosRevenda">Revenda</option>
-					</select>
-				</li>
-
-				<script>
-					document.getElementById("tipoPlano").addEventListener("change", function () {
-						const valor = this.value;
-
-						if (valor === "planosParticular") {
-							window.location.href = "/planos-particular";
-						} else if (valor === "planosRevenda") {
-							window.location.href = "/planos-revenda";
-						}
-					});
-				</script>
-
-				<li class="nav-item">
-					<a class="nav-link" href="https://veiculos.fipe.org.br/#carro" target="_blank"
-						rel="noopener noreferrer">
-						Fipe
-					</a>
+					<a class="nav-link" href="/vender">Vender</a>
 				</li>
 
 				<li class="nav-item">
 					<a class="nav-link" href="/login">Minha Conta</a>
 				</li>
 
-
-
 				<!-- Serviços - SELECT -->
 				<li class="nav-item">
 					<select id="selectServicos" class="form-select">
-						<option value="">Serviços Automotivos</option>
+						<option value="">Serviços</option>
 					</select>
 				</li>
 
@@ -191,11 +172,10 @@
 				select.appendChild(option);
 			});
 
-			// 🔥 abre em nova guia
 			select.addEventListener('change', function () {
 				if (this.value) {
 					window.open(this.value, '_blank');
-					this.selectedIndex = 0; // volta para "Serviços"
+					this.selectedIndex = 0;
 				}
 			});
 

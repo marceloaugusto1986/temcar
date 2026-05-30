@@ -6,7 +6,7 @@ let listaVeiculos = []
 let paginaAtual = 1
 const limitePorPagina = 12
 
-const tipoMap = { carros: 'Carro', motos: 'Moto' }
+const tipoMap = { carros: 'Carro', motos: 'Moto', utilitarios: 'Utilitário' }
 
 // ===============================
 // UTIL
@@ -69,12 +69,13 @@ function obterLocalizacaoEmptyState() {
 function obterTipoEmptyState() {
     const filtro = window.FILTRO || {}
     const isMoto = filtro.tipo === "motos"
+    const isUtilitario = filtro.tipo === "utilitarios"
 
     return {
-        nome: isMoto ? "moto" : "carro",
+        nome: isMoto ? "moto" : isUtilitario ? "utilitário" : "carro",
         artigo: isMoto ? "sua" : "seu",
-        chamada: isMoto ? "Venda sua moto" : "Venda seu carro",
-        icon: isMoto ? "bi-bicycle" : "bi-car-front-fill"
+        chamada: isMoto ? "Venda sua moto" : isUtilitario ? "Venda seu utilitário" : "Venda seu carro",
+        icon: isMoto ? "bi-bicycle" : isUtilitario ? "bi-truck" : "bi-car-front-fill"
     }
 }
 

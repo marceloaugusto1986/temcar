@@ -61,6 +61,20 @@ router.get('/api/perfil-anunciante/:id', async (req, res) => {
       });
     }
 
+    await garantirTabelaCidadesRevendas();
+
+    const [cidadesAtendimento] = await db.query(
+      `
+      SELECT cidade, estado
+      FROM revendas_cidades
+      WHERE usuario_id = ?
+      ORDER BY cidade ASC, estado ASC
+      `,
+      [id]
+    );
+
+    usuarios[0].cidades_atendimento = cidadesAtendimento;
+
     return res.status(200).json({
       usuario: usuarios[0]
     });
@@ -149,7 +163,8 @@ router.put('/api/editar-perfil-anunciante/:id', async (req, res) => {
       estado,
 
       cpf,
-      plano
+      plano,
+      cidadesAtendimento = []
     } = req.body;
 
     // Validação mínima (ajuste conforme sua regra de negócio)
@@ -159,51 +174,98 @@ router.put('/api/editar-perfil-anunciante/:id', async (req, res) => {
       });
     }
 
-    const [resultado] = await db.query(
-      `
-      UPDATE usuarios
-      SET
-        nome = ?,
-        email = ?,
-        whatsapp = ?,
+    const cidadesAtendimentoValidas = Array.isArray(cidadesAtendimento)
+      ? cidadesAtendimento
+        .map(item => ({
+          cidade: String(item?.nome || item?.cidade || '').trim(),
+          estado: String(item?.estado || '').trim().toUpperCase()
+        }))
+        .filter(item => item.cidade && /^[A-Z]{2}$/.test(item.estado))
+      : [];
 
-        telefone = ?,
-        cnpj = ?,
-        cep = ?,
-        rua = ?,
-        numero = ?,
-        bairro = ?,
-        cidade = ?,
-        estado = ?,
+    await garantirTabelaCidadesRevendas();
 
-        cpf = ?,
-        plano_desejado = ?
-      WHERE id = ?
-      `,
-      [
-        nome,
-        email,
-        whatsapp,
+    const conn = await db.getConnection();
 
-        telefone,
-        cnpj,
-        cep,
-        rua,
-        numero,
-        bairro,
-        cidade,
-        estado,
+    try {
+      await conn.beginTransaction();
 
-        cpf,
-        plano,
-        id
-      ]
-    );
+      const [resultado] = await conn.query(
+        `
+        UPDATE usuarios
+        SET
+          nome = ?,
+          email = ?,
+          whatsapp = ?,
 
-    if (resultado.affectedRows === 0) {
-      return res.status(404).json({
-        erro: 'Usuário não encontrado'
-      });
+          telefone = ?,
+          cnpj = ?,
+          cep = ?,
+          rua = ?,
+          numero = ?,
+          bairro = ?,
+          cidade = ?,
+          estado = ?,
+
+          cpf = ?,
+          plano_desejado = ?
+        WHERE id = ?
+        `,
+        [
+          nome,
+          email,
+          whatsapp,
+
+          telefone,
+          cnpj,
+          cep,
+          rua,
+          numero,
+          bairro,
+          cidade,
+          estado,
+
+          cpf,
+          plano,
+          id
+        ]
+      );
+
+      if (resultado.affectedRows === 0) {
+        await conn.rollback();
+        return res.status(404).json({
+          erro: 'Usuário não encontrado'
+        });
+      }
+
+      const [[usuarioAtualizado]] = await conn.query(
+        'SELECT tipo FROM usuarios WHERE id = ? LIMIT 1',
+        [id]
+      );
+
+      if (usuarioAtualizado?.tipo === 'revenda') {
+        await conn.query('DELETE FROM revendas_cidades WHERE usuario_id = ?', [id]);
+
+        if (cidadesAtendimentoValidas.length) {
+          const valores = cidadesAtendimentoValidas.map(item => [
+            id,
+            item.cidade,
+            item.estado
+          ]);
+
+          await conn.query(
+            'INSERT IGNORE INTO revendas_cidades (usuario_id, cidade, estado) VALUES ?',
+            [valores]
+          );
+        }
+      }
+
+      await conn.commit();
+    } catch (error) {
+      await conn.rollback();
+      throw error;
+    } finally {
+      conn.release();
     }
 
     return res.status(200).json({
@@ -239,6 +301,23 @@ const upload = multer({
   },
   limits: { fileSize: 5 * 1024 * 1024 }
 });
+
+async function garantirTabelaCidadesRevendas(conn = db) {
+  await conn.query(`
+    CREATE TABLE IF NOT EXISTS revendas_cidades (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      usuario_id INT NOT NULL,
+      cidade VARCHAR(150) NOT NULL,
+      estado VARCHAR(2) NOT NULL,
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE KEY uniq_revenda_cidade (usuario_id, cidade, estado),
+      CONSTRAINT fk_revenda_cidade_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuarios(id)
+        ON DELETE CASCADE
+    )
+  `);
+}
 
 // -----------------------
 // GET: Buscar logo

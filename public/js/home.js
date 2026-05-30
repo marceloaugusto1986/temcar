@@ -227,7 +227,7 @@ function aplicarFiltroRevenda() {
     itens = itensOriginais.filter(item => {
 
         const matchCidade =
-            !cidade || (item.cidade || "").toLowerCase() === cidade
+            !cidade || cidadeEstaNoAnuncio(item, cidade)
 
         const matchNome =
             !nomeRevenda ||
@@ -239,6 +239,26 @@ function aplicarFiltroRevenda() {
     paginaAtual = 1
     renderizarCards("container-card-primary")
     renderizarPaginacao()
+}
+
+function obterCidadesAtendimento(item) {
+    if (!item || !item.cidades_atendimento) return []
+
+    if (Array.isArray(item.cidades_atendimento)) return item.cidades_atendimento
+
+    try {
+        return JSON.parse(item.cidades_atendimento) || []
+    } catch (error) {
+        return []
+    }
+}
+
+function cidadeEstaNoAnuncio(item, cidade) {
+    if ((item.cidade || "").toLowerCase() === cidade) return true
+
+    return obterCidadesAtendimento(item).some(cidadeAtendimento =>
+        (cidadeAtendimento.cidade || "").toLowerCase() === cidade
+    )
 }
 
 /* ================================
@@ -539,22 +559,15 @@ function preencherCidadesSelectFilter() {
     const select = document.getElementById("selectCidadeFilter")
     if (!select) return
 
-    const cidades = itensOriginais
-
-        .map(item => item.cidade)
-        .filter(Boolean)
-
-    const estados = itensOriginais
-
-        .map(item => item.estado)
-        .filter(Boolean)
-
-
     const unicas = [
         ...new Set(
             itensOriginais
+                .flatMap(item => [
+                    { cidade: item.cidade, estado: item.estado },
+                    ...obterCidadesAtendimento(item)
+                ])
+                .filter(item => item.cidade && item.estado)
                 .map(item => `${item.cidade} - ${item.estado}`)
-                .filter(item => item && item !== " - ")
         )
     ].sort()
 

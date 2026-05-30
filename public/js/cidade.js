@@ -85,6 +85,32 @@ function normalizarUrlDirecionamento(link) {
     }
 }
 
+function obterCidadesAtendimento(item) {
+    if (!item || !item.cidades_atendimento) return []
+
+    if (Array.isArray(item.cidades_atendimento)) return item.cidades_atendimento
+
+    try {
+        return JSON.parse(item.cidades_atendimento) || []
+    } catch (erro) {
+        return []
+    }
+}
+
+function anuncioAtendeCidade(item, slug, uf) {
+    const cidadeItem = (item.cidade || "").split("-")[0].trim()
+    const slugItem = criarSlug(cidadeItem)
+    const estadoItem = (item.estado || "").toLowerCase()
+
+    if (slugItem === slug && (!uf || estadoItem === uf)) return true
+
+    return obterCidadesAtendimento(item).some(cidadeAtendimento => {
+        const slugAtendimento = criarSlug(cidadeAtendimento.cidade || "")
+        const estadoAtendimento = (cidadeAtendimento.estado || "").toLowerCase()
+        return slugAtendimento === slug && (!uf || estadoAtendimento === uf)
+    })
+}
+
 // ===============================
 // BUSCAR + FILTRAR ANÚNCIOS
 // ===============================
@@ -121,12 +147,7 @@ async function carregarAnunciosDaCidade() {
 
         // filtrar pela cidade do slug E pelo estado (UF)
         const uf = obterUfAtual()
-        listaFiltrada = listaAnuncios.filter(item => {
-            const cidadeItem = (item.cidade || "").split("-")[0].trim()
-            const slugItem = criarSlug(cidadeItem)
-            const estadoItem = (item.estado || "").toLowerCase()
-            return slugItem === slug && (!uf || estadoItem === uf)
-        })
+        listaFiltrada = listaAnuncios.filter(item => anuncioAtendeCidade(item, slug, uf))
 
         atualizarTituloCidade()
 

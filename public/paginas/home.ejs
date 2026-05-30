@@ -930,7 +930,7 @@
 					<section class="container my-5 container-lista-de-anuncios">
 
 						<div class="bg-white shadow-sm p-3 rounded mt-4">
-							<h4 class="mb-4 fw-bold" style="color: #C90B0C;">Veículos em Destaque</h4>
+							<h4 id="tituloDestaques" class="mb-4 fw-bold" style="color: #C90B0C;">Carros em Destaque</h4>
 
 							<div class="home-carousel">
 								<div class="swiper" id="destaquesSwiper">
@@ -1289,17 +1289,42 @@
 								})
 							})
 
+							function atualizarTituloDestaques(tipo) {
+								const titulo = document.getElementById("tituloDestaques")
+								if (!titulo) return
+
+								const titulos = {
+									carro: "Carros em Destaque",
+									moto: "Motos em Destaque",
+									utilitario: "Utilitários em Destaque"
+								}
+
+								titulo.textContent = titulos[tipo] || "Veículos em Destaque"
+							}
+
+							function normalizarTipoBusca(valor) {
+								return String(valor || "")
+									.toLowerCase()
+									.normalize("NFD")
+									.replace(/[\u0300-\u036f]/g, "")
+							}
+
 							function aplicarFiltroTipoCarro(tipo) {
+								if (!tipo) {
+									tipo = document.querySelector(".categorias button.active")?.dataset.tipo || "carro"
+								}
+
 								let listaFiltrada = itensOriginais
 
 								if (tipo) {
 									listaFiltrada = listaFiltrada.filter(item =>
 										item.tipo_carro &&
-										item.tipo_carro.toLowerCase() === tipo.toLowerCase()
+										normalizarTipoBusca(item.tipo_carro) === normalizarTipoBusca(tipo)
 									)
 								}
 
 								itens = listaFiltrada // 🔥 atualiza lista global
+								atualizarTituloDestaques(tipo)
 
 								paginaAtual = 1
 								renderizarCards()

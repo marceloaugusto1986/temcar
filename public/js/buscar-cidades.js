@@ -69,7 +69,7 @@ function renderizarSugestoes(termo) {
         const button = document.createElement("button")
         button.type = "button"
         button.className = "cidade-sugestao"
-        button.textContent = `${cidade.nome} (${cidade.estado})`
+        button.textContent = `${cidade.nome} / ${cidade.estado}`
         button.addEventListener("click", () => irParaCidade(cidade))
         boxSugestoes.appendChild(button)
     })

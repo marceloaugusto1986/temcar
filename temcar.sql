@@ -4088,6 +4088,20 @@ CREATE TABLE `revendas_logos` (
 -- --------------------------------------------------------
 
 --
+-- Estrutura da tabela `revendas_cidades`
+--
+
+CREATE TABLE `revendas_cidades` (
+  `id` int NOT NULL,
+  `usuario_id` int NOT NULL,
+  `cidade` varchar(150) NOT NULL,
+  `estado` varchar(2) NOT NULL,
+  `criado_em` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura da tabela `revenda_logo_padrao`
 --
 
@@ -4145,6 +4159,7 @@ INSERT INTO `seo_templates` (`id`, `pagina`, `titulo`, `descricao`, `keywords`, 
 (43, 'buscar_cidades', 'Venda de Carros em #cidade, #estado | TEMCAR', 'Explore cidades com carros, motos e caminhões à venda no TEMCAR. Encontre veículos disponíveis na sua região.', 'buscar cidades, carros à venda por cidade, veículos por região, temcar', 'Buscar Cidades com Veículos à Venda', '', 'https://www.temcar.com.br/buscar-cidades/', 1, '2026-05-04 16:59:14'),
 (44, 'carros', 'Carros Usados em #cidade, #estado', 'Carros Usados, Novos e Seminovos à venda em #cidade e região, #estado. Compare preços, fale com vendedores e anuncie grátis na TEMCAR.', '', 'Carros à Venda', '', 'https://www.temcar.com.br/carros/usados/#cidade, #estado/', 1, '2026-05-04 17:08:49'),
 (45, 'motos', 'Motos Usadas e Novas à venda em #cidade, #estado', 'Motos Usadas, Novas e Seminovas à venda em #cidade e região, #estado. No TEMCAR você encontra ofertas de Motos à venda pelo melhor preço', '', 'motos à venda', '', 'https://www.temcar.com.br/motos/#cidade/#estado/', 1, '2026-05-04 17:08:49'),
+(56, 'utilitarios', 'Utilitários Usados e Novos à venda em #cidade, #estado', 'Utilitários usados, novos e seminovos à venda em #cidade e região, #estado. Compare ofertas de utilitários no TEMCAR.', 'utilitários à venda, comprar utilitário, utilitários usados, utilitários seminovos', 'Utilitários à Venda', '', 'https://www.temcar.com.br/utilitarios/#cidade/#estado/', 1, '2026-05-29 00:00:00'),
 (46, 'comprar', 'Comprar Carros Usados em #cidade, #estado', 'Comprar Carros novos, seminovos e usados em #cidade, #estado. no TEMCAR você encontra ofertas de carros pelo melhor preço, confira!', '', 'Comprar Carros Usados', '', '', 1, '2026-05-04 17:08:49'),
 (47, 'vender', 'Vender Carro Usado e Seminovo em #cidade, #estado', 'Venda seu Carro Usado e Seminovo em #cidade, #estado. Anuncie e alcance milhares de compradores em todo o Brasil.', 'vender carro, vender moto, anunciar veículo, vender veículo, temcar', 'Vender Carro', '', 'https://www.temcar.com.br/vender/#cidade, #estado', 1, '2026-05-04 17:08:49'),
 (54, 'cidade', 'Carros Usados e Novos à venda - #cidade, #estado', 'Carros Usados, Novos, Seminovos à venda em #cidade e região, #estado. No TEMCAR você encontra ofertas de carros à venda esperando por você', '', 'carros novos, seminovos e usados à venda em #cidade, #estado', '', 'https://www.temcar.com.br/cidade/#cidade/#estado/', 1, '2026-05-05 01:57:45'),
@@ -4316,6 +4331,13 @@ ALTER TABLE `revendas_logos`
   ADD UNIQUE KEY `unique_logo_por_usuario` (`usuario_id`);
 
 --
+-- Índices para tabela `revendas_cidades`
+--
+ALTER TABLE `revendas_cidades`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_revenda_cidade` (`usuario_id`,`cidade`,`estado`);
+
+--
 -- Índices para tabela `revenda_logo_padrao`
 --
 ALTER TABLE `revenda_logo_padrao`
@@ -4430,6 +4452,12 @@ ALTER TABLE `revendas_logos`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT de tabela `revendas_cidades`
+--
+ALTER TABLE `revendas_cidades`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de tabela `revenda_logo_padrao`
 --
 ALTER TABLE `revenda_logo_padrao`
@@ -4439,7 +4467,7 @@ ALTER TABLE `revenda_logo_padrao`
 -- AUTO_INCREMENT de tabela `seo_templates`
 --
 ALTER TABLE `seo_templates`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT de tabela `servicos_select`
@@ -4486,6 +4514,8 @@ ALTER TABLE `anuncios_imagens`
 --
 ALTER TABLE `revendas_logos`
   ADD CONSTRAINT `fk_logo_revenda_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
+ALTER TABLE `revendas_cidades`
+  ADD CONSTRAINT `fk_revenda_cidade_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

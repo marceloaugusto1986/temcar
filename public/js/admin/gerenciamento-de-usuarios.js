@@ -39,11 +39,95 @@ carregarUsuarios();
 
 /* OCULTAR PLANILHA DE USUÁRIOS E EXIBIR INFORMAÇÕES DE CADASTROS E ANÚNCIOS */
 let usuarioAtualId = null;
+let usuarioAtualCidadesAtendimento = [];
+
+function obterCidadesAtendimento(usuario) {
+  if (!usuario || !usuario.cidades_atendimento) return [];
+  if (Array.isArray(usuario.cidades_atendimento)) return usuario.cidades_atendimento;
+
+  try {
+    return JSON.parse(usuario.cidades_atendimento) || [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function chaveCidadeAtendimento(cidade) {
+  return `${cidade.nome || cidade.cidade}|${cidade.estado}`.toLowerCase();
+}
+
+function renderizarPillsCidades(cidades) {
+  if (!cidades || !cidades.length) return '<span class="text-muted">Nenhuma cidade adicional cadastrada.</span>';
+
+  return cidades
+    .map(cidade => `<span class="badge bg-light text-dark border me-1 mb-1">${cidade.cidade || cidade.nome} / ${cidade.estado}</span>`)
+    .join('');
+}
+
+function renderizarCidadesAtendimentoAdmin() {
+  const lista = document.getElementById('adminCidadesAtendimentoLista');
+  if (!lista) return;
+
+  lista.innerHTML = '';
+
+  if (!usuarioAtualCidadesAtendimento.length) {
+    lista.innerHTML = '<span class="text-muted">Nenhuma cidade adicional cadastrada.</span>';
+    return;
+  }
+
+  usuarioAtualCidadesAtendimento.forEach((cidade, index) => {
+    const item = document.createElement('span');
+    item.className = 'badge bg-light text-dark border me-1 mb-1';
+    item.textContent = `${cidade.nome || cidade.cidade} / ${cidade.estado}`;
+
+    const remover = document.createElement('button');
+    remover.type = 'button';
+    remover.className = 'btn btn-link btn-sm p-0 ms-2 text-danger text-decoration-none';
+    remover.textContent = 'x';
+    remover.addEventListener('click', () => {
+      usuarioAtualCidadesAtendimento.splice(index, 1);
+      renderizarCidadesAtendimentoAdmin();
+    });
+
+    item.appendChild(remover);
+    lista.appendChild(item);
+  });
+}
+
+async function carregarSelectCidadesAtendimentoAdmin() {
+  const select = document.getElementById('adminCidadeAtendimento');
+  if (!select) return;
+
+  try {
+    const response = await fetch('/api/cidades');
+    if (!response.ok) throw new Error('Erro ao carregar cidades');
+    const cidades = await response.json();
+
+    cidades
+      .sort((a, b) => `${a.nome} ${a.estado}`.localeCompare(`${b.nome} ${b.estado}`, 'pt-BR'))
+      .forEach(cidade => {
+        const option = document.createElement('option');
+        option.value = JSON.stringify({ nome: cidade.nome, estado: cidade.estado });
+        option.textContent = `${cidade.nome} / ${cidade.estado}`;
+        select.appendChild(option);
+      });
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 async function verUsuario(id) {
   usuarioAtualId = id;
 
   const response = await fetch(`/api/admin/usuarios/${id}`);
   const { usuario } = await response.json();
+  usuarioAtualCidadesAtendimento = obterCidadesAtendimento(usuario)
+    .map(item => ({
+      nome: item.nome || item.cidade,
+      cidade: item.cidade || item.nome,
+      estado: item.estado
+    }))
+    .filter(item => (item.nome || item.cidade) && item.estado);
 
   document.querySelector('.tabela-usuarios').classList.add('d-none');
   document.querySelector('.visualizar-usuario').classList.remove('d-none');
@@ -205,6 +289,42 @@ async function verUsuario(id) {
     </div>
   </div>
 
+  ${usuario.tipo === 'revenda' ? `
+  <!-- 🔹 CIDADES DE ATUAÇÃO -->
+  <div class="col-12">
+    <div class="border rounded-3 p-4 bg-white shadow-sm">
+      <h6 class="text-uppercase text-muted mb-3">Cidades onde os anúncios são encontrados</h6>
+
+      <div class="mb-3">
+        ${renderizarPillsCidades(usuarioAtualCidadesAtendimento)}
+      </div>
+
+      <div class="row g-3 align-items-end">
+        <div class="col-md-8">
+          <label class="form-label small text-muted">Cidade de atuação</label>
+          <select id="adminCidadeAtendimento" class="form-control">
+            <option value="">Selecione uma cidade</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <button type="button" class="btn btn-outline-danger w-100" onclick="adicionarCidadeAtendimentoAdmin()">
+            Adicionar cidade
+          </button>
+        </div>
+      </div>
+
+      <div id="adminCidadesAtendimentoLista" class="mt-3"></div>
+
+      <div class="mt-3 d-flex gap-2 align-items-center flex-wrap">
+        <button type="button" class="btn btn-danger" onclick="salvarCidadesAtendimentoAdmin()">
+          Salvar cidades
+        </button>
+        <span id="adminCidadesFeedback" class="small"></span>
+      </div>
+    </div>
+  </div>
+  ` : ''}
+
   <!-- 🔹 SEGURANÇA -->
   <div class="col-12">
     <div class="border rounded-3 p-4 bg-white shadow-sm">
@@ -234,6 +354,8 @@ async function verUsuario(id) {
 	  `;
 	  if (usuario.tipo === 'revenda') {
 	    carregarCapaUsuario(id);
+	    carregarSelectCidadesAtendimentoAdmin();
+	    renderizarCidadesAtendimentoAdmin();
 	  }
 	  carregarAnunciosDoUsuario(id);
 	}
@@ -315,6 +437,61 @@ async function uploadCapaUsuario() {
     console.error(err);
     feedback.textContent = 'Erro de comunicação com o servidor.';
     feedback.className = 'small text-danger';
+  }
+}
+
+function adicionarCidadeAtendimentoAdmin() {
+  const select = document.getElementById('adminCidadeAtendimento');
+  if (!select || !select.value) return;
+
+  const cidade = JSON.parse(select.value);
+  const jaExiste = usuarioAtualCidadesAtendimento.some(item =>
+    chaveCidadeAtendimento(item) === chaveCidadeAtendimento(cidade)
+  );
+
+  if (!jaExiste) {
+    usuarioAtualCidadesAtendimento.push({
+      nome: cidade.nome,
+      cidade: cidade.nome,
+      estado: cidade.estado
+    });
+    renderizarCidadesAtendimentoAdmin();
+  }
+
+  select.value = '';
+}
+
+async function salvarCidadesAtendimentoAdmin() {
+  const feedback = document.getElementById('adminCidadesFeedback');
+  if (feedback) {
+    feedback.textContent = 'Salvando...';
+    feedback.className = 'small text-muted';
+  }
+
+  try {
+    const response = await fetch(`/api/admin/usuarios/${usuarioAtualId}/cidades-atendimento`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ cidadesAtendimento: usuarioAtualCidadesAtendimento })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Erro ao salvar cidades.');
+    }
+
+    if (feedback) {
+      feedback.textContent = 'Cidades atualizadas com sucesso.';
+      feedback.className = 'small text-success';
+    }
+  } catch (error) {
+    console.error(error);
+    if (feedback) {
+      feedback.textContent = error.message || 'Erro ao salvar cidades.';
+      feedback.className = 'small text-danger';
+    }
   }
 }
 

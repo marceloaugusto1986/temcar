@@ -45,6 +45,34 @@
     hr {
         opacity: 0.1;
     }
+
+    .cidade-atendimento-lista {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .cidade-atendimento-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #e1e1e1;
+        border-radius: 999px;
+        background: #fff;
+        color: #2b2f36;
+        padding: 7px 10px 7px 12px;
+        font-weight: 600;
+        font-size: .9rem;
+    }
+
+    .cidade-atendimento-pill button {
+        border: 0;
+        background: transparent;
+        color: #C90B0C;
+        font-weight: 800;
+        line-height: 1;
+    }
 </style>
 
 <body>
@@ -138,6 +166,33 @@
                                     <option>MG</option>
                                     <option>RS</option>
                                 </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- CIDADES DE ATUAÇÃO -->
+                        <h6 class="fw-bold mb-3">Cidades onde deseja ser encontrado</h6>
+
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label">Cidade de atuação</label>
+                                <select class="form-select" id="cidadeAtendimento">
+                                    <option value="">Selecione uma cidade</option>
+                                </select>
+                                <div class="form-text">
+                                    Ao informar cidades, seus anúncios também poderão aparecer nas buscas dessas regiões.
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 d-flex align-items-start">
+                                <button type="button" class="btn btn-outline-danger w-100 mt-md-4" id="btnAdicionarCidade">
+                                    Adicionar cidade
+                                </button>
+                            </div>
+
+                            <div class="col-12">
+                                <div id="cidadesAtendimentoLista" class="cidade-atendimento-lista"></div>
                             </div>
                         </div>
 

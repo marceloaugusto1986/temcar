@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../database/pool_connection');
+const db = require('./database/pool_connection');
 
 router.get('/sitemap.xml', async (req, res) => {
   try {
@@ -19,20 +19,28 @@ router.get('/sitemap.xml', async (req, res) => {
       { loc: '/buscar-cidades', priority: '0.7', changefreq: 'daily', lastmod: hoje },
       { loc: '/planos-particular', priority: '0.5', changefreq: 'monthly', lastmod: hoje },
       { loc: '/planos-revenda', priority: '0.5', changefreq: 'monthly', lastmod: hoje },
+      { loc: '/carros', priority: '0.8', changefreq: 'daily', lastmod: hoje },
+      { loc: '/motos', priority: '0.8', changefreq: 'daily', lastmod: hoje },
+      { loc: '/utilitarios', priority: '0.8', changefreq: 'daily', lastmod: hoje },
+      { loc: '/comprar', priority: '0.7', changefreq: 'daily', lastmod: hoje },
+      { loc: '/vender', priority: '0.7', changefreq: 'monthly', lastmod: hoje },
     ];
 
     // Cidades dinâmicas
     let cidadesUrls = [];
     try {
       const [cidades] = await db.query(`SELECT nome, estado FROM cidades`);
-      cidadesUrls = cidades.map(c => {
+      cidades.forEach(c => {
         const slug = c.nome
           .toLowerCase()
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')
           .replace(/\s+/g, '-');
         const uf = c.estado.toLowerCase();
-        return { loc: `/cidade/${slug}/${uf}`, priority: '0.6', changefreq: 'daily', lastmod: hoje };
+        cidadesUrls.push({ loc: `/cidade/${slug}/${uf}`, priority: '0.6', changefreq: 'daily', lastmod: hoje });
+        cidadesUrls.push({ loc: `/carros/${slug}/${uf}`, priority: '0.6', changefreq: 'daily', lastmod: hoje });
+        cidadesUrls.push({ loc: `/motos/${slug}/${uf}`, priority: '0.5', changefreq: 'daily', lastmod: hoje });
+        cidadesUrls.push({ loc: `/utilitarios/${slug}/${uf}`, priority: '0.5', changefreq: 'daily', lastmod: hoje });
       });
     } catch (e) {
       console.error('Sitemap: erro ao buscar cidades', e);
