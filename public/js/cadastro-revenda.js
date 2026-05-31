@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectCidadeAtendimento = document.getElementById("cidadeAtendimento");
     const btnAdicionarCidade = document.getElementById("btnAdicionarCidade");
     const listaCidadesAtendimento = document.getElementById("cidadesAtendimentoLista");
+    const selectPlano = document.getElementById("planoRevenda");
     const cidadesSelecionadas = [];
 
     function chaveCidade(cidade) {
@@ -73,6 +74,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
     carregarCidadesAtendimento();
 
+    async function carregarPlanosRevenda() {
+        if (!selectPlano) return;
+
+        try {
+            const response = await fetch("/api/planos?tipo=revenda");
+            if (!response.ok) throw new Error("Erro ao carregar planos");
+
+            const planos = await response.json();
+            selectPlano.innerHTML = '<option value="">Selecione um plano</option>';
+
+            planos.forEach(plano => {
+                const option = document.createElement("option");
+                option.value = plano.codigo;
+                option.textContent = plano.nome;
+                option.dataset.planoId = plano.id;
+                selectPlano.appendChild(option);
+            });
+
+            const planoUrl = new URLSearchParams(window.location.search).get("plano");
+
+            if (planoUrl && planos.some(plano => plano.codigo === planoUrl)) {
+                selectPlano.value = planoUrl;
+            } else if (planos[0]) {
+                selectPlano.value = planos[0].codigo;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    carregarPlanosRevenda();
+
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -95,7 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
             cidade: document.getElementById("cidade").value.trim(),
             estado: document.getElementById("estado").value,
             cidadesAtendimento: cidadesSelecionadas,
-            senha: document.getElementById("senha").value
+            senha: document.getElementById("senha").value,
+            plano_codigo: selectPlano?.value || "revenda-plano-10",
+            plano_desejado: selectPlano?.selectedOptions?.[0]?.textContent || "PLANO 10"
         };
 
         /* ==========================

@@ -166,104 +166,27 @@
     <main class="container">
 
       <section class="cards" style="margin-top: 50px;">
+        <% (planos || []).forEach((plano) => { %>
+          <div class="container-card">
+            <div class="card card-principal">
+              <h3 class="titulo-plano"><%= plano.nome %></h3>
 
-        <div class="container-card">
-          <div class="card card-principal">
-            <h3 class="titulo-plano">PLANO 10</h3>
+              <div class="card card-interno">
+                <p style="font-size: 22px;">
+                  <%= plano.limite_anuncios %> Veículos <br><%= plano.limite_motos || 0 %> Moto<%= Number(plano.limite_motos || 0) === 1 ? '' : 's' %>
+                </p>
+                <p>(<%= plano.limite_destaques %> Destaques a sua escolha)</p>
+                <span>Receba contatos pelo seu whatsApp.</span>
 
-            <div class="card card-interno">
-              <!-- <h3 class="titulo-dias">30 dias</h3> -->
-              <p style="font-size: 22px;">10 Veículos <br>1 Moto</p>
-              <p>(3 Destaques a sua escolha)</p>
-              <span>Receba contatos pelo seu whatsApp.</span>
-
-              <h3 class="promocao">
-                Promoção: Grátis até julho/2026
-              </h3>
+                <h3 class="promocao">
+                  Promoção: Grátis até julho/2026
+                </h3>
+              </div>
             </div>
+
+            <button class="botao-anunciar" onclick="window.location.href='/cadastro-revenda?plano=<%= plano.codigo %>';">Quero esse</button>
           </div>
-
-          <button class="botao-anunciar" onclick="window.location.href='/cadastro-revenda';">Quero esse</button>
-        </div>
-
-        <div class="container-card">
-          <div class="card card-principal">
-            <h3 class="titulo-plano">PLANO 15</h3>
-
-            <div class="card card-interno">
-              <!-- <h3 class="titulo-dias">30 dias</h3> -->
-              <p style="font-size: 22px;">15 Veículos <br>2 Motos</p>
-              <p>(4 Destaques a sua escolha)</p>
-              <span>Receba contatos pelo seu whatsApp.</span>
-
-              <h3 class="promocao">
-                Promoção: Grátis até julho/2026
-              </h3>
-            </div>
-          </div>
-
-          <button class="botao-anunciar" onclick="window.location.href='/cadastro-revenda';">Quero esse</button>
-        </div>
-
-        <div class="container-card">
-          <div class="card card-principal">
-            <h3 class="titulo-plano">PLANO 20</h3>
-
-            <div class="card card-interno">
-              <!-- <h3 class="titulo-dias">30 dias</h3> -->
-              <p style="font-size: 22px;">20 Veículos <br>3 Motos</p>
-              <p>(5 Destaques a sua escolha)</p>
-              <span>Receba contatos pelo seu whatsApp.</span>
-
-              <h3 class="promocao">
-                Promoção: Grátis até julho/2026
-              </h3>
-            </div>
-          </div>
-
-          <button class="botao-anunciar" onclick="window.location.href='/cadastro-revenda';">Quero esse</button>
-        </div>
-
-        <div class="container-card">
-          <div class="card card-principal">
-            <h3 class="titulo-plano">PLANO 25</h3>
-
-            <div class="card card-interno">
-              <!-- <h3 class="titulo-dias">30 dias</h3> -->
-              <p style="font-size: 22px;">25 Veículos <br>4 Motos</p>
-              <p>(6 Destaques a sua escolha)</p>
-              <span>Receba contatos pelo seu whatsApp.</span>
-
-              <h3 class="promocao">
-                Promoção: Grátis até julho/2026
-              </h3>
-            </div>
-          </div>
-
-          <button class="botao-anunciar" onclick="window.location.href='/cadastro-revenda';">Quero esse</button>
-        </div>
-
-        <div class="container-card">
-          <div class="card card-principal">
-            <h3 class="titulo-plano">PLANO 30</h3>
-
-            <div class="card card-interno">
-              <!-- <h3 class="titulo-dias">30 dias</h3> -->
-              <p style="font-size: 22px;">30 Veículos <br>5 Motos</p>
-              <p>(6 Destaques a sua escolha)</p>
-              <span>Receba contatos pelo seu whatsApp.</span>
-
-              <h3 class="promocao">
-                Promoção: Grátis até julho/2026
-              </h3>
-            </div>
-          </div>
-
-          <button class="botao-anunciar" onclick="window.location.href='/cadastro-revenda';">Quero esse</button>
-        </div>
-
-
-
+        <% }) %>
       </section>
       <h3>PARA MAIS PLANOS CONSULTE</h3>
     </main>

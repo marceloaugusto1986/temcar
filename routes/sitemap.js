@@ -77,6 +77,7 @@ router.get('/sitemap.xml', async (req, res) => {
         SELECT id, criado_em AS data_mod
         FROM anuncios
         WHERE status = 'ativo'
+          AND (publicado_ate IS NULL OR publicado_ate >= NOW())
         ORDER BY criado_em DESC
         LIMIT 5000
       `);

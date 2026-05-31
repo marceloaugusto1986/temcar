@@ -4,6 +4,7 @@ const upload = require("../../../middlewares/uploadImagens");
 const db = require("../../../database/pool_connection");
 const fs = require("fs");
 const path = require("path");
+const { validarCriacaoAnuncio, validarEdicaoAnuncio } = require("../../../database/planos");
 
 // Middleware simples de autenticação
 function auth(req, res, next) {
@@ -51,6 +52,17 @@ router.post("/api/anunciante/anuncios", auth, upload.array("imagens", 10), async
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         message: "Envie pelo menos uma imagem."
+      });
+    }
+
+    const validacaoPlano = await validarCriacaoAnuncio(db, usuarioId, {
+      tipo,
+      totalFotos: req.files.length
+    });
+
+    if (!validacaoPlano.permitido) {
+      return res.status(403).json({
+        message: validacaoPlano.message
       });
     }
 
@@ -198,6 +210,7 @@ router.get("/api/anunciante/anuncios-ativos", auth, async (req, res) => {
   WHERE 
     a.usuario_id = ?
     AND a.status = 'ativo'
+    AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
   ORDER BY a.criado_em DESC
 `, [usuarioId]);
 
@@ -435,6 +448,16 @@ router.put("/api/anunciante/anuncios/:id", auth, upload.array("imagens", 10), as
     if (imagensFinais <= 0) {
       return res.status(400).json({
         message: "O anúncio precisa ter pelo menos uma imagem."
+      });
+    }
+
+    const validacaoPlano = await validarEdicaoAnuncio(db, usuarioId, anuncioId, {
+      totalFotosFinal: imagensFinais
+    });
+
+    if (!validacaoPlano.permitido) {
+      return res.status(403).json({
+        message: validacaoPlano.message
       });
     }
 

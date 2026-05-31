@@ -104,6 +104,7 @@ router.get("/api/revenda/:id/anuncios", async (req, res) => {
       WHERE 
         a.usuario_id = ?
         AND a.status = 'ativo'
+        AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
       ORDER BY a.criado_em DESC
     `, [revendaId])
 
@@ -146,6 +147,7 @@ router.get("/api/revendas-ativos", async (req, res) => {
       WHERE 
         u.tipo = 'revenda'
         AND a.status = 'ativo'
+        AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
       ORDER BY a.criado_em DESC
     `)
 

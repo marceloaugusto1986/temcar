@@ -2,6 +2,7 @@ require('dotenv').config();
 const mysql = require('mysql2/promise');
 const { HOST, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, PRIMARY_PASSWORD } = process.env;
 const bcrypt = require('bcryptjs');
+const { garantirPlanos } = require('./planos');
 
 async function start_DB() {
     let db;
@@ -365,6 +366,8 @@ CREATE TABLE IF NOT EXISTS cidades (
 
 await db.query(criarTabelaCidades);
 
+
+        await garantirPlanos(db);
 
 
 

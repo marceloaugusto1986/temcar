@@ -166,79 +166,37 @@
     <main class="container">
 
       <section class="cards">
-
-        <div class="container-card">
-          <div class="card card-principal">
-            <h3 class="titulo-plano">PLANO 1</h3>
-
-            <div class="card card-interno">
-              <h3 class="titulo-dias">30 dias</h3>
-              <p>30 dias de anúncio com até 4 fotos</p>
-
-              <h3 class="promocao">
-                Promoção: Grátis até julho/2026
+        <% (planos || []).forEach((plano, index) => { %>
+          <div class="container-card">
+            <div class="card card-principal">
+              <% if (index === 1) { %>
+                <h4
+                  style="background-color: #6f74b9; color: white; padding: 1px; border-top-left-radius: 10px; border-top-right-radius: 10px; position: relative; top: -51px;">
+                  Recomendamos</h4>
+              <% } %>
+              <h3 class="titulo-plano" style="<%= index === 1 ? 'position: relative; top: -35px;' : '' %>">
+                <%= plano.nome %>
               </h3>
+
+              <div class="card card-interno" style="<%= index === 1 ? 'position: relative; top: -35px;' : '' %>">
+                <h3 class="titulo-dias">
+                  <% if (plano.dias_publicacao) { %>
+                    <%= plano.dias_publicacao %> dias
+                  <% } else { %>
+                    Até vender
+                  <% } %>
+                </h3>
+                <p><%= plano.descricao %></p>
+
+                <h3 class="promocao">
+                  Promoção: Grátis até julho/2026
+                </h3>
+              </div>
             </div>
+
+            <button class="botao-anunciar" onclick="window.location.href='/cadastro-particular?plano=<%= plano.codigo %>';">ANUNCIAR</button>
           </div>
-
-          <button class="botao-anunciar" onclick="window.location.href='/cadastro-particular';">ANUNCIAR</button>
-        </div>
-
-        <div class="container-card">
-          <div class="card card-principal">
-            <h4
-              style="background-color: #6f74b9; color: white; padding: 1px; border-top-left-radius: 10px; border-top-right-radius: 10px; position: relative; top: -51px;">
-              Recomendamos</h4>
-            <h3 class="titulo-plano" style="position: relative; top: -35px;">PLANO 2</h3>
-
-            <div class="card card-interno" style="position: relative; top: -35px;">
-              <h3 class="titulo-dias">60 dias</h3>
-              <p>60 dias de anúncio sem limites de fotos</p>
-
-              <h3 class="promocao">
-                Promoção: Grátis até julho/2026
-              </h3>
-            </div>
-          </div>
-
-          <button class="botao-anunciar" onclick="window.location.href='/cadastro-particular';">ANUNCIAR</button>
-        </div>
-
-        <div class="container-card">
-          <div class="card card-principal">
-            <h3 class="titulo-plano">PLANO 3</h3>
-
-            <div class="card card-interno">
-              <h3 class="titulo-dias">Destaque</h3>
-              <p>90 dias de anúncio <span style="color: #c90b0c;">Destaque</span> sem limites de fotos</p>
-
-              <h3 class="promocao">
-                Promoção: Grátis até julho/2026
-              </h3>
-            </div>
-          </div>
-
-          <button class="botao-anunciar" onclick="window.location.href='/cadastro-particular';">ANUNCIAR</button>
-        </div>
-
-        <div class="container-card">
-          <div class="card card-principal">
-            <h3 class="titulo-plano">PLANO 4</h3>
-
-            <div class="card card-interno">
-              <h3 class="titulo-dias">Até vender</h3>
-              <p>Anúncio em <span style="color: #c90b0c;">Destaque</span> sem limites de fotos</p>
-
-              <h3 class="promocao">
-                Promoção: Grátis até julho/2026
-              </h3>
-            </div>
-          </div>
-
-          <button class="botao-anunciar" onclick="window.location.href='/cadastro-particular';">ANUNCIAR</button>
-        </div>
-
-
+        <% }) %>
       </section>
     </main>
 

@@ -203,7 +203,7 @@ router.get('/api/veiculos', async (req, res) => {
 
     const { tipo, cidade, uf, bairro, marca, carroceria, busca } = req.query;
 
-    let where = "a.status = 'ativo'";
+    let where = "a.status = 'ativo' AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())";
     const params = [];
 
     if (tipo) {

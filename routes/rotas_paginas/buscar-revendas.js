@@ -55,6 +55,7 @@ router.get("/api/revendas-ativas", async (req, res) => {
           FROM anuncios a
           WHERE a.usuario_id = u.id
           AND a.status = 'ativo'
+          AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
         )
 
       ORDER BY u.nome ASC
@@ -110,6 +111,7 @@ LEFT JOIN anuncios_imagens img
 WHERE 
   u.tipo = 'revenda'
   AND a.status = 'ativo'
+  AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
 ORDER BY a.criado_em DESC
     `)
 

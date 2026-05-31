@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../../database/pool_connection');
 const bcrypt = require('bcryptjs');
 const { getSeo } = require('../../helpers/seo');
+const { buscarPlanoPorCodigoOuId, listarPlanos } = require('../../database/planos');
 const router = express.Router();
 
 async function garantirTabelaCidadesRevendas(conn = db) {
@@ -65,6 +66,23 @@ router.post('/api/page-access', async (req, res) => {
   }
 });
 
+router.get('/api/planos', async (req, res) => {
+  try {
+    const tipo = req.query.tipo || null;
+
+    if (tipo && !['particular', 'revenda'].includes(tipo)) {
+      return res.status(400).json({ message: 'Tipo de plano inválido.' });
+    }
+
+    const planos = await listarPlanos(db, tipo);
+    return res.json(planos);
+
+  } catch (err) {
+    console.error('Erro ao listar planos:', err);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+});
+
 router.post('/api/usuarios', async (req, res) => {
   try {
     const {
@@ -77,6 +95,8 @@ router.post('/api/usuarios', async (req, res) => {
       // Particular
       cpf,
       plano_desejado,
+      plano_id,
+      plano_codigo,
 
       // Revenda
       telefone,
@@ -105,11 +125,27 @@ router.post('/api/usuarios', async (req, res) => {
 
     // 🔹 Validações específicas
     if (tipo === 'particular') {
-      if (!cpf || !plano_desejado) {
+      if (!cpf) {
         return res.status(400).json({
           message: 'Dados obrigatórios do cadastro particular ausentes.'
         });
       }
+    }
+
+    const codigoPlanoPadrao = tipo === 'revenda'
+      ? 'revenda-plano-10'
+      : 'particular-plano-1';
+
+    const planoSelecionado = await buscarPlanoPorCodigoOuId(db, {
+      id: plano_id,
+      codigo: plano_codigo || codigoPlanoPadrao,
+      tipoUsuario: tipo
+    });
+
+    if (!planoSelecionado) {
+      return res.status(400).json({
+        message: 'Plano informado não foi encontrado.'
+      });
     }
 
     if (tipo === 'revenda') {
@@ -163,6 +199,7 @@ router.post('/api/usuarios', async (req, res) => {
 
           cpf,
           plano_desejado,
+          plano_id,
 
           telefone,
           cnpj,
@@ -172,7 +209,7 @@ router.post('/api/usuarios', async (req, res) => {
           bairro,
           cidade,
           estado
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
           tipo,
@@ -182,7 +219,8 @@ router.post('/api/usuarios', async (req, res) => {
           senhaHash,
 
           tipo === 'particular' ? cpf : null,
-          tipo === 'particular' ? plano_desejado : null,
+          planoSelecionado.nome,
+          planoSelecionado.id,
 
           tipo === 'revenda' ? telefone : null,
           tipo === 'revenda' ? cnpj : null,

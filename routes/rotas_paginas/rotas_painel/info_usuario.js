@@ -48,6 +48,7 @@ router.get('/api/perfil-anunciante/:id', async (req, res) => {
         -- Dados particular
         cpf,
         plano_desejado,
+        plano_id,
 
         criado_em
       FROM usuarios

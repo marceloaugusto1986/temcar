@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const fs = require("fs");
 const path = require("path");
 const upload = require("../../../middlewares/uploadImagens");
+const { buscarPlanoDoUsuario, calcularDatasPublicacao } = require("../../../database/planos");
 
 async function garantirColunasRegioesImagens() {
   const [colunas] = await db.query(`
@@ -364,6 +365,7 @@ router.get('/api/admin/anuncios-publicados', checkAuth('private'), async (req, r
       FROM anuncios a
       INNER JOIN usuarios u ON u.id = a.usuario_id
       WHERE a.status = 'ativo'
+        AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
       ORDER BY a.criado_em DESC
     `);
 
@@ -372,6 +374,264 @@ router.get('/api/admin/anuncios-publicados', checkAuth('private'), async (req, r
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Erro interno' });
+  }
+});
+
+router.get('/api/admin/anuncios/:id', checkAuth('private'), async (req, res) => {
+  try {
+    const anuncioId = req.params.id;
+
+    const [[anuncio]] = await db.query(
+      `
+      SELECT
+        a.id,
+        a.usuario_id,
+        a.status,
+        a.tipo,
+        a.marca,
+        a.versao,
+        a.ano_fabricacao,
+        a.ano_modelo,
+        a.km,
+        a.condicao,
+        a.cambio,
+        a.motorizacao,
+        a.portas,
+        a.carroceria,
+        a.combustivel,
+        a.tracao,
+        a.cor,
+        a.preco,
+        a.descricao,
+        a.acessorios,
+        u.cidade,
+        u.estado
+      FROM anuncios a
+      INNER JOIN usuarios u ON u.id = a.usuario_id
+      WHERE a.id = ?
+      LIMIT 1
+      `,
+      [anuncioId]
+    );
+
+    if (!anuncio) {
+      return res.status(404).json({ message: "Anúncio não encontrado" });
+    }
+
+    const [imagens] = await db.query(
+      `
+      SELECT id, imagem, principal
+      FROM anuncios_imagens
+      WHERE anuncio_id = ?
+      ORDER BY principal DESC, id ASC
+      `,
+      [anuncioId]
+    );
+
+    anuncio.imagens = imagens;
+
+    return res.json(anuncio);
+
+  } catch (err) {
+    console.error("Erro ao buscar anúncio para edição admin:", err);
+    return res.status(500).json({ message: "Erro interno" });
+  }
+});
+
+router.put('/api/admin/anuncios/:id', checkAuth('private'), upload.array("imagens", 10), async (req, res) => {
+  try {
+    const anuncioId = req.params.id;
+
+    const {
+      tipo,
+      marca,
+      versao,
+      ano_fabricacao,
+      ano_modelo,
+      km,
+      condicao,
+      cambio,
+      motorizacao,
+      portas,
+      carroceria,
+      combustivel,
+      tracao,
+      cor,
+      preco,
+      descricao,
+      acessorios,
+      imagensRemovidas
+    } = req.body;
+
+    const [[anuncio]] = await db.query(
+      "SELECT id FROM anuncios WHERE id = ?",
+      [anuncioId]
+    );
+
+    if (!anuncio) {
+      return res.status(404).json({ message: "Anúncio não encontrado" });
+    }
+
+    const [[{ totalImagens }]] = await db.query(
+      "SELECT COUNT(*) AS totalImagens FROM anuncios_imagens WHERE anuncio_id = ?",
+      [anuncioId]
+    );
+
+    let listaRemovidas = [];
+
+    if (imagensRemovidas) {
+      try {
+        listaRemovidas = JSON.parse(imagensRemovidas);
+      } catch {
+        listaRemovidas = [];
+      }
+    }
+
+    const imagensNovas = req.files ? req.files.length : 0;
+    const imagensFinais = totalImagens - listaRemovidas.length + imagensNovas;
+
+    if (imagensFinais <= 0) {
+      return res.status(400).json({
+        message: "O anúncio precisa ter pelo menos uma imagem."
+      });
+    }
+
+    for (const nomeImagem of listaRemovidas) {
+      await db.query(
+        "DELETE FROM anuncios_imagens WHERE anuncio_id = ? AND imagem = ?",
+        [anuncioId, nomeImagem]
+      );
+
+      const caminho = path.join(
+        process.cwd(),
+        "public",
+        "uploads",
+        "anuncios",
+        nomeImagem
+      );
+
+      try {
+        if (fs.existsSync(caminho)) {
+          fs.unlinkSync(caminho);
+        }
+      } catch (err) {
+        console.warn("Erro ao remover imagem:", nomeImagem);
+      }
+    }
+
+    const [[existePrincipalDepoisDaRemocao]] = await db.query(
+      `
+      SELECT id FROM anuncios_imagens
+      WHERE anuncio_id = ? AND principal = 1
+      LIMIT 1
+      `,
+      [anuncioId]
+    );
+
+    if (!existePrincipalDepoisDaRemocao) {
+      const [[novaPrincipal]] = await db.query(
+        `
+        SELECT id FROM anuncios_imagens
+        WHERE anuncio_id = ?
+        ORDER BY id ASC
+        LIMIT 1
+        `,
+        [anuncioId]
+      );
+
+      if (novaPrincipal) {
+        await db.query(
+          "UPDATE anuncios_imagens SET principal = 1 WHERE id = ?",
+          [novaPrincipal.id]
+        );
+      }
+    }
+
+    let acessoriosFinal = "[]";
+
+    if (acessorios) {
+      try {
+        JSON.parse(acessorios);
+        acessoriosFinal = acessorios;
+      } catch {
+        acessoriosFinal = JSON.stringify([acessorios]);
+      }
+    }
+
+    await db.query(
+      `
+      UPDATE anuncios SET
+        tipo = ?,
+        marca = ?,
+        versao = ?,
+        ano_fabricacao = ?,
+        ano_modelo = ?,
+        km = ?,
+        condicao = ?,
+        cambio = ?,
+        motorizacao = ?,
+        portas = ?,
+        carroceria = ?,
+        combustivel = ?,
+        tracao = ?,
+        cor = ?,
+        preco = ?,
+        descricao = ?,
+        acessorios = ?
+      WHERE id = ?
+      `,
+      [
+        tipo,
+        marca,
+        versao,
+        ano_fabricacao,
+        ano_modelo,
+        km,
+        condicao,
+        cambio,
+        motorizacao,
+        portas,
+        carroceria,
+        combustivel,
+        tracao,
+        cor,
+        preco,
+        descricao,
+        acessoriosFinal,
+        anuncioId
+      ]
+    );
+
+    if (req.files && req.files.length > 0) {
+      const [[existePrincipal]] = await db.query(
+        `
+        SELECT id FROM anuncios_imagens
+        WHERE anuncio_id = ? AND principal = 1
+        LIMIT 1
+        `,
+        [anuncioId]
+      );
+
+      for (let i = 0; i < req.files.length; i++) {
+        await db.query(
+          `
+          INSERT INTO anuncios_imagens (anuncio_id, imagem, principal)
+          VALUES (?, ?, ?)
+          `,
+          [
+            anuncioId,
+            req.files[i].filename,
+            !existePrincipal && i === 0 ? 1 : 0
+          ]
+        );
+      }
+    }
+
+    return res.json({ message: "Anúncio atualizado com sucesso" });
+
+  } catch (err) {
+    console.error("Erro ao atualizar anúncio pelo admin:", err);
+    return res.status(500).json({ message: "Erro interno ao atualizar anúncio" });
   }
 });
 
@@ -444,9 +704,34 @@ router.put('/api/admin/publicando-anuncio/:id', checkAuth('private'), async (req
   try {
     const anuncioId = req.params.id;
 
-    await db.query(
-      `UPDATE anuncios SET status = 'ativo' WHERE id = ?`,
+    const [[anuncio]] = await db.query(
+      "SELECT id, usuario_id FROM anuncios WHERE id = ? LIMIT 1",
       [anuncioId]
+    );
+
+    if (!anuncio) {
+      return res.status(404).json({ message: "Anúncio não encontrado" });
+    }
+
+    const plano = await buscarPlanoDoUsuario(db, anuncio.usuario_id);
+    const datasPlano = calcularDatasPublicacao(plano);
+
+    await db.query(
+      `
+      UPDATE anuncios
+      SET
+        status = 'ativo',
+        destaque = ?,
+        destaque_ate = ?,
+        publicado_ate = ?
+      WHERE id = ?
+      `,
+      [
+        datasPlano.destaque,
+        datasPlano.destaqueAteSql,
+        datasPlano.publicadoAteSql,
+        anuncioId
+      ]
     );
 
     return res.json({ message: 'Anúncio publicado com sucesso' });
@@ -1027,6 +1312,7 @@ router.get("/api/seo-dinamico/:pagina", async (req, res) => {
       FROM anuncios a
       INNER JOIN usuarios u ON u.id = a.usuario_id
       WHERE a.status = 'ativo'
+        AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
       ORDER BY a.criado_em DESC
       LIMIT 1
     `);

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require("../../database/pool_connection");
 const { getSeo } = require('../../helpers/seo');
+const { buscarPlanoDoUsuario } = require('../../database/planos');
 
 
 router.get('/particular', async (req, res) => {
@@ -63,6 +64,7 @@ router.get("/api/particular-ativos", async (req, res) => {
       WHERE 
         a.usuario_id = ?
         AND a.status = 'ativo'
+        AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
 
       ORDER BY a.criado_em DESC
     `, [usuarioId]);
@@ -110,6 +112,7 @@ LEFT JOIN anuncios_imagens img
 WHERE 
   u.tipo = 'particular'
   AND a.status = 'ativo'
+  AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
 ORDER BY a.criado_em DESC
     `)
 
@@ -170,6 +173,7 @@ router.get("/api/meus-anuncios", async (req, res) => {
       WHERE 
         a.usuario_id = ?
         AND a.status = 'ativo'
+        AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
 
       ORDER BY a.criado_em DESC
     `, [usuarioId]);
@@ -192,6 +196,8 @@ router.post("/api/meus-anuncios-destaques", async (req, res) => {
 
     const usuarioId = usuario.id;
     const { anuncios = [] } = req.body;
+    const plano = await buscarPlanoDoUsuario(db, usuarioId);
+    const limiteDestaques = Number(plano?.limite_destaques || 0);
 
     /* ==========================
        PEGAR APENAS IDS DO USUÁRIO
@@ -205,6 +211,19 @@ router.post("/api/meus-anuncios-destaques", async (req, res) => {
     const idsValidos = meus.map(a => a.id);
 
     /* ==========================
+       FILTRAR SEGURANÇA
+    ========================== */
+    const selecionados = anuncios
+      .map(Number)
+      .filter(id => idsValidos.includes(id));
+
+    if (selecionados.length > limiteDestaques) {
+      return res.status(403).json({
+        message: `Seu plano permite até ${limiteDestaques} destaque(s).`
+      });
+    }
+
+    /* ==========================
        RESETAR TODOS
     ========================== */
     await db.query(`
@@ -212,13 +231,6 @@ router.post("/api/meus-anuncios-destaques", async (req, res) => {
       SET destaque = FALSE
       WHERE usuario_id = ?
     `, [usuarioId]);
-
-    /* ==========================
-       FILTRAR SEGURANÇA
-    ========================== */
-    const selecionados = anuncios
-      .map(Number)
-      .filter(id => idsValidos.includes(id));
 
     /* ==========================
        ATIVAR SELECIONADOS

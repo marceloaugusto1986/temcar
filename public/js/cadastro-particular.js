@@ -1,8 +1,41 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.querySelector("#gform_3");
     const btn = document.querySelector("#btnCadastrar");
+    const selectPlano = document.querySelector("#input_3_25");
 
     if (!form || !btn) return;
+
+    async function carregarPlanos() {
+        if (!selectPlano) return;
+
+        try {
+            const response = await fetch("/api/planos?tipo=particular");
+            if (!response.ok) throw new Error("Erro ao carregar planos");
+
+            const planos = await response.json();
+
+            selectPlano.innerHTML = '<option value="">Selecione um plano</option>';
+            planos.forEach(plano => {
+                const option = document.createElement("option");
+                option.value = plano.codigo;
+                option.textContent = plano.nome;
+                option.dataset.planoId = plano.id;
+                selectPlano.appendChild(option);
+            });
+
+            const planoUrl = new URLSearchParams(window.location.search).get("plano");
+
+            if (planoUrl && planos.some(plano => plano.codigo === planoUrl)) {
+                selectPlano.value = planoUrl;
+            } else if (planos[0]) {
+                selectPlano.value = planos[0].codigo;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    carregarPlanos();
 
     btn.addEventListener("click", async (e) => {
         e.preventDefault();
@@ -24,9 +57,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const estado = document.querySelector("#estado")?.value.trim();
 
         const senha = document.querySelector("#input_3_22")?.value;
-        //const planoRaw = document.querySelector("#input_3_25")?.value;
-        //const planoDesejado = planoRaw?.split("|")[0];
-        const planoDesejado = "Grátis";
+        const planoCodigo = selectPlano?.value || "particular-plano-1";
+        const planoDesejado = selectPlano?.selectedOptions?.[0]?.textContent || "PLANO 1";
 
         /* ==========================
            VALIDAÇÃO
@@ -69,7 +101,8 @@ document.addEventListener("DOMContentLoaded", () => {
             bairro,
             cidade,
             estado,
-            plano_desejado: planoDesejado
+            plano_desejado: planoDesejado,
+            plano_codigo: planoCodigo
         };
 
         try {
