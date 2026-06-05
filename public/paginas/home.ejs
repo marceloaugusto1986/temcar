@@ -60,7 +60,8 @@
 		height: 100%;
 	}
 
-	.bannerSwiper a {
+	.bannerSwiper a,
+	.bannerSwiper picture {
 		display: block;
 		width: 100%;
 		height: 100%;
@@ -84,7 +85,8 @@
 
 		.bannerSwiper .swiper-wrapper,
 		.bannerSwiper .swiper-slide,
-		.bannerSwiper a {
+		.bannerSwiper a,
+		.bannerSwiper picture {
 			height: auto;
 		}
 
@@ -929,7 +931,7 @@
 					<section class="container my-5 container-lista-de-anuncios">
 
 						<div class="bg-white shadow-sm p-3 rounded mt-4">
-							<h4 class="mb-4 fw-bold" style="color: #C90B0C;">Veículos em Destaque</h4>
+							<h4 id="tituloDestaques" class="mb-4 fw-bold" style="color: #C90B0C;">Carros em Destaque</h4>
 
 							<div class="home-carousel">
 								<div class="swiper" id="destaquesSwiper">
@@ -1572,17 +1574,43 @@
 								})
 							})
 
+							function normalizarTipoBusca(valor) {
+								return String(valor || "")
+									.toLowerCase()
+									.normalize("NFD")
+									.replace(/[\u0300-\u036f]/g, "")
+							}
+
+							function atualizarTituloDestaques(tipo) {
+								const titulo = document.getElementById("tituloDestaques")
+								if (!titulo) return
+
+								const titulos = {
+									carro: "Carros em Destaque",
+									moto: "Motos em Destaque",
+									utilitario: "Utilitários em Destaque"
+								}
+
+								titulo.textContent = titulos[normalizarTipoBusca(tipo)] || "Veículos em Destaque"
+							}
+
+							function obterTipoSelecionado(tipo) {
+								return tipo || document.querySelector(".categorias button.active")?.dataset.tipo || "carro"
+							}
+
 							function aplicarFiltroTipoCarro(tipo) {
+								const tipoSelecionado = obterTipoSelecionado(tipo)
 								let listaFiltrada = itensOriginais
 
-								if (tipo) {
+								if (tipoSelecionado) {
 									listaFiltrada = listaFiltrada.filter(item =>
-										item.tipo_carro &&
-										item.tipo_carro.toLowerCase() === tipo.toLowerCase()
+										normalizarTipoBusca(item.tipo_carro || item.tipo_automovel || item.tipo) ===
+										normalizarTipoBusca(tipoSelecionado)
 									)
 								}
 
 								itens = listaFiltrada // 🔥 atualiza lista global
+								atualizarTituloDestaques(tipoSelecionado)
 
 								paginaAtual = 1
 								renderizarCards()
@@ -1615,21 +1643,29 @@
 										const slideDiv = document.createElement("div");
 										slideDiv.className = "swiper-slide";
 
+										const picture = document.createElement("picture");
+										const sourceMobile = document.createElement("source");
 										const img = document.createElement("img");
+
+										sourceMobile.media = "(max-width: 768px)";
+										sourceMobile.srcset = "/uploads/anuncios/" + (slide.imagem_mobile || slide.imagem);
+										picture.appendChild(sourceMobile);
+
 										img.src = "/uploads/anuncios/" + slide.imagem;
 										img.loading = "lazy";
 										img.alt = "Banner";
+										picture.appendChild(img);
 
 										if (slide.link) {
 
 											const link = document.createElement("a");
 											link.href = slide.link;
-											link.appendChild(img);
+											link.appendChild(picture);
 											slideDiv.appendChild(link);
 
 										} else {
 
-											slideDiv.appendChild(img);
+											slideDiv.appendChild(picture);
 
 										}
 
@@ -1704,6 +1740,12 @@
 								position: relative;
 							}
 
+							.container-img-cidade picture {
+								display: block;
+								width: 100%;
+								height: 100%;
+							}
+
 							/* IMAGEM */
 							.img-cidade {
 								width: 100%;
@@ -1735,14 +1777,26 @@
 										const slide = document.createElement("div");
 										slide.classList.add("swiper-slide");
 
-										slide.innerHTML = `
-							<div class="container-img-cidade">
-								<img 
-								src="/uploads/anuncios/${img.imagem}" 
-								class="img-cidade"
-								/>
-							</div>
-							`;
+										const picture = document.createElement("picture");
+										const sourceMobile = document.createElement("source");
+										const imagemDesktop = "/uploads/anuncios/" + img.imagem;
+										const imagemMobile = "/uploads/anuncios/" + (img.imagem_mobile || img.imagem);
+
+										sourceMobile.media = "(max-width: 768px)";
+										sourceMobile.srcset = imagemMobile;
+										picture.appendChild(sourceMobile);
+
+										const imagem = document.createElement("img");
+										imagem.src = imagemDesktop;
+										imagem.className = "img-cidade";
+										imagem.alt = "Banner da cidade";
+										imagem.loading = "lazy";
+										picture.appendChild(imagem);
+
+										const container = document.createElement("div");
+										container.className = "container-img-cidade";
+										container.appendChild(picture);
+										slide.appendChild(container);
 
 										wrapper.appendChild(slide);
 									});
