@@ -101,7 +101,7 @@ async function carregarVeiculos() {
         if (filtro.uf) params.set('uf', filtro.uf)
         if (filtro.bairro) params.set('bairro', filtro.bairro)   // ← NOVO
 
-        if (query.get('marca')) params.set('marca', query.get('marca'))
+        if (query.get('marca') || query.get('marcas')) params.set('marca', query.get('marca') || query.get('marcas'))
         if (query.get('carroceria')) params.set('carroceria', query.get('carroceria'))
         if (query.get('busca')) params.set('busca', query.get('busca'))
 
@@ -148,9 +148,10 @@ function atualizarTitulos() {
     } else if (filtro.cidade) {
         titulo = `${tipoNome} em ${obterCidadeFiltro()} - ${obterUfFiltro()}`
         sub = `Ofertas de ${(filtro.tipo || "veículos")} na sua cidade`
-    } else if (query.get('marca')) {
-        titulo = `${tipoNome} ${query.get('marca')} à Venda`
-        sub = `Ofertas da marca ${query.get('marca')} no TEMCAR`
+    } else if (query.get('marca') || query.get('marcas')) {
+        const marcaVal = query.get('marca') || query.get('marcas')
+        titulo = `${tipoNome} ${marcaVal} à Venda`
+        sub = `Ofertas da marca ${marcaVal} no TEMCAR`
     } else if (query.get('carroceria')) {
         titulo = `${tipoNome} por Carroceria: ${capitalize(query.get('carroceria'))}`
         sub = `Encontre veículos do tipo ${capitalize(query.get('carroceria'))}`
