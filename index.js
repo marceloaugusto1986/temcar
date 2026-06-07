@@ -38,6 +38,7 @@ const RotasTermosUso = require('./routes/rotas_paginas/termos_uso');
 const RotasPlanosParticular = require('./routes/rotas_paginas/planos-particular');
 const RotasPlanosRevenda = require('./routes/rotas_paginas/planos-revenda');
 const RotasVeiculos = require('./routes/rotas_paginas/veiculos');
+const RotasTabelaFipe = require('./routes/rotas_paginas/tabela-fipe');
 const RotasBairros = require('./routes/bairros'); // ← BAIRROS
 
 
@@ -169,6 +170,7 @@ app.use('/', RotasVenda);
 app.use('/', RotasFiltro);
 app.use('/', RotasBuscarRevendas);
 app.use('/', RotasBuscarCidades);
+app.use('/', RotasTabelaFipe);
 // Rotas de /carros e /motos precisam vir antes das rotas regionais/cidade.
 app.use('/', RotasVeiculos);
 app.use('/', RotasCidade);

@@ -34,6 +34,7 @@ router.get('/sitemap.xml', async (req, res) => {
       { loc: '/motos', priority: '0.8', changefreq: 'daily', lastmod: hoje },
       { loc: '/utilitarios', priority: '0.8', changefreq: 'daily', lastmod: hoje },
       { loc: '/comprar', priority: '0.7', changefreq: 'daily', lastmod: hoje },
+      { loc: '/tabela-fipe', priority: '0.7', changefreq: 'monthly', lastmod: hoje },
       { loc: '/vender', priority: '0.7', changefreq: 'monthly', lastmod: hoje },
     ];
 

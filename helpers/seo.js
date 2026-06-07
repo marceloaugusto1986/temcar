@@ -61,6 +61,14 @@ const SEO_DEFAULTS = {
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/vender`
   },
+  tabela_fipe: {
+    titulo: 'Tabela FIPE de Carros, Motos e Caminhões | TEMCAR',
+    descricao: 'Consulte grátis o valor FIPE de carros, motos e caminhões no TEMCAR. Veja marca, modelo, ano, combustível, código FIPE e mês de referência.',
+    keywords: 'tabela fipe, consulta fipe, valor fipe, fipe carros, fipe motos, fipe caminhões',
+    texto_h1: 'Tabela FIPE TEMCAR',
+    texto_conteudo: '',
+    link_canonico: `${SITE_URL}/tabela-fipe`
+  },
   buscar_cidades: {
     titulo: 'Buscar Veículos por Cidade | TEMCAR',
     descricao: 'Encontre carros e motos à venda por cidade no TEMCAR. Veja ofertas próximas de você.',

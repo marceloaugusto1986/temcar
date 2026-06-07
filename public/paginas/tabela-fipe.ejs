@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('reutilizavel/seo-head', { seo: typeof seo !== 'undefined' ? seo : {} }) %>
+    <%- include('reutilizavel/jsonld-breadcrumb', { breadcrumbs: typeof breadcrumbs !== 'undefined' ? breadcrumbs : [] }) %>
+    <script src="/js/site-config.js" defer></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+
+<style>
+    body {
+        background: #f4f5f7 !important;
+    }
+
+    .fipe-hero {
+        background:
+            linear-gradient(135deg, rgba(201, 11, 12, .95), rgba(21, 21, 21, .95)),
+            url('/images/logo-default.png');
+        background-repeat: no-repeat;
+        background-size: auto, min(420px, 68vw);
+        background-position: center, right 8% center;
+        color: #fff;
+        padding: 46px 0 86px;
+    }
+
+    .fipe-hero h1 {
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        font-weight: 800;
+        letter-spacing: 0;
+    }
+
+    .fipe-hero p {
+        max-width: 620px;
+        color: rgba(255, 255, 255, .88);
+        font-size: 1.08rem;
+    }
+
+    .fipe-shell {
+        margin-top: -52px;
+    }
+
+    .fipe-panel {
+        background: #fff;
+        border: 1px solid rgba(15, 23, 42, .08);
+        border-radius: 8px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, .13);
+    }
+
+    .fipe-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 8px;
+        background: #f4f5f7;
+        border-radius: 8px;
+    }
+
+    .fipe-tab {
+        min-height: 48px;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        background: transparent;
+        color: #2d3035;
+        font-weight: 700;
+        transition: all .18s ease;
+    }
+
+    .fipe-tab.active,
+    .fipe-tab:hover {
+        background: #fff;
+        border-color: rgba(201, 11, 12, .22);
+        color: #C90B0C;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+    }
+
+    .fipe-form-label {
+        color: #30343a;
+        font-weight: 700;
+        font-size: .92rem;
+    }
+
+    .fipe-muted {
+        color: #626874;
+    }
+
+    .fipe-result {
+        border: 1px solid rgba(201, 11, 12, .18);
+        border-radius: 8px;
+        background:
+            linear-gradient(135deg, rgba(201, 11, 12, .08), rgba(255, 255, 255, 0) 58%),
+            #fff;
+    }
+
+    .fipe-price {
+        color: #C90B0C;
+        font-size: clamp(2rem, 5vw, 3.35rem);
+        line-height: 1;
+        font-weight: 900;
+    }
+
+    .fipe-result-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .fipe-info-item {
+        background: #f8f9fb;
+        border: 1px solid rgba(15, 23, 42, .07);
+        border-radius: 8px;
+        padding: 12px;
+        min-height: 74px;
+    }
+
+    .fipe-info-item span {
+        display: block;
+        color: #626874;
+        font-size: .78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .fipe-info-item strong {
+        display: block;
+        color: #151515;
+        font-size: .96rem;
+        line-height: 1.3;
+        margin-top: 3px;
+    }
+
+    .fipe-empty {
+        border: 1px dashed rgba(15, 23, 42, .2);
+        border-radius: 8px;
+        background: #fafafa;
+        min-height: 220px;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 28px;
+    }
+
+    .fipe-empty i {
+        color: #C90B0C;
+        font-size: 2.2rem;
+    }
+
+    .fipe-section-title {
+        color: #151515;
+        font-weight: 800;
+        letter-spacing: 0;
+    }
+
+    .fipe-section-title::before {
+        content: "";
+        display: block;
+        width: 72px;
+        height: 7px;
+        border-radius: 999px;
+        background: #C90B0C;
+        margin-bottom: 12px;
+    }
+
+    .fipe-chip-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .fipe-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        border-radius: 7px;
+        border: 1px solid rgba(15, 23, 42, .09);
+        background: #fff;
+        color: #30343a;
+        font-weight: 700;
+        text-decoration: none;
+        padding: 7px 12px;
+        transition: all .18s ease;
+    }
+
+    .fipe-chip:hover {
+        color: #C90B0C;
+        border-color: rgba(201, 11, 12, .22);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+    }
+
+    .fipe-note {
+        background: #fff;
+        border-left: 5px solid #C90B0C;
+        border-radius: 8px;
+    }
+
+    @media(max-width: 991px) {
+        .fipe-hero {
+            background-image: linear-gradient(135deg, rgba(201, 11, 12, .98), rgba(21, 21, 21, .96));
+            padding-bottom: 76px;
+        }
+
+        .fipe-result-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media(max-width: 576px) {
+        .fipe-tabs {
+            grid-template-columns: 1fr;
+        }
+
+        .fipe-shell {
+            margin-top: -42px;
+        }
+
+        .fipe-panel {
+            padding: 18px !important;
+        }
+
+        .fipe-result-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<body>
+    <%- include('./reutilizavel/header-public') %>
+
+    <section class="fipe-hero">
+        <div class="container">
+            <h1>Tabela FIPE TEMCAR</h1>
+            <p class="mb-0">Consulte grátis o preço médio de carros, motos e caminhões e use esse valor como referência para comprar, vender ou anunciar seu veículo.</p>
+        </div>
+    </section>
+
+    <main class="container fipe-shell">
+        <section class="fipe-panel p-4 p-lg-5">
+            <div class="row g-4 align-items-start">
+                <div class="col-lg-5">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-search text-danger fs-4"></i>
+                        <h2 class="h4 fw-bold mb-0">Consultar valor FIPE</h2>
+                    </div>
+
+                    <div class="fipe-tabs mb-4" role="tablist" aria-label="Tipo de veículo">
+                        <button class="fipe-tab active" type="button" data-fipe-tipo="carros">
+                            <i class="bi bi-car-front me-1"></i> Carros
+                        </button>
+                        <button class="fipe-tab" type="button" data-fipe-tipo="motos">
+                            <i class="bi bi-bicycle me-1"></i> Motos
+                        </button>
+                        <button class="fipe-tab" type="button" data-fipe-tipo="caminhoes">
+                            <i class="bi bi-truck me-1"></i> Caminhões
+                        </button>
+                    </div>
+
+                    <form id="fipeForm" class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fipe-form-label" for="fipeMarca">Marca</label>
+                            <select id="fipeMarca" class="form-select" required>
+                                <option value="">Carregando marcas...</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fipe-form-label" for="fipeModelo">Modelo / versão</label>
+                            <select id="fipeModelo" class="form-select" required disabled>
+                                <option value="">Selecione uma marca primeiro</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fipe-form-label" for="fipeAno">Ano e combustível</label>
+                            <select id="fipeAno" class="form-select" required disabled>
+                                <option value="">Selecione um modelo primeiro</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 d-grid">
+                            <button id="fipeSubmit" class="btn btn-danger btn-lg fw-bold" type="submit" disabled>
+                                <span class="fipe-submit-text">Consultar preço</span>
+                                <span class="spinner-border spinner-border-sm ms-2 d-none" id="fipeSpinner" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="fipeFeedback" class="alert alert-danger mt-3 d-none" role="alert"></div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div id="fipeEmpty" class="fipe-empty">
+                        <div>
+                            <i class="bi bi-speedometer2"></i>
+                            <h3 class="h5 fw-bold mt-3 mb-2">Escolha o veículo para ver o valor</h3>
+                            <p class="fipe-muted mb-0">O resultado aparece aqui com preço médio, código FIPE, combustível e mês de referência.</p>
+                        </div>
+                    </div>
+
+                    <article id="fipeResult" class="fipe-result p-4 d-none">
+                        <span class="badge text-bg-light border mb-3">Preço médio FIPE</span>
+                        <div class="fipe-price" id="fipeValor">R$ 0,00</div>
+                        <h3 class="h4 fw-bold mt-3 mb-1" id="fipeTituloResultado"></h3>
+                        <p class="fipe-muted mb-4" id="fipeResumoResultado"></p>
+
+                        <div class="fipe-result-grid mb-4">
+                            <div class="fipe-info-item">
+                                <span>Mês referência</span>
+                                <strong id="fipeMes">-</strong>
+                            </div>
+                            <div class="fipe-info-item">
+                                <span>Código FIPE</span>
+                                <strong id="fipeCodigo">-</strong>
+                            </div>
+                            <div class="fipe-info-item">
+                                <span>Ano modelo</span>
+                                <strong id="fipeAnoModelo">-</strong>
+                            </div>
+                            <div class="fipe-info-item">
+                                <span>Combustível</span>
+                                <strong id="fipeCombustivel">-</strong>
+                            </div>
+                            <div class="fipe-info-item">
+                                <span>Marca</span>
+                                <strong id="fipeMarcaResultado">-</strong>
+                            </div>
+                            <div class="fipe-info-item">
+                                <span>Consulta</span>
+                                <strong id="fipeDataConsulta">Atualizada</strong>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <a id="fipeComprarLink" href="/comprar" class="btn btn-outline-danger fw-bold">
+                                <i class="bi bi-search me-1"></i> Ver parecidos
+                            </a>
+                            <a href="/anunciar" class="btn btn-danger fw-bold">
+                                <i class="bi bi-megaphone me-1"></i> Anunciar veículo
+                            </a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="row g-4 my-5">
+            <div class="col-lg-7">
+                <div class="bg-white p-4 h-100">
+                    <h2 class="fipe-section-title h4 mb-4">Marcas mais buscadas</h2>
+                    <div class="fipe-chip-list">
+                        <% ['Chevrolet', 'Fiat', 'Volkswagen', 'Honda', 'Toyota', 'Hyundai', 'Jeep', 'Ford', 'Renault', 'BMW', 'Yamaha', 'Honda Motos'].forEach(function(marca) { %>
+                            <a class="fipe-chip" href="/comprar?busca=<%= encodeURIComponent(marca) %>"><%= marca %></a>
+                        <% }) %>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="fipe-note p-4 h-100">
+                    <h2 class="h5 fw-bold mb-3">Use como referência de negociação</h2>
+                    <p class="fipe-muted mb-0">A Tabela FIPE indica uma média nacional. Quilometragem, conservação, região, acessórios, cor e histórico podem fazer o preço real ficar acima ou abaixo do valor consultado.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-4 p-lg-5 mb-5">
+            <h2 class="fipe-section-title h4 mb-4">Perguntas frequentes</h2>
+
+            <div class="accordion" id="fipeFaq">
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqOne">
+                            O que é a Tabela FIPE?
+                        </button>
+                    </h3>
+                    <div id="faqOne" class="accordion-collapse collapse show" data-bs-parent="#fipeFaq">
+                        <div class="accordion-body">
+                            É uma referência de preço médio de veículos no mercado nacional, usada para compra, venda, financiamento, seguro e avaliação.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqTwo">
+                            O valor FIPE é o preço obrigatório de venda?
+                        </button>
+                    </h3>
+                    <div id="faqTwo" class="accordion-collapse collapse" data-bs-parent="#fipeFaq">
+                        <div class="accordion-body">
+                            Não. O valor serve como parâmetro. O preço final depende da negociação e das condições específicas do veículo.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqThree">
+                            A FIPE muda conforme a cidade?
+                        </button>
+                    </h3>
+                    <div id="faqThree" class="accordion-collapse collapse" data-bs-parent="#fipeFaq">
+                        <div class="accordion-body">
+                            A consulta mostra uma média nacional. Diferenças regionais podem influenciar o preço praticado em anúncios e lojas.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqFour">
+                            Com que frequência o valor é atualizado?
+                        </button>
+                    </h3>
+                    <div id="faqFour" class="accordion-collapse collapse" data-bs-parent="#fipeFaq">
+                        <div class="accordion-body">
+                            Os valores são publicados por mês de referência. Sempre confira o mês exibido no resultado da consulta.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/tabela-fipe.js"></script>
+    <%- include('./reutilizavel/footer-public') %>
+</body>
+
+</html>
