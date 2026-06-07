@@ -24,6 +24,24 @@ function obterListaAtual() {
     return anunciosFiltrados
 }
 
+function criarSlugVenda(texto) {
+    return (texto || "")
+        .toString()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+}
+
+function montarUrlVenda(item) {
+    const marcaModelo = criarSlugVenda([item.marca, item.versao || item.modelo].filter(Boolean).join(" ")) || "veiculo"
+    const cidade = criarSlugVenda(item.cidade) || "cidade"
+    const estado = criarSlugVenda(item.estado) || "estado"
+
+    return `/venda/${marcaModelo}/${cidade}/${estado}`
+}
+
 /* ================================
    CARREGAR ANÚNCIOS
 ================================ */
@@ -290,7 +308,7 @@ function renderizarCards() {
     paginaItens.forEach(item => {
         container.innerHTML += `
 <div>
-  <div class="card shadow-sm vehicle-card" style="width: 280px; cursor: pointer" onclick="window.location.href='/venda?id=${item.id}'">
+  <div class="card shadow-sm vehicle-card" style="width: 280px; cursor: pointer" onclick="window.location.href='${montarUrlVenda(item)}'">
 
     <img 
       src="${item.imagem ? `/uploads/anuncios/${item.imagem}` : '/img/sem-foto.jpg'}"

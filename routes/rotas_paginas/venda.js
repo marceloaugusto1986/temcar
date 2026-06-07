@@ -2,18 +2,101 @@ const express = require('express');
 const router = express.Router();
 const db = require('./../../database/pool_connection');
 const { getSeoAnuncio, getSeo } = require('../../helpers/seo');
+const { slugify, montarCaminhoVenda, montarUrlVenda } = require('../../helpers/anuncio-url');
 
-router.get('/venda', async (req, res) => {
+async function buscarAnuncioResumoPorId(id) {
+  const [[anuncio]] = await db.query(`
+    SELECT
+      a.id,
+      a.marca,
+      a.versao,
+      a.status,
+      a.publicado_ate,
+      u.cidade,
+      u.estado
+    FROM anuncios a
+    INNER JOIN usuarios u ON u.id = a.usuario_id
+    WHERE a.id = ?
+    LIMIT 1
+  `, [id]);
+
+  return anuncio;
+}
+
+async function buscarAnuncioResumoPorSlug(marcaModeloSlug, cidadeSlug, estadoSlug) {
+  const [anuncios] = await db.query(`
+    SELECT
+      a.id,
+      a.marca,
+      a.versao,
+      u.cidade,
+      u.estado
+    FROM anuncios a
+    INNER JOIN usuarios u ON u.id = a.usuario_id
+    WHERE a.status = 'ativo'
+      AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
+    ORDER BY a.criado_em DESC
+    LIMIT 5000
+  `);
+
+  return anuncios.find((anuncio) => {
+    const slugMarcaModelo = slugify([anuncio.marca, anuncio.versao].filter(Boolean).join(' '));
+
+    return slugMarcaModelo === marcaModeloSlug
+      && slugify(anuncio.cidade) === cidadeSlug
+      && slugify(anuncio.estado) === estadoSlug;
+  });
+}
+
+async function renderizarPaginaVenda(req, res, anuncio) {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  const id = req.query.id;
+
+  const id = anuncio?.id;
   const seo = id ? await getSeoAnuncio(id) : await getSeo('venda');
+  const urlVenda = anuncio ? montarUrlVenda(anuncio) : 'https://www.temcar.com.br/venda';
   const breadcrumbs = [
     { name: 'Home', url: 'https://www.temcar.com.br/' },
-    { name: 'Veículo', url: `https://www.temcar.com.br/venda?id=${id || ''}` }
+    { name: 'Veículo', url: urlVenda }
   ];
-  res.render('venda', { seo, breadcrumbs });
+
+  res.render('venda', { seo, breadcrumbs, anuncioId: id || null });
+}
+
+router.get('/venda', async (req, res) => {
+  const id = req.query.id;
+
+  if (id) {
+    const anuncio = await buscarAnuncioResumoPorId(id);
+
+    const estaPublicado = !anuncio?.publicado_ate || new Date(anuncio.publicado_ate) >= new Date();
+    if (anuncio && anuncio.status === 'ativo' && estaPublicado && !req.query.context) {
+      return res.redirect(301, montarCaminhoVenda(anuncio));
+    }
+
+    return renderizarPaginaVenda(req, res, anuncio || null);
+  }
+
+  return renderizarPaginaVenda(req, res, null);
+});
+
+router.get('/venda/:marcaModelo/:cidade/:estado', async (req, res) => {
+  const { marcaModelo, cidade, estado } = req.params;
+  const anuncio = await buscarAnuncioResumoPorSlug(marcaModelo, cidade, estado);
+
+  if (!anuncio) {
+    return res.status(404).render('venda', {
+      seo: await getSeo('venda'),
+      breadcrumbs: [
+        { name: 'Home', url: 'https://www.temcar.com.br/' },
+        { name: 'Veículo', url: 'https://www.temcar.com.br/venda' }
+      ],
+      anuncioId: null
+    });
+  }
+
+  return renderizarPaginaVenda(req, res, anuncio);
 });
 
 router.get("/api/venda-contexto", (req, res) => {

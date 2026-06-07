@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/pool_connection');
+const { montarCaminhoVenda } = require('../helpers/anuncio-url');
 const SITE_URL = (process.env.SITE_URL || 'https://www.temcar.com.br').replace(/\/$/, '');
 
 function escapeXml(value) {
@@ -74,15 +75,22 @@ router.get('/sitemap.xml', async (req, res) => {
     let anunciosUrls = [];
     try {
       const [anuncios] = await db.query(`
-        SELECT id, criado_em AS data_mod
-        FROM anuncios
-        WHERE status = 'ativo'
-          AND (publicado_ate IS NULL OR publicado_ate >= NOW())
-        ORDER BY criado_em DESC
+        SELECT
+          a.id,
+          a.marca,
+          a.versao,
+          a.criado_em AS data_mod,
+          u.cidade,
+          u.estado
+        FROM anuncios a
+        INNER JOIN usuarios u ON u.id = a.usuario_id
+        WHERE a.status = 'ativo'
+          AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
+        ORDER BY a.criado_em DESC
         LIMIT 5000
       `);
       anunciosUrls = anuncios.map(a => ({
-        loc: `/venda?id=${a.id}`,
+        loc: montarCaminhoVenda(a),
         priority: '0.8',
         changefreq: 'weekly',
         lastmod: a.data_mod ? new Date(a.data_mod).toISOString().split('T')[0] : hoje

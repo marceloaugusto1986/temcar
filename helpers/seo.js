@@ -1,4 +1,5 @@
 const db = require('../database/pool_connection');
+const { montarUrlVenda } = require('./anuncio-url');
 const SITE_URL = (process.env.SITE_URL || 'https://www.temcar.com.br').replace(/\/$/, '');
 
 function slugify(texto) {
@@ -251,7 +252,7 @@ async function getSeoAnuncio(id) {
         titulo: `${anuncio.marca || 'Veículo'} ${anuncio.versao || ''} à venda | TEMCAR`.replace(/\s+/g, ' ').trim(),
         descricao: `Veja detalhes de ${anuncio.marca || 'veículo'} ${anuncio.versao || ''} à venda em ${anuncio.cidade || ''} ${anuncio.estado || ''} no TEMCAR.`.replace(/\s+/g, ' ').trim(),
         texto_h1: `${anuncio.marca || 'Veículo'} ${anuncio.versao || ''} à venda`.replace(/\s+/g, ' ').trim(),
-        link_canonico: `${SITE_URL}/venda?id=${id}`,
+        link_canonico: montarUrlVenda(anuncio),
         og_type: 'product',
         og_image: anuncio.imagem_principal ? `${SITE_URL}/uploads/anuncios/${anuncio.imagem_principal}` : fallbackSeo.og_image
       });
@@ -275,7 +276,7 @@ async function getSeoAnuncio(id) {
       keywords: substituir(seo.keywords) || fallbackSeo.keywords,
       texto_h1: substituir(seo.texto_h1) || fallbackSeo.texto_h1,
       texto_conteudo: substituir(seo.texto_conteudo) || fallbackSeo.texto_conteudo,
-      link_canonico: substituir(seo.link_canonico) || `${SITE_URL}/venda?id=${id}`,
+      link_canonico: montarUrlVenda(anuncio),
       og_type: 'product',
       og_image: ogImage,
       robots: 'index, follow'

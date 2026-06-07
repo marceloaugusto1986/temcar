@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
-    const anuncioId = params.get("id");
+    const anuncioId = window.TEMCAR_ANUNCIO_ID || params.get("id");
 
     if (!anuncioId) {
         alert("Anúncio inválido");

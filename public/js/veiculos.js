@@ -18,6 +18,24 @@ function formatarValor(valor) {
     return numero.toLocaleString("pt-BR")
 }
 
+function criarSlugVenda(texto) {
+    return (texto || "")
+        .toString()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+}
+
+function montarUrlVenda(item) {
+    const marcaModelo = criarSlugVenda([item.marca, item.versao || item.modelo].filter(Boolean).join(" ")) || "veiculo"
+    const cidade = criarSlugVenda(item.cidade) || "cidade"
+    const estado = criarSlugVenda(item.estado) || "estado"
+
+    return `/venda/${marcaModelo}/${cidade}/${estado}`
+}
+
 function capitalize(texto) {
     return (texto || "").replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
 }
@@ -190,7 +208,7 @@ function renderizarLista() {
         col.innerHTML = `
             <div class="card shadow-sm h-100 position-relative"
                  style="cursor: pointer"
-                 onclick="window.location.href='/venda?id=${item.id}'">
+                 onclick="window.location.href='${montarUrlVenda(item)}'">
 
                 ${item.destaque == 1 ? `
                     <span style="

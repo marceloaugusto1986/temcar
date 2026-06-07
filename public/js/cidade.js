@@ -15,10 +15,20 @@ let cidadeBannerSwiper = null
 
 function criarSlug(texto) {
     return (texto || "")
+        .toString()
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+}
+
+function montarUrlVenda(item) {
+    const marcaModelo = criarSlug([item.marca, item.versao || item.modelo].filter(Boolean).join(" ")) || "veiculo"
+    const cidade = criarSlug(item.cidade) || "cidade"
+    const estado = criarSlug(item.estado) || "estado"
+
+    return `/venda/${marcaModelo}/${cidade}/${estado}`
 }
 
 function formatarValor(valor) {
@@ -208,7 +218,7 @@ function renderizarLista() {
         wrapper.innerHTML = `
             <div class="card shadow-sm vehicle-card position-relative"
                  style="width: 280px; cursor: pointer"
-                 onclick="window.location.href='/venda?id=${item.id}'">
+                 onclick="window.location.href='${montarUrlVenda(item)}'">
 
                 ${item.destaque == 1 ? `
                     <span style="
