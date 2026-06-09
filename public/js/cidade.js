@@ -10,6 +10,8 @@ const limitePorPagina = 10
 let cidadeAtual = null
 let cidadeBannerSwiper = null
 let bairroSelecionado = ""
+const BANNER_CIDADE_DEFAULT_DESKTOP = "/imagens/img/banner-cidade-default.png"
+const BANNER_CIDADE_DEFAULT_MOBILE = "/imagens/img/banner-cidade-default-mobile.png"
 
 // ===============================
 // UTIL
@@ -160,6 +162,10 @@ async function carregarAnunciosDaCidade() {
         // filtrar pela cidade do slug E pelo estado (UF)
         const uf = obterUfAtual()
         listaCidadeAnuncios = listaAnuncios.filter(item => anuncioAtendeCidade(item, slug, uf))
+        if (!listaCidadeAnuncios.length) {
+            renderizarBannerCidadeDefault()
+        }
+
         aplicarFiltroBairro(false)
 
         atualizarTituloCidade()
@@ -373,6 +379,10 @@ function renderizarCidadeSemAnuncios(container) {
     const nomeCidade = escaparHtml(obterNomeCidadeAtual())
     const estado = escaparHtml(obterEstadoAtual())
 
+    if (!listaCidadeAnuncios.length) {
+        renderizarBannerCidadeDefault()
+    }
+
     container.classList.remove("overflow-auto")
     container.classList.add("overflow-visible")
 
@@ -509,7 +519,7 @@ async function carregarBannersCidade() {
             .filter(banner => banner.src)
 
         if (!banners.length) {
-            renderizarBannerFallback()
+            renderizarBannerCidadeDefault()
             return
         }
 
@@ -573,6 +583,28 @@ function renderizarBannerFallback() {
     wrapper.innerHTML = `
         <div class="swiper-slide">
             <div class="cidade-banner-fallback"></div>
+        </div>
+    `
+
+    iniciarSliderCidade(1)
+}
+
+function renderizarBannerCidadeDefault() {
+    const wrapper = document.getElementById("cidadeBannerWrapper")
+    if (!wrapper) return
+
+    wrapper.innerHTML = `
+        <div class="swiper-slide">
+            <picture class="cidade-banner-picture">
+                <source media="(max-width: 768px)" srcset="${BANNER_CIDADE_DEFAULT_MOBILE}">
+                <img
+                    src="${BANNER_CIDADE_DEFAULT_DESKTOP}"
+                    class="cidade-banner-img"
+                    alt="Anuncie seu veículo no TEMCAR"
+                    loading="eager"
+                    onerror="renderizarBannerFallback()"
+                >
+            </picture>
         </div>
     `
 
