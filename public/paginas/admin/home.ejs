@@ -743,9 +743,9 @@
                 </select>
               </div>
               <div class="mb-2">
-                <label class="form-label">URL amigável gerada</label>
-                <input class="form-control bg-light" type="text" id="preview-url-bairro" readonly placeholder="Gerada automaticamente" />
-                <small class="text-muted">Formato: /veiculos/:estado/cidade/bairro</small>
+                <label class="form-label">URL canônica gerada</label>
+                <textarea class="form-control bg-light" id="preview-url-bairro" rows="5" readonly placeholder="Gerada automaticamente"></textarea>
+                <small class="text-muted">Formato: /categoria/bairro/cidade/estado</small>
               </div>
               <div class="d-flex gap-2 mt-3">
                 <button class="btn btn-success" type="submit">Salvar</button>
@@ -769,9 +769,9 @@
                 </select>
               </div>
               <div class="mb-2">
-                <label class="form-label">URL que será gerada</label>
-                <input class="form-control bg-light" type="text" id="preview-url-novo-bairro" readonly placeholder="Gerada automaticamente ao escolher cidade e nome" />
-                <small class="text-muted">Formato: /veiculos/:estado/cidade/bairro</small>
+                <label class="form-label">URL canônica que será gerada</label>
+                <textarea class="form-control bg-light" id="preview-url-novo-bairro" rows="5" readonly placeholder="Gerada automaticamente ao escolher cidade e nome"></textarea>
+                <small class="text-muted">Formato: /categoria/bairro/cidade/estado</small>
               </div>
               <button class="btn btn-primary mt-2" type="submit">Cadastrar</button>
             </form>
@@ -800,7 +800,13 @@
           const slugCidade = slugifyBairro(cidade);
           const slugEstado = slugifyBairro(estado);
           const slugBairro = slugifyBairro(bairro);
-          return `/veiculos/${slugEstado}/${slugCidade}/${slugBairro}`;
+          return [
+            `Carros: /carros/${slugBairro}/${slugCidade}/${slugEstado}`,
+            `Motos: /motos/${slugBairro}/${slugCidade}/${slugEstado}`,
+            `Utilitários: /utilitarios/${slugBairro}/${slugCidade}/${slugEstado}`,
+            `Revendas: /buscar-revendas/${slugBairro}/${slugCidade}/${slugEstado}`,
+            `Particular: /particular/${slugBairro}/${slugCidade}/${slugEstado}`
+          ].join("\n");
         }
 
         // ── Carregar cidades nos selects da aba Bairros ──
