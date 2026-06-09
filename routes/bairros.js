@@ -12,17 +12,57 @@ function slugify(text) {
     .replace(/^-+|-+$/g, '');
 }
 
+async function garantirTabelaBairros() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS bairros (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      nome VARCHAR(150) NOT NULL,
+      cidade VARCHAR(150) NOT NULL,
+      estado VARCHAR(2) NOT NULL,
+      slug VARCHAR(180) NOT NULL,
+      criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+      UNIQUE KEY uniq_bairro_cidade_estado (cidade, estado, slug),
+      KEY idx_bairros_cidade_estado (cidade, estado)
+    ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  `);
+}
+
 // GET /api/bairros
 router.get('/api/bairros', async (req, res) => {
   try {
-    const { cidade } = req.query;
-    let sql = `SELECT id, nome, slug, cidade AS cidade_nome, estado FROM bairros`;
+    await garantirTabelaBairros();
+
+    const { cidade, estado } = req.query;
+    let sql = `
+      SELECT
+        b.id,
+        b.nome,
+        b.slug,
+        b.cidade AS cidade_nome,
+        b.cidade,
+        b.estado,
+        c.id AS cidade_id
+      FROM bairros b
+      LEFT JOIN cidades c
+        ON c.nome COLLATE utf8mb4_unicode_ci = b.cidade COLLATE utf8mb4_unicode_ci
+        AND c.estado COLLATE utf8mb4_unicode_ci = b.estado COLLATE utf8mb4_unicode_ci
+    `;
     const params = [];
+
+    const where = [];
     if (cidade) {
-      sql += ' WHERE cidade = ?';
+      where.push('b.cidade COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci');
       params.push(cidade);
     }
-    sql += ' ORDER BY cidade, nome';
+    if (estado) {
+      where.push('b.estado COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci');
+      params.push(estado.toUpperCase());
+    }
+    if (where.length) {
+      sql += ` WHERE ${where.join(' AND ')}`;
+    }
+    sql += ' ORDER BY b.cidade, b.nome';
     const [rows] = await db.query(sql, params);
     return res.json(rows);
   } catch (err) {
@@ -34,6 +74,8 @@ router.get('/api/bairros', async (req, res) => {
 // GET /api/bairros/:id
 router.get('/api/bairros/:id', async (req, res) => {
   try {
+    await garantirTabelaBairros();
+
     const [rows] = await db.query('SELECT * FROM bairros WHERE id = ?', [req.params.id]);
     if (!rows.length) return res.status(404).json({ message: 'Bairro não encontrado.' });
     return res.json(rows[0]);
@@ -46,6 +88,8 @@ router.get('/api/bairros/:id', async (req, res) => {
 // POST /api/bairros
 router.post('/api/bairros', async (req, res) => {
   try {
+    await garantirTabelaBairros();
+
     const { nome, cidade, estado } = req.body;
     if (!nome || !cidade || !estado) {
       return res.status(400).json({ message: 'Campos obrigatórios: nome, cidade, estado.' });
@@ -68,6 +112,8 @@ router.post('/api/bairros', async (req, res) => {
 // PUT /api/bairros/:id
 router.put('/api/bairros/:id', async (req, res) => {
   try {
+    await garantirTabelaBairros();
+
     const { nome, cidade, estado } = req.body;
     if (!nome || !cidade || !estado) {
       return res.status(400).json({ message: 'Campos obrigatórios: nome, cidade, estado.' });
@@ -88,6 +134,8 @@ router.put('/api/bairros/:id', async (req, res) => {
 // DELETE /api/bairros/:id
 router.delete('/api/bairros/:id', async (req, res) => {
   try {
+    await garantirTabelaBairros();
+
     const [result] = await db.query('DELETE FROM bairros WHERE id = ?', [req.params.id]);
     if (result.affectedRows === 0) return res.status(404).json({ message: 'Bairro não encontrado.' });
     return res.json({ message: 'Bairro excluído com sucesso!' });

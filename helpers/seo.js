@@ -1,5 +1,6 @@
 const db = require('../database/pool_connection');
 const { montarUrlVenda } = require('./anuncio-url');
+const { montarUrlRevenda } = require('./revenda-url');
 const SITE_URL = (process.env.SITE_URL || 'https://www.temcar.com.br').replace(/\/$/, '');
 
 function slugify(texto) {
@@ -127,6 +128,15 @@ function makeDefaultSeo(pagina, overrides = {}) {
   };
 }
 
+function limparTextoSeo(texto) {
+  return (texto || '')
+    .replace(/\s+,/g, ',')
+    .replace(/,\s*,/g, ',')
+    .replace(/\s+-\s*-/g, ' - ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /**
  * Busca SEO server-side para páginas estáticas.
  * Replica a lógica de /api/seo-dinamico/:pagina
@@ -177,13 +187,13 @@ async function getSeo(pagina, dadosContexto = {}, fallbackOverrides = {}) {
 
     function aplicarPlaceholders(texto) {
       if (!texto) return texto;
-      return texto
+      return limparTextoSeo(texto
         .replaceAll('#marca', dados.marca || '')
         .replaceAll('#modelo', dados.versao || '')
         .replaceAll('#veiculo', dados.veiculo || dados.tipo || '')
         .replaceAll('#cidade', dados.cidade || '')
         .replaceAll('#estado', dados.estado || '')
-        .replaceAll('#bairro', dados.bairro || '');
+        .replaceAll('#bairro', dados.bairro || ''));
     }
 
     function aplicarPlaceholdersUrl(texto) {
@@ -199,13 +209,32 @@ async function getSeo(pagina, dadosContexto = {}, fallbackOverrides = {}) {
         .replace(/,\s*/g, '/');
     }
 
+    const deveUsarFallbackLocal = (campo) => {
+      const template = seo[campo] || '';
+      return (dados.bairro && !template.includes('#bairro'))
+        || (dados.cidade && !template.includes('#cidade'));
+    };
+
+    const templateCanonico = seo.link_canonico || '';
+    const linkCanonico = (
+      (dados.bairro && !templateCanonico.includes('#bairro'))
+      || (dados.cidade && !templateCanonico.includes('#cidade'))
+    )
+      ? fallbackSeo.link_canonico
+      : aplicarPlaceholdersUrl(templateCanonico) || fallbackSeo.link_canonico;
+
+    const aplicarCampo = (campo, fallback) => {
+      if (deveUsarFallbackLocal(campo)) return fallback;
+      return aplicarPlaceholders(seo[campo] || '') || fallback;
+    };
+
     return {
-      titulo: aplicarPlaceholders(seo.titulo) || fallbackSeo.titulo,
-      descricao: aplicarPlaceholders(seo.descricao) || fallbackSeo.descricao,
-      keywords: aplicarPlaceholders(seo.keywords) || fallbackSeo.keywords,
-      texto_h1: aplicarPlaceholders(seo.texto_h1) || fallbackSeo.texto_h1,
-      texto_conteudo: aplicarPlaceholders(seo.texto_conteudo) || fallbackSeo.texto_conteudo,
-      link_canonico: aplicarPlaceholdersUrl(seo.link_canonico) || fallbackSeo.link_canonico,
+      titulo: aplicarCampo('titulo', fallbackSeo.titulo),
+      descricao: aplicarCampo('descricao', fallbackSeo.descricao),
+      keywords: aplicarCampo('keywords', fallbackSeo.keywords),
+      texto_h1: aplicarCampo('texto_h1', fallbackSeo.texto_h1),
+      texto_conteudo: aplicarCampo('texto_conteudo', fallbackSeo.texto_conteudo),
+      link_canonico: linkCanonico,
       og_type: 'website',
       og_image: fallbackSeo.og_image,
       robots: 'index, follow'
@@ -299,7 +328,7 @@ async function getSeoAnuncio(id) {
  * Busca SEO para página de cidade.
  * Busca template de 'cidade' e substitui placeholders com dados da cidade.
  */
-async function getSeoCidade(cidade) {
+async function getSeoCidade(cidade, bairro = '') {
   if (!cidade) return makeDefaultSeo('cidade');
 
   const slug = (cidade.nome || '')
@@ -308,12 +337,25 @@ async function getSeoCidade(cidade) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/\s+/g, '-');
   const uf = (cidade.estado || '').toLowerCase();
+  const bairroNome = typeof bairro === 'string' ? bairro : (bairro?.nome || '');
+  const bairroSlug = slugify(bairroNome);
+  const localTitulo = bairroNome
+    ? `${bairroNome}, ${cidade.nome} - ${cidade.estado}`
+    : `${cidade.nome}, ${cidade.estado}`;
+  const localDescricao = bairroNome
+    ? `no bairro ${bairroNome}, em ${cidade.nome}, ${cidade.estado}`
+    : `em ${cidade.nome}, ${cidade.estado}`;
+
   const fallbackSeo = makeDefaultSeo('cidade', {
-    titulo: `Veículos à Venda em ${cidade.nome}, ${cidade.estado} | TEMCAR`,
-    descricao: `Encontre carros e motos à venda em ${cidade.nome}, ${cidade.estado}. Veja ofertas de veículos novos, seminovos e usados no TEMCAR.`,
-    keywords: `veículos em ${cidade.nome}, carros em ${cidade.nome}, motos em ${cidade.nome}`,
-    texto_h1: `Veículos à Venda em ${cidade.nome} - ${cidade.estado}`,
-    link_canonico: `${SITE_URL}/cidade/${slug}/${uf}`
+    titulo: `Veículos à Venda em ${localTitulo} | TEMCAR`,
+    descricao: `Encontre carros, motos e utilitários à venda ${localDescricao}. Veja ofertas de veículos novos, seminovos e usados no TEMCAR.`,
+    keywords: bairroNome
+      ? `veículos em ${bairroNome}, carros em ${bairroNome}, motos em ${bairroNome}, ${cidade.nome}, ${cidade.estado}`
+      : `veículos em ${cidade.nome}, carros em ${cidade.nome}, motos em ${cidade.nome}, utilitários em ${cidade.nome}`,
+    texto_h1: `Veículos à Venda em ${localTitulo}`,
+    link_canonico: bairroSlug
+      ? `${SITE_URL}/veiculos/${uf}/${slug}/${bairroSlug}`
+      : `${SITE_URL}/cidade/${slug}/${uf}`
   });
 
   try {
@@ -329,19 +371,38 @@ async function getSeoCidade(cidade) {
 
     const substituir = (texto) => {
       if (!texto) return '';
-      return texto
-        .replace(/#bairro/g, '')
+      return limparTextoSeo(texto
+        .replace(/#bairro/g, bairroNome || '')
         .replace(/#cidade/g, cidade.nome || '')
-        .replace(/#estado/g, cidade.estado || '');
+        .replace(/#estado/g, cidade.estado || ''));
+    };
+
+    const substituirUrl = (texto) => {
+      if (!texto) return '';
+      return texto
+        .replace(/#bairro/g, slugify(bairroNome))
+        .replace(/#cidade/g, slugify(cidade.nome))
+        .replace(/#estado/g, slugify(cidade.estado));
+    };
+
+    const templateCanonico = seo.link_canonico || '';
+    const linkCanonico = bairroNome && !templateCanonico.includes('#bairro')
+      ? fallbackSeo.link_canonico
+      : substituirUrl(templateCanonico) || fallbackSeo.link_canonico;
+
+    const aplicarCampo = (campo, fallback) => {
+      const template = seo[campo] || '';
+      if (bairroNome && !template.includes('#bairro')) return fallback;
+      return substituir(template) || fallback;
     };
 
     return {
-      titulo: substituir(seo.titulo) || fallbackSeo.titulo,
-      descricao: substituir(seo.descricao) || fallbackSeo.descricao,
-      keywords: substituir(seo.keywords) || fallbackSeo.keywords,
-      texto_h1: substituir(seo.texto_h1) || fallbackSeo.texto_h1,
-      texto_conteudo: substituir(seo.texto_conteudo) || fallbackSeo.texto_conteudo,
-      link_canonico: substituir(seo.link_canonico) || fallbackSeo.link_canonico,
+      titulo: aplicarCampo('titulo', fallbackSeo.titulo),
+      descricao: aplicarCampo('descricao', fallbackSeo.descricao),
+      keywords: aplicarCampo('keywords', fallbackSeo.keywords),
+      texto_h1: aplicarCampo('texto_h1', fallbackSeo.texto_h1),
+      texto_conteudo: aplicarCampo('texto_conteudo', fallbackSeo.texto_conteudo),
+      link_canonico: linkCanonico,
       og_type: 'website',
       og_image: fallbackSeo.og_image,
       robots: 'index, follow'
@@ -378,7 +439,7 @@ async function getSeoRevenda(id) {
       descricao: `Veja veículos anunciados por ${revenda.nome} em ${revenda.cidade || ''}, ${revenda.estado || ''} no TEMCAR.`.replace(/\s+/g, ' ').trim(),
       keywords: `${revenda.nome}, revenda de veículos, carros à venda, motos à venda`,
       texto_h1: `${revenda.nome} no TEMCAR`,
-      link_canonico: `${SITE_URL}/revenda/${id}`
+      link_canonico: montarUrlRevenda({ id, nome: revenda.nome })
     });
 
     const [[seo]] = await db.query(`

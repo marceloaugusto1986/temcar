@@ -63,7 +63,7 @@ function renderizarVenda({ anuncio, anunciante }) {
 
     setText(
         "localizacao",
-        e.cidade && e.estado ? `${e.cidade} - ${e.estado}` : "-"
+        formatarLocalizacao(e)
     );
 
 
@@ -120,6 +120,16 @@ function obterIdDaUrl() {
     return params.get("id")
 }
 
+function criarSlugVenda(texto) {
+    return (texto || "")
+        .toString()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+}
+
 function verRevenda(usuarioId, anunciante) {
     const link = document.getElementById("verRevenda")
 
@@ -127,7 +137,8 @@ function verRevenda(usuarioId, anunciante) {
 
     if (anunciante.tipo === "revenda") {
         link.style.display = "inline-block"
-        link.href = `/revenda/${usuarioId}`
+        const nome = anunciante.nome || anunciante.nome_anunciante || anunciante.razao_social || usuarioId
+        link.href = `/revenda/${criarSlugVenda(nome) || usuarioId}`
     } else {
         link.style.display = "none"
     }
@@ -145,6 +156,18 @@ function preencherCampos(campos) {
     Object.entries(campos).forEach(([id, valor]) => {
         setText(id, valor);
     });
+}
+
+function formatarLocalizacao(endereco = {}) {
+    const bairroCidade = [endereco.bairro, endereco.cidade]
+        .filter(Boolean)
+        .join(", ")
+
+    if (bairroCidade && endereco.estado) {
+        return `${bairroCidade} - ${endereco.estado}`
+    }
+
+    return bairroCidade || endereco.estado || "-"
 }
 
 /* ============================

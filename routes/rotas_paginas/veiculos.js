@@ -44,6 +44,9 @@ async function garantirTabelaCidadesRevendas() {
 // =========================================================
 
 const tiposValidos = { carros: 'Carro', motos: 'Moto', utilitarios: 'Utilitário' };
+const tipoSingular = { carros: 'carro', motos: 'moto', utilitarios: 'utilitário' };
+const tipoPlural = { carros: 'carros', motos: 'motos', utilitarios: 'utilitários' };
+const tipoPluralTitulo = { carros: 'Carros', motos: 'Motos', utilitarios: 'Utilitários' };
 
 const seoBrasilPorTipo = {
   carros: {
@@ -77,6 +80,24 @@ async function getSeoBrasil(tipoSlug) {
   };
 }
 
+function montarSeoLocalPorTipo(tipo, { cidade, uf, bairro = '', canonical }) {
+  const plural = tipoPlural[tipo] || 'veículos';
+  const pluralTitulo = tipoPluralTitulo[tipo] || 'Veículos';
+  const singular = tipoSingular[tipo] || 'veículo';
+  const local = bairro ? `${bairro}, ${cidade} - ${uf}` : `${cidade} - ${uf}`;
+  const localDescricao = bairro ? `no bairro ${bairro}, em ${cidade} - ${uf}` : `em ${cidade} - ${uf}`;
+
+  return {
+    titulo: `${pluralTitulo} à venda em ${local} | TEMCAR`,
+    descricao: `Encontre ${plural} à venda ${localDescricao}. Compare ofertas de ${singular}s novos, seminovos e usados anunciados por revendas e particulares.`,
+    keywords: bairro
+      ? `${plural} em ${bairro}, ${singular} em ${bairro}, ${plural} em ${cidade}, comprar ${singular} ${cidade}`
+      : `${plural} em ${cidade}, comprar ${singular} ${cidade}, ${plural} usados ${uf}, ${plural} seminovos`,
+    texto_h1: `${pluralTitulo} à venda em ${local}`,
+    link_canonico: canonical
+  };
+}
+
 // /carros, /motos ou /utilitarios (geral)
 router.get('/:tipo(carros|motos|utilitarios)', async (req, res) => {
   const tipoSlug = req.params.tipo;
@@ -107,15 +128,18 @@ router.get('/:tipo(carros|motos|utilitarios)/:cidade/:uf', async (req, res) => {
   const nomeCidade = cidadeEncontrada ? cidadeEncontrada.nome : capitalize(cidadeSlug);
   const ufUpper = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : ufSlug.toUpperCase();
 
+  const canonical = `${SITE_URL}/${tipo}/${cidadeSlug}/${ufSlug}`;
   const seo = await getSeo(tipo, {
     cidade: nomeCidade,
     estado: ufUpper,
     veiculo: tiposValidos[tipo],
     tipo: tiposValidos[tipo],
     bairro: ''
-  }, {
-    link_canonico: `${SITE_URL}/${tipo}/${cidadeSlug}/${ufSlug}`
-  });
+  }, montarSeoLocalPorTipo(tipo, {
+    cidade: nomeCidade,
+    uf: ufUpper,
+    canonical
+  }));
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
@@ -140,15 +164,19 @@ router.get('/:tipo(carros|motos|utilitarios)/:bairro/:cidade/:uf', async (req, r
   const nomeCidade = cidadeEncontrada ? cidadeEncontrada.nome : capitalize(cidadeSlug);
   const ufUpper = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : ufSlug.toUpperCase();
 
+  const canonical = `${SITE_URL}/${tipo}/${bairroSlug}/${cidadeSlug}/${ufSlug}`;
   const seo = await getSeo(tipo, {
     bairro: nomeBairro,
     cidade: nomeCidade,
     estado: ufUpper,
     veiculo: tiposValidos[tipo],
     tipo: tiposValidos[tipo]
-  }, {
-    link_canonico: `${SITE_URL}/${tipo}/${bairroSlug}/${cidadeSlug}/${ufSlug}`
-  });
+  }, montarSeoLocalPorTipo(tipo, {
+    cidade: nomeCidade,
+    uf: ufUpper,
+    bairro: nomeBairro,
+    canonical
+  }));
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },

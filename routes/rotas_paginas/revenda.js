@@ -2,21 +2,62 @@ const express = require('express');
 const router = express.Router();
 const db = require("./../../database/pool_connection");
 const { getSeoRevenda } = require('../../helpers/seo');
+const { montarCaminhoRevenda, montarUrlRevenda, montarSlugRevenda } = require('../../helpers/revenda-url');
+
+async function buscarRevendaPorId(id) {
+  const [[revenda]] = await db.query(`
+    SELECT id, nome
+    FROM usuarios
+    WHERE id = ? AND tipo = 'revenda'
+    LIMIT 1
+  `, [id]);
+
+  return revenda || null;
+}
+
+async function buscarRevendaPorIdentificador(identificador) {
+  if (/^\d+$/.test(identificador)) {
+    return buscarRevendaPorId(identificador);
+  }
+
+  const [revendas] = await db.query(`
+    SELECT id, nome
+    FROM usuarios
+    WHERE tipo = 'revenda'
+    ORDER BY id ASC
+  `);
+
+  return revendas.find((revenda) => montarSlugRevenda(revenda) === identificador) || null;
+}
 
 /* =========================================================
    🔹 PÁGINA DA REVENDA
    ========================================================= */
-router.get('/revenda/:id', async (req, res) => {
+router.get('/revenda/:identificador', async (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  const seo = await getSeoRevenda(req.params.id);
+
+  const revenda = await buscarRevendaPorIdentificador(req.params.identificador);
+  if (!revenda) {
+    return res.status(404).render('error-page', {
+      statusCode: 404,
+      message: 'Revenda não encontrada'
+    });
+  }
+
+  const caminhoCanonico = montarCaminhoRevenda(revenda);
+  if (req.path !== caminhoCanonico) {
+    return res.redirect(301, caminhoCanonico);
+  }
+
+  const seo = await getSeoRevenda(revenda.id);
   const breadcrumbs = [
     { name: 'Home', url: 'https://www.temcar.com.br/' },
     { name: 'Revendas', url: 'https://www.temcar.com.br/buscar-revendas' },
-    { name: seo.texto_h1 || 'Revenda', url: `https://www.temcar.com.br/revenda/${req.params.id}` }
+    { name: seo.texto_h1 || 'Revenda', url: montarUrlRevenda(revenda) }
   ];
-  res.render('revenda', { seo, breadcrumbs });
+  res.render('revenda', { seo: { ...seo, link_canonico: montarUrlRevenda(revenda) }, breadcrumbs, revendaId: revenda.id });
 });
 
 
@@ -41,18 +82,15 @@ router.get("/api/revenda/:id", async (req, res) => {
         u.estado,
         u.criado_em,
 
-        COALESCE(rl.logo, rlp.caminho) AS logo
+        CASE
+          WHEN rl.logo LIKE '%logo_pad_revenda.jpg' THEN NULL
+          ELSE rl.logo
+        END AS logo
 
       FROM usuarios u
 
       LEFT JOIN revendas_logos rl
         ON rl.usuario_id = u.id
-
-      CROSS JOIN (
-        SELECT caminho 
-        FROM revenda_logo_padrao 
-        LIMIT 1
-      ) rlp
 
       WHERE 
         u.id = ?

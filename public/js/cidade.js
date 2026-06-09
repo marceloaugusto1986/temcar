@@ -3,11 +3,13 @@
 // ===============================
 
 let listaAnuncios = []
+let listaCidadeAnuncios = []
 let listaFiltrada = []
 let paginaAtualCidade = 1
 const limitePorPagina = 10
 let cidadeAtual = null
 let cidadeBannerSwiper = null
+let bairroSelecionado = ""
 
 // ===============================
 // UTIL
@@ -157,7 +159,8 @@ async function carregarAnunciosDaCidade() {
 
         // filtrar pela cidade do slug E pelo estado (UF)
         const uf = obterUfAtual()
-        listaFiltrada = listaAnuncios.filter(item => anuncioAtendeCidade(item, slug, uf))
+        listaCidadeAnuncios = listaAnuncios.filter(item => anuncioAtendeCidade(item, slug, uf))
+        aplicarFiltroBairro(false)
 
         atualizarTituloCidade()
 
@@ -172,6 +175,84 @@ async function carregarAnunciosDaCidade() {
     }
 }
 
+function normalizarTexto(texto) {
+    return (texto || "")
+        .toString()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+}
+
+function aplicarFiltroBairro(renderizar = true) {
+    if (!bairroSelecionado) {
+        listaFiltrada = [...listaCidadeAnuncios]
+    } else {
+        const bairroNormalizado = normalizarTexto(bairroSelecionado)
+        listaFiltrada = listaCidadeAnuncios.filter(item =>
+            normalizarTexto(item.bairro) === bairroNormalizado
+        )
+    }
+
+    if (!renderizar) return
+
+    paginaAtualCidade = 1
+    atualizarTituloCidade()
+    renderizarLista()
+    renderizarPaginacaoCidade()
+}
+
+async function carregarFiltroBairrosCidade() {
+    const wrapper = document.getElementById("cidade-filtros")
+    const select = document.getElementById("filtro-bairro-cidade")
+
+    if (!wrapper || !select) return
+
+    wrapper.classList.remove("d-none")
+    select.disabled = true
+    select.innerHTML = '<option value="">Carregando bairros...</option>'
+
+    try {
+        const cidade = obterNomeCidadeAtual()
+        const estado = obterEstadoAtual()
+        const params = new URLSearchParams({ cidade, estado })
+        const res = await fetch(`/api/bairros?${params.toString()}`)
+
+        if (!res.ok) throw new Error("Erro ao buscar bairros")
+
+        const bairros = await res.json()
+        const bairrosValidos = bairros.filter(bairro => bairro.nome)
+
+        if (!bairrosValidos.length) {
+            select.innerHTML = '<option value="">Nenhum bairro cadastrado</option>'
+            select.disabled = true
+            return
+        }
+
+        select.disabled = false
+        select.innerHTML = '<option value="">Todos os bairros</option>'
+
+        bairrosValidos.forEach(bairro => {
+            const option = document.createElement("option")
+            option.value = bairro.nome
+            option.textContent = bairro.nome
+            select.appendChild(option)
+        })
+
+        select.addEventListener("change", () => {
+            bairroSelecionado = select.value
+            aplicarFiltroBairro()
+        })
+
+        wrapper.classList.remove("d-none")
+    } catch (erro) {
+        console.error("Erro ao carregar filtro de bairros:", erro)
+        wrapper.classList.remove("d-none")
+        select.innerHTML = '<option value="">Bairros indisponíveis</option>'
+        select.disabled = true
+    }
+}
+
 // ===============================
 // TÍTULO DA PÁGINA
 // ===============================
@@ -183,6 +264,11 @@ function atualizarTituloCidade() {
 
     const nomeCidade = obterNomeCidadeAtual()
     const estado = obterEstadoAtual()
+
+    if (bairroSelecionado) {
+        titulo.textContent = `Veículos em ${bairroSelecionado}, ${nomeCidade} - ${estado}`
+        return
+    }
 
     if (!listaFiltrada.length) {
         titulo.textContent = `${nomeCidade}, ${estado}`
@@ -499,5 +585,6 @@ function renderizarBannerFallback() {
 
 document.addEventListener("DOMContentLoaded", async () => {
     await carregarDadosCidade()
+    await carregarFiltroBairrosCidade()
     carregarAnunciosDaCidade()
 })

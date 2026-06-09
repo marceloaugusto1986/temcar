@@ -41,6 +41,92 @@ function normalizar(texto) {
         .replace(/[\u0300-\u036f]/g, "");
 }
 
+function slugify(texto) {
+    return normalizar(texto)
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+function capitalize(texto) {
+    return (texto || "").replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function obterCidadeFiltro() {
+    const filtro = window.FILTRO || {};
+    return filtro.cidadeNome || capitalize(filtro.cidade);
+}
+
+function obterBairroFiltro() {
+    const filtro = window.FILTRO || {};
+    return filtro.bairroNome || capitalize(filtro.bairro);
+}
+
+function obterUfFiltro() {
+    const filtro = window.FILTRO || {};
+    return (filtro.ufNome || filtro.uf || "").toUpperCase();
+}
+
+function obterCidadesAtendimento(revenda) {
+    if (!revenda.cidades_atendimento) return [];
+    if (Array.isArray(revenda.cidades_atendimento)) return revenda.cidades_atendimento;
+
+    try {
+        const parsed = JSON.parse(revenda.cidades_atendimento);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function revendaAtendeCidade(revenda, cidadeSlug, ufSlug) {
+    const cidadePrincipalOk =
+        slugify(revenda.cidade) === cidadeSlug &&
+        normalizar(revenda.estado) === ufSlug;
+
+    if (cidadePrincipalOk) return true;
+
+    return obterCidadesAtendimento(revenda).some(item =>
+        slugify(item.cidade) === cidadeSlug &&
+        normalizar(item.estado) === ufSlug
+    );
+}
+
+function filtrarPorContexto(lista) {
+    const filtro = window.FILTRO || {};
+    const cidadeSlug = filtro.cidade || "";
+    const ufSlug = normalizar(filtro.uf);
+    const bairroSlug = filtro.bairro || "";
+
+    return lista.filter(revenda => {
+        if (bairroSlug) {
+            if (slugify(revenda.bairro) !== bairroSlug) return false;
+            if (slugify(revenda.cidade) !== cidadeSlug) return false;
+            if (normalizar(revenda.estado) !== ufSlug) return false;
+            return true;
+        }
+
+        if (cidadeSlug && !revendaAtendeCidade(revenda, cidadeSlug, ufSlug)) return false;
+        return true;
+    });
+}
+
+function atualizarTitulos() {
+    const filtro = window.FILTRO || {};
+    const titulo = document.getElementById("titulo-revendas");
+    const hero = document.getElementById("titulo-revendas-hero");
+
+    let texto = "Revendas Parceiras";
+
+    if (filtro.bairro) {
+        texto = `Revendas em ${obterBairroFiltro()}, ${obterCidadeFiltro()} - ${obterUfFiltro()}`;
+    } else if (filtro.cidade) {
+        texto = `Revendas em ${obterCidadeFiltro()} - ${obterUfFiltro()}`;
+    }
+
+    if (titulo) titulo.textContent = texto;
+    if (hero) hero.textContent = texto;
+}
+
 /* =========================
    API
 ========================== */
@@ -56,10 +142,11 @@ async function carregarRevendas() {
         }
 
         todasRevendas =
-            await response.json();
+            filtrarPorContexto(await response.json());
 
         preencherSelectRevenda();
         preencherSelectCidadeRevenda();
+        atualizarTitulos();
 
         aplicarFiltros();
 
@@ -105,9 +192,11 @@ function preencherSelectCidadeRevenda() {
 
     const cidades = [
         ...new Set(
-            todasRevendas.map(
-                r => `${r.cidade} - ${r.estado}`
-            )
+            todasRevendas.flatMap(r => [
+                `${r.cidade} - ${r.estado}`,
+                ...obterCidadesAtendimento(r).map(item => `${item.cidade} - ${item.estado}`)
+            ])
+            .filter(item => item && !item.startsWith(" - "))
         )
     ].sort();
 
@@ -145,7 +234,10 @@ function aplicarFiltros() {
             const matchCidade =
                 !cidade ||
                 normalizar(r.cidade)
-                    .includes(cidade);
+                    .includes(cidade) ||
+                obterCidadesAtendimento(r).some(item =>
+                    normalizar(item.cidade).includes(cidade)
+                );
 
             return (
                 matchNome &&
@@ -254,15 +346,19 @@ function criarCard(r) {
     card.className =
         "revenda-card";
 
+    const logoHtml = r.logo
+        ? `<img class="revenda-logo" src="${r.logo}" alt="${r.nome}">`
+        : "";
+
     card.innerHTML = `
-        <img class="revenda-logo" src="${r.logo}" alt="${r.nome}">
+        ${logoHtml}
 
         <div class="revenda-info">
 
             <h3>${r.nome}</h3>
 
             <div class="local">
-                ${r.cidade} - ${r.estado}
+                ${r.bairro ? `${r.bairro}, ` : ""}${r.cidade} - ${r.estado}
             </div>
 
             <button class="ver-estoque" type="button">
@@ -274,7 +370,7 @@ function criarCard(r) {
 
     card.querySelector(".ver-estoque")
         .addEventListener("click", () => {
-            window.location.href = `/revenda/${r.id}`;
+            window.location.href = r.url || `/revenda/${r.id}`;
         });
 
     return card;

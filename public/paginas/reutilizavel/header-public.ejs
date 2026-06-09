@@ -88,11 +88,11 @@
 			<ul class="navbar-nav align-items-center gap-3">
 
 				<li class="nav-item">
-					<a class="nav-link" href="/carros">Carros</a>
+					<a class="nav-link" href="/comprar">Comprar</a>
 				</li>
 
 				<li class="nav-item">
-					<a class="nav-link" href="/motos">Motos</a>
+					<a class="nav-link" href="/vender">Vender</a>
 				</li>
 
 				<li class="nav-item">
@@ -104,26 +104,11 @@
 				</li>
 
 				<li class="nav-item">
-					<a class="nav-link" href="/comprar">Comprar</a>
-				</li>
-
-				<li class="nav-item">
 					<a class="nav-link" href="/tabela-fipe">Tabela FIPE</a>
 				</li>
 
 				<li class="nav-item">
-					<a class="nav-link" href="/vender">Vender</a>
-				</li>
-
-				<li class="nav-item">
 					<a class="nav-link" href="/login">Minha Conta</a>
-				</li>
-
-				<!-- Serviços - SELECT -->
-				<li class="nav-item">
-					<select id="selectServicos" class="form-select">
-						<option value="">Serviços</option>
-					</select>
 				</li>
 
 				<!-- Botão Anuncie -->
@@ -158,35 +143,4 @@
 		});
 	})();
 
-	async function carregarSelectServicos() {
-		try {
-			const res = await fetch('/api/servicos-select/ativos');
-
-			if (!res.ok) {
-				throw new Error('Erro ao buscar serviços');
-			}
-
-			const opcoes = await res.json();
-			const select = document.getElementById('selectServicos');
-
-			opcoes.forEach(op => {
-				const option = document.createElement('option');
-				option.value = op.url;
-				option.textContent = op.nome;
-				select.appendChild(option);
-			});
-
-			select.addEventListener('change', function () {
-				if (this.value) {
-					window.open(this.value, '_blank');
-					this.selectedIndex = 0;
-				}
-			});
-
-		} catch (erro) {
-			console.error('Erro ao carregar serviços:', erro);
-		}
-	}
-
-	carregarSelectServicos();
 </script>

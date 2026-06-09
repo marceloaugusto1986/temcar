@@ -31,6 +31,20 @@ async function garantirColunasRegioesImagens() {
       ADD COLUMN imagem_mobile varchar(255) DEFAULT NULL AFTER imagem
     `);
   }
+
+  if (!nomes.includes('cidade_id')) {
+    await db.query(`
+      ALTER TABLE regioes_imagens
+      ADD COLUMN cidade_id int DEFAULT NULL AFTER id
+    `);
+  }
+
+  if (!nomes.includes('estado')) {
+    await db.query(`
+      ALTER TABLE regioes_imagens
+      ADD COLUMN estado varchar(2) DEFAULT NULL AFTER cidade
+    `);
+  }
 }
 
 async function garantirColunaImagemMobileCidades() {
@@ -1829,20 +1843,48 @@ router.get('/api/usuarios/localidades', async (req, res) => {
 /* Imagens por regiões */
 router.get("/api/admin/regioes/imagens", async (req, res) => {
   try {
-    const { cidade } = req.query;
+    const { cidade, cidade_id: cidadeId } = req.query;
 
-    if (!cidade) {
+    if (!cidade && !cidadeId) {
       return res.status(400).json({ message: "Cidade é obrigatória" });
     }
 
     await garantirColunasRegioesImagens();
 
+    let cidadeEncontrada = null;
+    if (cidadeId) {
+      const [[cidadeRow]] = await db.query('SELECT id, nome, estado FROM cidades WHERE id = ? LIMIT 1', [cidadeId]);
+      cidadeEncontrada = cidadeRow || null;
+    }
+
+    if (!cidadeEncontrada && cidade) {
+      const [[cidadeRow]] = await db.query('SELECT id, nome, estado FROM cidades WHERE nome = ? LIMIT 1', [cidade]);
+      cidadeEncontrada = cidadeRow || null;
+    }
+
+    if (!cidadeEncontrada) {
+      return res.status(404).json({ message: "Cidade não encontrada" });
+    }
+
+    const [[duplicidade]] = await db.query(
+      `SELECT COUNT(*) AS total FROM cidades WHERE nome = ?`,
+      [cidadeEncontrada.nome]
+    );
+
+    const params = [cidadeEncontrada.id, cidadeEncontrada.nome, cidadeEncontrada.estado];
+    let whereLegado = 'cidade = ? AND estado = ?';
+
+    if (Number(duplicidade.total) <= 1) {
+      whereLegado = '(cidade = ? AND (estado = ? OR estado IS NULL))';
+    }
+
     const [imagens] = await db.query(`
       SELECT *
       FROM regioes_imagens
-      WHERE cidade = ?
+      WHERE cidade_id = ?
+         OR (cidade_id IS NULL AND ${whereLegado})
       ORDER BY id ASC
-    `, [cidade]);
+    `, params);
 
     res.json(imagens);
 
@@ -1860,9 +1902,9 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const { cidade } = req.body;
+      const { cidade, estado, cidade_id: cidadeId } = req.body;
 
-      if (!cidade) {
+      if (!cidade && !cidadeId) {
         return res.status(400).json({ message: "Cidade é obrigatória" });
       }
 
@@ -1876,6 +1918,21 @@ router.post(
       const imagensMobile = req.files?.imagensMobile || [];
 
       await garantirColunasRegioesImagens();
+
+      let cidadeEncontrada = null;
+      if (cidadeId) {
+        const [[cidadeRow]] = await db.query('SELECT id, nome, estado FROM cidades WHERE id = ? LIMIT 1', [cidadeId]);
+        cidadeEncontrada = cidadeRow || null;
+      }
+
+      if (!cidadeEncontrada && cidade) {
+        const [[cidadeRow]] = await db.query('SELECT id, nome, estado FROM cidades WHERE nome = ? AND estado = ? LIMIT 1', [cidade, estado]);
+        cidadeEncontrada = cidadeRow || null;
+      }
+
+      if (!cidadeEncontrada) {
+        return res.status(404).json({ message: "Cidade não encontrada" });
+      }
 
       for (let i = 0; i < listaIds.length; i++) {
         const id = listaIds[i];
@@ -1934,10 +1991,13 @@ router.post(
             UPDATE regioes_imagens
             SET imagem = COALESCE(?, imagem),
                 imagem_mobile = COALESCE(?, imagem_mobile),
+                cidade_id = ?,
+                cidade = ?,
+                estado = ?,
                 link = ?
             WHERE id = ?
             `,
-            [imagemFinal, imagemMobileFinal, link, id]
+            [imagemFinal, imagemMobileFinal, cidadeEncontrada.id, cidadeEncontrada.nome, cidadeEncontrada.estado, link, id]
           );
 
         /* ==========================
@@ -1948,10 +2008,10 @@ router.post(
 
           await db.query(
             `
-            INSERT INTO regioes_imagens (cidade, imagem, imagem_mobile, link)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO regioes_imagens (cidade_id, cidade, estado, imagem, imagem_mobile, link)
+            VALUES (?, ?, ?, ?, ?, ?)
             `,
-            [cidade, novaImagem.filename, novaImagemMobile?.filename || null, link]
+            [cidadeEncontrada.id, cidadeEncontrada.nome, cidadeEncontrada.estado, novaImagem.filename, novaImagemMobile?.filename || null, link]
           );
         }
       }
@@ -2272,7 +2332,8 @@ router.get("/api/admin/usuarios/:id/capa", checkAuth('private'), async (req, res
       [req.params.id]
     );
 
-    res.json({ capa: logo?.logo || "/icones/logo_pad_revenda.jpg" });
+    const capa = logo?.logo || null;
+    res.json({ capa: capa && !capa.includes("logo_pad_revenda.jpg") ? capa : null });
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Erro interno" });

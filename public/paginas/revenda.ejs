@@ -69,6 +69,9 @@
 </head>
 
     <body class="revenda-page">
+    <script>
+        window.__REVENDA_ID__ = "<%= typeof revendaId !== 'undefined' ? revendaId : '' %>";
+    </script>
 
     <%- include('./reutilizavel/header-public') %>
 
@@ -228,15 +231,14 @@
                 <!-- BANNER ORIGINAL -->
                 <section class="banner">
                     <!-- id="revendaLogo" -->
-                    <img id="logoRevendaPagina" width="200" style="border-radius:10px;border:2px solid white"
-                        src="../icones/logo_pad_revenda.jpg">
+                    <img id="logoRevendaPagina" width="200" style="border-radius:10px;border:2px solid white;display:none"
+                        alt="Logo da revenda">
 
                     <script>
                         (async () => {
                             try {
                                 // 1. Captura o ID do revendedor da URL
-                                const urlParts = window.location.pathname.split('/');
-                                const revendaId = urlParts[urlParts.length - 1]; // pega o último segmento
+                                const revendaId = window.__REVENDA_ID__ || window.location.pathname.split('/').pop();
 
                                 if (!revendaId) return; // se não tiver ID, não faz nada
 
@@ -248,12 +250,15 @@
 
                                 // 3. Atualiza a imagem se existir logo cadastrada
                                 const imgElement = document.getElementById('logoRevendaPagina');
-                                if (data.logo && data.logo !== '/icones/logo_pad_revenda.jpg') {
+                                if (data.logo) {
                                     imgElement.src = data.logo;
+                                    imgElement.style.display = '';
+                                } else {
+                                    imgElement.removeAttribute('src');
+                                    imgElement.style.display = 'none';
                                 }
                             } catch (error) {
                                 console.error('Erro ao carregar logo da revenda:', error);
-                                // Mantém logo padrão
                             }
                         })();
                     </script>

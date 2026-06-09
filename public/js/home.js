@@ -59,17 +59,17 @@ async function carregarAnunciosMisturados() {
 
 
         const particularesFormatados = particulares.map(item => ({
-    ...item,
-    tipo_anunciante: "particular",
-    tipo_carro: item.tipo_carro || item.tipo_automovel || item.tipo
-}))
+            ...item,
+            tipo_anunciante: "particular",
+            tipo_carro: item.tipo_carro || item.tipo_automovel || item.tipo
+        }))
 
-const revendasFormatadas = revendas.map(item => ({
-    ...item,
-    tipo_anunciante: "revenda",
-    nome: item.nome,
-    tipo_carro: item.tipo_carro || item.tipo_automovel || item.tipo
-}))
+        const revendasFormatadas = revendas.map(item => ({
+            ...item,
+            tipo_anunciante: "revenda",
+            nome: item.nome,
+            tipo_carro: item.tipo_carro || item.tipo_automovel || item.tipo
+        }))
 
         todosItensOriginais = misturarIntercalado(particularesFormatados, revendasFormatadas)
         itensDestaque = todosItensOriginais.filter(item => Number(item.destaque) === 1)
@@ -330,7 +330,7 @@ function criarCardAnuncio(item) {
 
     wrapper.innerHTML = `
         <div class="card shadow-sm vehicle-card position-relative"
-             style="width: 280px; cursor: pointer"
+             style="cursor: pointer"
              onclick="window.location.href='${montarUrlVenda(item)}'">
 
             ${item.destaque == 1 ? `
@@ -377,9 +377,9 @@ function criarCardAnuncio(item) {
 
               <p class="fw-bold d-flex align-items-center gap-2">
                 ${item.tipo_anunciante === "particular"
-                    ? `<i class="bi bi-person-fill"></i> Particular`
-                    : `<i class="bi bi-building"></i> ${item.nome || "Revenda"}`
-                }
+            ? `<i class="bi bi-person-fill"></i> Particular`
+            : `<i class="bi bi-building"></i> ${item.nome || "Revenda"}`
+        }
               </p>
 
               <p>
@@ -443,7 +443,7 @@ function iniciarDestaquesSwiper(totalSlides) {
 
     destaquesSwiper = new Swiper("#destaquesSwiper", {
         slidesPerView: "auto",
-        spaceBetween: 18,
+        spaceBetween: 12,
         speed: 550,
         grabCursor: true,
         watchOverflow: true,
@@ -460,9 +460,9 @@ function iniciarDestaquesSwiper(totalSlides) {
             clickable: true
         },
         breakpoints: {
-            0: { slidesPerView: 1.1, spaceBetween: 12 },
-            576: { slidesPerView: 2.1, spaceBetween: 14 },
-            992: { slidesPerView: "auto", spaceBetween: 18 }
+            0: { slidesPerView: 1, spaceBetween: 12, centeredSlides: true },
+            576: { slidesPerView: 2, spaceBetween: 14, centeredSlides: false },
+            992: { slidesPerView: 4, spaceBetween: 18, centeredSlides: false }
         }
     })
 }

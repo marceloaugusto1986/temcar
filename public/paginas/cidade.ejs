@@ -157,6 +157,55 @@
         padding: 10px 18px;
     }
 
+    .cidade-filtros {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 26px;
+        padding: 14px;
+        border: 1px solid rgba(201, 11, 12, .14);
+        border-radius: 8px;
+        background:
+            linear-gradient(135deg, rgba(201, 11, 12, .06), rgba(255, 255, 255, 0) 60%),
+            #fafafa;
+    }
+
+    .cidade-filtro-copy {
+        min-width: 0;
+    }
+
+    .cidade-filtro-label {
+        display: block;
+        color: #C90B0C;
+        font-weight: 800;
+        font-size: .86rem;
+        margin-bottom: 2px;
+    }
+
+    .cidade-filtro-help {
+        color: #68707d;
+        font-size: .88rem;
+    }
+
+    .cidade-filtro-control {
+        width: min(100%, 320px);
+    }
+
+    .cidade-filtro-bairro {
+        min-height: 44px;
+        border-color: rgba(201, 11, 12, .22);
+        border-radius: 8px;
+        font-weight: 700;
+        color: #2b2f36;
+        box-shadow: none;
+    }
+
+    .cidade-filtro-bairro:focus {
+        border-color: #C90B0C;
+        box-shadow: 0 0 0 .18rem rgba(201, 11, 12, .12);
+    }
+
     @media (max-width: 576px) {
         .cidade-banner {
             height: auto;
@@ -202,6 +251,16 @@
             line-height: 1.25;
         }
 
+        .cidade-filtros {
+            align-items: stretch;
+            flex-direction: column;
+            padding: 12px;
+        }
+
+        .cidade-filtro-control {
+            width: 100%;
+        }
+
         #container-card-primary .vehicle-card {
             width: min(280px, calc(100vw - 76px)) !important;
         }
@@ -240,7 +299,20 @@
                     <section class="container my-5 cidade-page-content" style="min-height: 80vh !important;">
 
                         <div class="bg-white p-3 rounded cidade-page-panel">
-                            <h4 id="titulo-cidade" class="mb-4 fw-bold" style="color:#C90B0C;"></h4>
+                            <h4 id="titulo-cidade" class="mb-3 fw-bold" style="color:#C90B0C;"></h4>
+
+                            <div id="cidade-filtros" class="cidade-filtros">
+                                <div class="cidade-filtro-copy">
+                                    <span class="cidade-filtro-label">Filtrar por bairro</span>
+                                    <span class="cidade-filtro-help">Veja ofertas em uma região específica da cidade.</span>
+                                </div>
+
+                                <div class="cidade-filtro-control">
+                                    <select id="filtro-bairro-cidade" class="form-select cidade-filtro-bairro">
+                                        <option value="">Carregando bairros...</option>
+                                    </select>
+                                </div>
+                            </div>
 
                             <div id="container-card-primary" class="d-flex gap-3 overflow-auto pb-2"></div>
 
@@ -253,7 +325,7 @@
                     </section>
 
                     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-                    <script src="/js/cidade.js?v=11"></script>
+                    <script src="/js/cidade.js?v=12"></script>
 
                     <%- include('./reutilizavel/footer-public') %>
 

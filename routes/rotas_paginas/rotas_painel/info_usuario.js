@@ -332,11 +332,8 @@ router.get("/api/revenda/logo/:usuarioId", async (req, res) => {
       [usuarioId]
     );
 
-    if (rows.length === 0) {
-      return res.json({ logo: "/icones/logo_pad_revenda.jpg" });
-    }
-
-    res.json({ logo: rows[0].logo });
+    const logo = rows[0]?.logo || null;
+    res.json({ logo: logo && !logo.includes("logo_pad_revenda.jpg") ? logo : null });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erro ao buscar logo." });
@@ -439,7 +436,7 @@ router.delete("/api/revenda/logo/:usuarioId", async (req, res) => {
 
     await db.query("DELETE FROM revendas_logos WHERE usuario_id = ?", [usuarioId]);
 
-    res.json({ message: "Logo excluída com sucesso.", logo: "/icones/logo_pad_revenda.jpg" });
+    res.json({ message: "Logo excluída com sucesso.", logo: null });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erro ao excluir logo." });

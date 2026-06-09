@@ -89,26 +89,31 @@ async function renderizarLogo() {
     if (usuario.tipo !== 'revenda') return;
 
     // Buscar logo
-    let logoAtual = '/icones/logo_pad_revenda.jpg';
+    let logoAtual = null;
     try {
       const logoRes = await fetch(`/api/revenda/logo/${infoIDsessao}`, {
         credentials: 'include'
       });
       if (logoRes.ok) {
         const data = await logoRes.json();
-        logoAtual = data.logo || logoAtual;
+        logoAtual = data.logo || null;
       }
     } catch {
-      console.warn('Não foi possível buscar logo, usando padrão.');
+      console.warn('Não foi possível buscar logo.');
     }
+
+    const previewLogo = logoAtual
+      ? `<img id="logoRevendaImg" src="${logoAtual}" alt="Logo Revenda"
+               style="max-height:150px; max-width:150px; object-fit:contain; border:1px solid #ccc; border-radius:8px;">`
+      : `<div id="logoRevendaImg" class="text-muted small border rounded-3 d-flex align-items-center justify-content-center"
+               style="height:120px; width:150px;">Sem logo</div>`;
 
     // Renderiza HTML
     document.getElementById('logo-container').innerHTML = `
       <div class="border rounded-3 p-4 bg-white shadow-sm" style="display:inline-block;">
         <h6 class="text-uppercase text-muted mb-3">Logo da Revenda</h6>
         <div class="d-flex flex-column align-items-center gap-2">
-          <img id="logoRevendaImg" src="${logoAtual}" alt="Logo Revenda"
-               style="max-height:150px; max-width:150px; object-fit:contain; border:1px solid #ccc; border-radius:8px;">
+          ${previewLogo}
           <input type="file" id="logoRevendaInput" accept="image/*">
           <div>
             <button class="btn btn-success btn-sm" id="btnCreateUpdateLogo">Salvar/Atualizar</button>
@@ -174,7 +179,13 @@ async function salvarOuAtualizarLogo(usuarioId) {
       return;
     }
 
-    document.getElementById('logoRevendaImg').src = data.logo;
+    const preview = document.getElementById('logoRevendaImg');
+    if (preview?.tagName === 'IMG') {
+      preview.src = data.logo;
+    } else if (preview) {
+      preview.outerHTML = `<img id="logoRevendaImg" src="${data.logo}" alt="Logo Revenda"
+        style="max-height:150px; max-width:150px; object-fit:contain; border:1px solid #ccc; border-radius:8px;">`;
+    }
     feedback.textContent = 'Logo salva/atualizada com sucesso!';
     feedback.className = 'text-success small mt-1';
     input.value = '';
@@ -205,7 +216,11 @@ async function excluirLogo(usuarioId) {
       return;
     }
 
-    document.getElementById('logoRevendaImg').src = data.logo || '/icones/logo_pad_revenda.jpg';
+    const preview = document.getElementById('logoRevendaImg');
+    if (preview) {
+      preview.outerHTML = `<div id="logoRevendaImg" class="text-muted small border rounded-3 d-flex align-items-center justify-content-center"
+        style="height:120px; width:150px;">Sem logo</div>`;
+    }
     feedback.textContent = 'Logo excluída com sucesso!';
     feedback.className = 'text-success small mt-1';
   } catch (error) {

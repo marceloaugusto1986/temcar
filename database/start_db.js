@@ -70,6 +70,22 @@ CREATE TABLE IF NOT EXISTS revendas_cidades (
 
         await db.query(criarTabelaCidadesRevendas);
 
+        const criarTabelaBairros = `
+CREATE TABLE IF NOT EXISTS bairros (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    cidade VARCHAR(150) NOT NULL,
+    estado VARCHAR(2) NOT NULL,
+    slug VARCHAR(180) NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uniq_bairro_cidade_estado (cidade, estado, slug),
+    KEY idx_bairros_cidade_estado (cidade, estado)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+`;
+
+        await db.query(criarTabelaBairros);
+
         const criarTabelaDeAnuncios = `
 CREATE TABLE IF NOT EXISTS anuncios (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -206,17 +222,6 @@ CREATE TABLE IF NOT EXISTS revendas_logos (
         
                 await db.query(criarTabelaLogoPadraoRevenda);
         
-        
-                const inserirLogoPadrao = `
-        INSERT INTO revenda_logo_padrao (caminho)
-        SELECT '/icones/logo_pad_revenda.jpg'
-        WHERE NOT EXISTS (
-          SELECT 1 FROM revenda_logo_padrao
-        );
-        `;
-        
-                await db.query(inserirLogoPadrao);
-
         const criarTabelaOpcoesSelect = `
 CREATE TABLE IF NOT EXISTS servicos_select (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -341,7 +346,9 @@ CREATE TABLE IF NOT EXISTS termos_uso_blocos (
         const criarTabelaRegioesImagens = `
 CREATE TABLE IF NOT EXISTS regioes_imagens (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  cidade_id INT,
   cidade VARCHAR(150) NOT NULL,
+  estado VARCHAR(2),
   imagem VARCHAR(255) NOT NULL,
   imagem_mobile VARCHAR(255),
   link VARCHAR(500),

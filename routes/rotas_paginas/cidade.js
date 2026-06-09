@@ -44,6 +44,20 @@ async function garantirColunasRegioesImagens() {
       ADD COLUMN imagem_mobile varchar(255) DEFAULT NULL AFTER imagem
     `);
   }
+
+  if (!nomes.includes('cidade_id')) {
+    await db.query(`
+      ALTER TABLE regioes_imagens
+      ADD COLUMN cidade_id int DEFAULT NULL AFTER id
+    `);
+  }
+
+  if (!nomes.includes('estado')) {
+    await db.query(`
+      ALTER TABLE regioes_imagens
+      ADD COLUMN estado varchar(2) DEFAULT NULL AFTER cidade
+    `);
+  }
 }
 
 async function garantirColunaImagemMobileCidades() {
@@ -87,13 +101,7 @@ router.get("/veiculos/:estado/:cidade/:bairro", async (req, res) => {
   const nomeCidade  = capitalize(cidade);
   const ufUpper     = estado.toUpperCase();
 
-  const seo = {
-    titulo: `Veículos em ${nomeBairro}, ${nomeCidade} - ${ufUpper} | TEMCAR`,
-    descricao: `Compre e venda veículos no bairro ${nomeBairro}, ${nomeCidade} - ${ufUpper}. Encontre carros e motos perto de você no TEMCAR.`,
-    keywords: `veículos ${nomeBairro}, carros ${nomeBairro}, ${nomeCidade}, ${ufUpper}`,
-    texto_h1: `Veículos em ${nomeBairro} — ${nomeCidade}`,
-    link_canonico: `https://www.temcar.com.br/veiculos/${estado}/${cidade}/${bairro}`
-  };
+  const seo = await getSeoCidade({ nome: nomeCidade, estado: ufUpper }, nomeBairro);
   const breadcrumbs = [
     { name: 'Home', url: 'https://www.temcar.com.br/' },
     { name: 'Cidades', url: 'https://www.temcar.com.br/buscar-cidades' },
@@ -163,9 +171,27 @@ router.get("/api/cidades/:slug/:uf/banners", async (req, res) => {
     );
     if (!cidade) return res.status(404).json({ message: "Cidade não encontrada" });
     await garantirColunasRegioesImagens();
-    const [banners] = await db.query(
-      `SELECT id, imagem, imagem_mobile, link FROM regioes_imagens WHERE cidade = ? ORDER BY id ASC`,
+    const [[duplicidade]] = await db.query(
+      `SELECT COUNT(*) AS total FROM cidades WHERE nome = ?`,
       [cidade.nome]
+    );
+
+    const params = [cidade.id, cidade.nome, cidade.estado];
+    let whereLegado = 'cidade = ? AND estado = ?';
+
+    if (Number(duplicidade.total) <= 1) {
+      whereLegado = '(cidade = ? AND (estado = ? OR estado IS NULL))';
+    }
+
+    const [banners] = await db.query(
+      `
+      SELECT id, imagem, imagem_mobile, link
+      FROM regioes_imagens
+      WHERE cidade_id = ?
+         OR (cidade_id IS NULL AND ${whereLegado})
+      ORDER BY id ASC
+      `,
+      params
     );
     const imagens = banners.map(b => ({
       id: b.id,

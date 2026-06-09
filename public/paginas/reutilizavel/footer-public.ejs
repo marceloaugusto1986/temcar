@@ -56,7 +56,7 @@
             </div>
 
             <!-- FERRAMENTAS -->
-            <div class="col-md-4 col-sm-6">
+            <div class="col-md-3 col-sm-6">
                 <h5 class="fw-bold mb-3">Ferramentas</h5>
                 <ul class="list-unstyled">
                     <li><a href="/buscar-cidades" class="footer-link">Busque por Cidades</a></li>
@@ -64,8 +64,16 @@
                 </ul>
             </div>
 
+            <!-- SERVIÇOS -->
+            <div class="col-md-3 col-sm-6">
+                <h5 class="fw-bold mb-3">Serviços</h5>
+                <ul id="footerServicos" class="list-unstyled">
+                    <li><span class="footer-link">Carregando serviços...</span></li>
+                </ul>
+            </div>
+
             <!-- VENDER -->
-            <div class="col-md-4 col-sm-6">
+            <div class="col-md-2 col-sm-6">
                 <h5 class="fw-bold mb-3"><a href="#" style="color:#fff;text-decoration:none;">Planos</a></h5>
                 <ul class="list-unstyled">
                     <li><a href="/planos-particular" class="footer-link">Planos Particular</a></li>
@@ -83,3 +91,48 @@
         </div>
     </div>
 </footer>
+
+<script>
+    async function carregarFooterServicos() {
+        const lista = document.getElementById('footerServicos');
+        if (!lista) return;
+
+        try {
+            const res = await fetch('/api/servicos-select/ativos');
+
+            if (!res.ok) {
+                throw new Error('Erro ao buscar serviços');
+            }
+
+            const servicos = await res.json();
+            lista.innerHTML = '';
+
+            if (!servicos.length) {
+                lista.innerHTML = '<li><span class="footer-link">Nenhum serviço disponível</span></li>';
+                return;
+            }
+
+            servicos.forEach(servico => {
+                const item = document.createElement('li');
+                const link = document.createElement('a');
+
+                link.className = 'footer-link';
+                link.href = servico.url || '#';
+                link.textContent = servico.nome;
+
+                if (servico.url && /^https?:\/\//i.test(servico.url)) {
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                }
+
+                item.appendChild(link);
+                lista.appendChild(item);
+            });
+        } catch (erro) {
+            console.error('Erro ao carregar serviços no footer:', erro);
+            lista.innerHTML = '<li><span class="footer-link">Serviços indisponíveis</span></li>';
+        }
+    }
+
+    carregarFooterServicos();
+</script>

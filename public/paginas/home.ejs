@@ -168,10 +168,32 @@
 	}
 
 	.home-models-section {
-		background: #e9ecef;
+		position: relative;
+		overflow: hidden;
+		background:
+			linear-gradient(135deg, rgba(201, 11, 12, .08), rgba(255, 255, 255, 0) 46%),
+			linear-gradient(180deg, #f8f9fb 0%, #e9ecef 100%);
+		border: 1px solid rgba(15, 23, 42, .07);
 		border-radius: 8px;
 		padding: 24px;
 		box-shadow: none !important;
+	}
+
+	.home-models-section::after {
+		content: "";
+		position: absolute;
+		right: 24px;
+		top: 18px;
+		width: min(420px, 48%);
+		height: 8px;
+		border-radius: 999px;
+		background: linear-gradient(90deg, rgba(201, 11, 12, .28), rgba(201, 11, 12, 0));
+		pointer-events: none;
+	}
+
+	.home-models-section > * {
+		position: relative;
+		z-index: 1;
 	}
 
 	.home-models-eyebrow {
@@ -885,8 +907,14 @@
 						}
 
 						.home-carousel .swiper-slide {
-							width: 280px;
 							height: auto;
+							display: flex;
+							justify-content: center;
+						}
+
+						.home-carousel .vehicle-card {
+							width: 100% !important;
+							max-width: 280px;
 						}
 
 						.home-carousel .swiper-button-next,
@@ -918,6 +946,20 @@
 
 							.home-carousel {
 								padding: 0 0 28px;
+							}
+
+							.home-carousel .swiper {
+								padding: 0;
+							}
+
+							.home-carousel .swiper-slide {
+								display: flex;
+								justify-content: center;
+							}
+
+							.home-carousel .vehicle-card {
+								width: 100% !important;
+								max-width: 100%;
 							}
 
 							.home-carousel .swiper-button-next,
@@ -1234,21 +1276,32 @@
 <style>
   /* ── wrapper geral ─────────────────────────────── */
   .cmb-viewport {
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     width: 100%;
+    cursor: grab;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cmb-viewport:active {
+    cursor: grabbing;
+  }
+
+  .cmb-viewport::-webkit-scrollbar {
+    display: none;
   }
 
   .cmb-track {
     display: flex;
     gap: 14px;
-    transition: transform 0.45s cubic-bezier(.4, 0, .2, 1);
-    will-change: transform;
+    user-select: none;
   }
 
   /* ── card ──────────────────────────────────────── */
   .cmb-card {
-    flex: 0 0 220px;
-    min-height: 200px;
+    flex: 0 0 calc((100% - 42px) / 4);
+    min-height: 235px;
     border-radius: 0;
     background: transparent;
     color: #151515;
@@ -1284,37 +1337,12 @@
     display: block;
   }
 
-  /* ── setas de navegação (só desktop) ─────────────── */
-  .cmb-arrows {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 14px;
-  }
-
-  .cmb-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 1px solid #cbd5e1;
-    background: #fff;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #333;
-    font-size: 20px;
-    line-height: 1;
-    transition: background .15s;
-    flex-shrink: 0;
-  }
-
-  .cmb-btn:hover  { background: #f1f5f9; }
-  .cmb-btn:active { transform: scale(.95); }
-
   @media (max-width: 576px) {
-    .cmb-arrows { display: none; }
     .cmb-card   { flex: 0 0 calc(100% - 0px); min-height: 200px; }
+  }
+
+  @media (min-width: 577px) and (max-width: 991px) {
+    .cmb-card { flex: 0 0 calc((100% - 14px) / 2); }
   }
 </style>
 
@@ -1327,12 +1355,6 @@
   <!-- viewport do carrossel -->
   <div class="cmb-viewport" id="cmbViewport">
     <div class="cmb-track" id="cmbTrack"></div>
-  </div>
-
-  <!-- setas (ocultadas no mobile via CSS) -->
-  <div class="cmb-arrows">
-    <button class="cmb-btn" id="cmbPrev" aria-label="Anterior">&#8249;</button>
-    <button class="cmb-btn" id="cmbNext" aria-label="Próximo">&#8250;</button>
   </div>
 
 </div>
@@ -1357,9 +1379,6 @@
     { brand: 'Fiat',       model: 'Uno',     img: BASE + 'uno.jpg',     href: '/carros?marca=Uno'     },
   ];
 
-  const GAP     = 14;
-  const AUTO_MS = 3000;
-
   const track    = document.getElementById('cmbTrack');
   const viewport = document.getElementById('cmbViewport');
 
@@ -1368,115 +1387,41 @@
     const a = document.createElement('a');
     a.className = 'cmb-card';
     a.href = car.href;
+    a.draggable = false;
     a.innerHTML = `<div class="cmb-img-wrap">
-      <img src="${car.img}" alt="${car.brand} ${car.model}" loading="lazy">
+      <img src="${car.img}" alt="${car.brand} ${car.model}" loading="lazy" draggable="false">
     </div>`;
     return a;
   }
 
-  /* Popula: clone antes + originais + clone depois (loop infinito) */
+  /* Popula os cards e deixa a rolagem livre, sem snap nem autoplay. */
   CARS.forEach(car => track.appendChild(makeCard(car)));
-  const clonesBefore = CARS.slice(-4).map(car => { const c = makeCard(car); track.prepend(c); return c; });
-  const clonesAfter  = CARS.slice(0, 4).map(car => { const c = makeCard(car); track.appendChild(c); return c; });
-  const TOTAL = CARS.length + clonesBefore.length + clonesAfter.length;
-
-  /* ── Largura do card ── */
-  function cardWidth() {
-    return viewport.offsetWidth <= 576 ? viewport.offsetWidth : 220;
-  }
-
-  function step() { return cardWidth() + GAP; }
-
-  /* índice lógico 0..N-1 mapeado para offset real (começa após clones do início) */
-  let idx = 0; // índice nos originais
-  let offset = 0;
-  let jumping = false;
-  let timer = null;
-  let userInteracting = false;
-
-  function init() {
-    /* posiciona no primeiro original (pula clones do início) */
-    const startOffset = clonesBefore.length * step();
-    track.style.transition = 'none';
-    track.style.transform  = `translateX(${-startOffset}px)`;
-    offset = startOffset;
-    idx = 0;
-  }
-
-  function goTo(newIdx, animate = true) {
-    idx = newIdx;
-    const target = (clonesBefore.length + idx) * step();
-    track.style.transition = animate
-      ? 'transform 0.4s cubic-bezier(.4,0,.2,1)'
-      : 'none';
-    track.style.transform = `translateX(${-target}px)`;
-    offset = target;
-  }
-
-  function advance(dir) {
-    const newIdx = idx + dir;
-    goTo(newIdx);
-
-    /* Após a animação, teleporta silenciosamente se saiu dos originais */
-    setTimeout(() => {
-      if (newIdx < 0) {
-        idx = CARS.length - 1;
-        const silent = (clonesBefore.length + idx) * step();
-        track.style.transition = 'none';
-        track.style.transform  = `translateX(${-silent}px)`;
-        offset = silent;
-      } else if (newIdx >= CARS.length) {
-        idx = 0;
-        const silent = clonesBefore.length * step();
-        track.style.transition = 'none';
-        track.style.transform  = `translateX(${-silent}px)`;
-        offset = silent;
-      }
-    }, 410);
-  }
-
-  function startAuto() {
-    clearInterval(timer);
-    timer = setInterval(() => {
-      if (!userInteracting) advance(1);
-    }, AUTO_MS);
-  }
-
-  /* ── Setas (desktop) ── */
-  document.getElementById('cmbPrev').addEventListener('click', () => { advance(-1); startAuto(); });
-  document.getElementById('cmbNext').addEventListener('click', () => { advance(1);  startAuto(); });
 
   /* ── Mouse drag ── */
-  let dragStartX = 0, dragStartOffset = 0, dragging = false, moved = false;
+  let dragStartX = 0, dragStartScroll = 0, dragging = false, moved = false;
 
   track.addEventListener('mousedown', e => {
     dragging = true; moved = false;
     dragStartX = e.clientX;
-    dragStartOffset = offset;
-    track.style.transition = 'none';
-    userInteracting = true;
+    dragStartScroll = viewport.scrollLeft;
   });
 
   window.addEventListener('mousemove', e => {
     if (!dragging) return;
     const dx = e.clientX - dragStartX;
     if (Math.abs(dx) > 5) moved = true;
-    offset = dragStartOffset - dx;
-    track.style.transform = `translateX(${-offset}px)`;
+    viewport.scrollLeft = dragStartScroll - dx;
   });
 
   window.addEventListener('mouseup', e => {
     if (!dragging) return;
     dragging = false;
-    userInteracting = false;
     if (moved) {
       e.preventDefault();
-      snapAfterDrag(dragStartOffset);
       track.querySelectorAll('a').forEach(a => {
         a._block = true; setTimeout(() => a._block = false, 60);
       });
     }
-    startAuto();
   });
 
   track.addEventListener('click', e => {
@@ -1485,54 +1430,22 @@
   }, true);
 
   /* ── Touch swipe ── */
-  let touchStartX = 0, touchStartOffset = 0;
+  let touchStartX = 0, touchStartScroll = 0;
 
   track.addEventListener('touchstart', e => {
     touchStartX = e.touches[0].clientX;
-    touchStartOffset = offset;
-    track.style.transition = 'none';
-    userInteracting = true;
+    touchStartScroll = viewport.scrollLeft;
   }, { passive: true });
 
   track.addEventListener('touchmove', e => {
     const dx = e.touches[0].clientX - touchStartX;
-    offset = touchStartOffset - dx;
-    track.style.transform = `translateX(${-offset}px)`;
+    viewport.scrollLeft = touchStartScroll - dx;
   }, { passive: true });
-
-  track.addEventListener('touchend', () => {
-    userInteracting = false;
-    snapAfterDrag(touchStartOffset);
-    startAuto();
-  });
-
-  /* ── Snap após drag/swipe ── */
-  function snapAfterDrag(startOff) {
-    const delta = offset - startOff;
-    const threshold = step() * 0.25;
-    if (delta > threshold)       advance(1);
-    else if (delta < -threshold) advance(-1);
-    else goTo(idx); // volta pro atual
-  }
 
   /* ── Cursor ── */
   viewport.style.cursor = 'grab';
   track.addEventListener('mousedown', () => viewport.style.cursor = 'grabbing');
   window.addEventListener('mouseup',  () => viewport.style.cursor = 'grab');
-
-  /* ── Resize ── */
-  let rt;
-  window.addEventListener('resize', () => {
-    clearTimeout(rt);
-    rt = setTimeout(() => { init(); startAuto(); }, 150);
-  });
-
-  /* ── Start ── */
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { init(); startAuto(); });
-  } else {
-    init(); startAuto();
-  }
 
 })();
 </script>

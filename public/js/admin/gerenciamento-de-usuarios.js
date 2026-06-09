@@ -190,10 +190,14 @@ async function verUsuario(id) {
 	      <div class="row g-3 align-items-end">
 	        <div class="col-sm-12 col-md-4">
 	          <img id="imagemCapaUsuario"
-	            src="/icones/logo_pad_revenda.jpg"
 	            alt="Imagem de capa"
-	            class="img-fluid rounded border bg-light"
+	            class="img-fluid rounded border bg-light d-none"
 	            style="width:100%;max-width:260px;aspect-ratio:16/9;object-fit:contain;">
+            <div id="imagemCapaUsuarioVazia"
+              class="rounded border bg-light text-muted small d-flex align-items-center justify-content-center"
+              style="width:100%;max-width:260px;aspect-ratio:16/9;">
+              Sem imagem
+            </div>
 	        </div>
 
 	        <div class="col-sm-12 col-md-5">
@@ -362,6 +366,7 @@ async function verUsuario(id) {
 
 async function carregarCapaUsuario(usuarioId) {
   const img = document.getElementById('imagemCapaUsuario');
+  const vazio = document.getElementById('imagemCapaUsuarioVazia');
   const download = document.getElementById('btnDownloadCapaUsuario');
   const feedback = document.getElementById('capaFeedback');
 
@@ -375,13 +380,18 @@ async function carregarCapaUsuario(usuarioId) {
       throw new Error(data.message || 'Erro ao carregar imagem.');
     }
 
-    const capa = data.capa || '/icones/logo_pad_revenda.jpg';
-    img.src = capa;
+    const capa = data.capa || null;
 
-    if (capa && capa !== '/icones/logo_pad_revenda.jpg') {
+    if (capa) {
+      img.src = capa;
+      img.classList.remove('d-none');
+      vazio?.classList.add('d-none');
       download.href = capa;
       download.classList.remove('d-none');
     } else {
+      img.removeAttribute('src');
+      img.classList.add('d-none');
+      vazio?.classList.remove('d-none');
       download.classList.add('d-none');
     }
 

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database/pool_connection');
 const { montarCaminhoVenda } = require('../helpers/anuncio-url');
+const { montarCaminhoRevenda } = require('../helpers/revenda-url');
 const SITE_URL = (process.env.SITE_URL || 'https://www.temcar.com.br').replace(/\/$/, '');
 
 function escapeXml(value) {
@@ -11,6 +12,16 @@ function escapeXml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
+}
+
+function slugify(value) {
+  return (value || '')
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 router.get('/sitemap.xml', async (req, res) => {
@@ -38,32 +49,60 @@ router.get('/sitemap.xml', async (req, res) => {
       { loc: '/vender', priority: '0.7', changefreq: 'monthly', lastmod: hoje },
     ];
 
-    // Cidades dinâmicas (cidade + carros/motos por cidade)
+    // Cidades dinâmicas (cidade + veículos por cidade)
     let cidadesUrls = [];
     try {
       const [cidades] = await db.query(`SELECT nome, estado FROM cidades`);
       cidades.forEach(c => {
-        const slug = c.nome
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .replace(/\s+/g, '-');
-        const uf = c.estado.toLowerCase();
+        const slug = slugify(c.nome);
+        const uf = slugify(c.estado);
         cidadesUrls.push({ loc: `/cidade/${slug}/${uf}`, priority: '0.6', changefreq: 'daily', lastmod: hoje });
         cidadesUrls.push({ loc: `/carros/${slug}/${uf}`, priority: '0.6', changefreq: 'daily', lastmod: hoje });
         cidadesUrls.push({ loc: `/motos/${slug}/${uf}`, priority: '0.5', changefreq: 'daily', lastmod: hoje });
         cidadesUrls.push({ loc: `/utilitarios/${slug}/${uf}`, priority: '0.5', changefreq: 'daily', lastmod: hoje });
+        cidadesUrls.push({ loc: `/particular/${slug}/${uf}`, priority: '0.5', changefreq: 'daily', lastmod: hoje });
+        cidadesUrls.push({ loc: `/buscar-revendas/${slug}/${uf}`, priority: '0.5', changefreq: 'daily', lastmod: hoje });
       });
     } catch (e) {
       console.error('Sitemap: erro ao buscar cidades', e);
     }
 
+    // Bairros dinâmicos para anúncios de particulares
+    let bairrosUrls = [];
+    try {
+      const [bairros] = await db.query(`SELECT nome, cidade, estado FROM bairros`);
+      bairrosUrls = bairros
+        .filter(b => b.nome && b.cidade && b.estado)
+        .flatMap(b => {
+          const bairro = slugify(b.nome);
+          const cidade = slugify(b.cidade);
+          const estado = slugify(b.estado);
+
+          return [
+            {
+              loc: `/particular/${bairro}/${cidade}/${estado}`,
+              priority: '0.5',
+              changefreq: 'daily',
+              lastmod: hoje
+            },
+            {
+              loc: `/buscar-revendas/${bairro}/${cidade}/${estado}`,
+              priority: '0.5',
+              changefreq: 'daily',
+              lastmod: hoje
+            }
+          ];
+        });
+    } catch (e) {
+      console.error('Sitemap: erro ao buscar bairros', e);
+    }
+
     // Revendas dinâmicas
     let revendasUrls = [];
     try {
-      const [revendas] = await db.query(`SELECT id FROM usuarios WHERE tipo = 'revenda'`);
+      const [revendas] = await db.query(`SELECT id, nome FROM usuarios WHERE tipo = 'revenda'`);
       revendasUrls = revendas.map(r => ({
-        loc: `/revenda/${r.id}`,
+        loc: montarCaminhoRevenda(r),
         priority: '0.6',
         changefreq: 'weekly',
         lastmod: hoje
@@ -100,7 +139,7 @@ router.get('/sitemap.xml', async (req, res) => {
       console.error('Sitemap: erro ao buscar anúncios', e);
     }
 
-    const todas = [...paginasEstaticas, ...cidadesUrls, ...revendasUrls, ...anunciosUrls];
+    const todas = [...paginasEstaticas, ...cidadesUrls, ...bairrosUrls, ...revendasUrls, ...anunciosUrls];
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;

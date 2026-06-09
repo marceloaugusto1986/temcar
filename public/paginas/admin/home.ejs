@@ -1485,8 +1485,10 @@ carregarBannersAdmin();
                 select.innerHTML = `<option value="">Selecione uma cidade</option>`;
                 data.forEach(loc => {
                   const option = document.createElement("option");
-                  option.value = loc.nome;
+                  option.value = loc.id;
                   option.textContent = `${loc.nome} - ${loc.estado}`;
+                  option.dataset.nome = loc.nome;
+                  option.dataset.estado = loc.estado;
                   select.appendChild(option);
                 });
               } catch (err) { console.error("Erro ao carregar cidades:", err); }
@@ -1531,13 +1533,14 @@ carregarBannersAdmin();
             }
 
             async function carregarImagensRegiao() {
-              const cidade = document.getElementById("selectCidade").value;
+              const selectCidade = document.getElementById("selectCidade");
+              const cidadeId = selectCidade.value;
               const lista = document.getElementById("listaRegiao");
               const empty = document.getElementById("emptyRegiao");
               lista.innerHTML = "";
-              if (!cidade) { empty.classList.remove("d-none"); return; }
+              if (!cidadeId) { empty.classList.remove("d-none"); return; }
               try {
-                const res = await fetch(`${API_LISTAR_CIDADES}?cidade=${encodeURIComponent(cidade)}`);
+                const res = await fetch(`${API_LISTAR_CIDADES}?cidade_id=${encodeURIComponent(cidadeId)}`);
                 const imagens = await res.json();
                 if (!imagens.length) { empty.classList.remove("d-none"); return; }
                 empty.classList.add("d-none");
@@ -1553,12 +1556,18 @@ carregarBannersAdmin();
             }
 
             async function salvarImagensRegiao() {
-              const cidade = document.getElementById("selectCidade").value;
+              const selectCidade = document.getElementById("selectCidade");
+              const cidadeId = selectCidade.value;
+              const selectedOption = selectCidade.options[selectCidade.selectedIndex];
+              const cidade = selectedOption?.dataset?.nome || "";
+              const estado = selectedOption?.dataset?.estado || "";
               const itens = document.querySelectorAll(".slide-item");
-              if (!cidade) { alert("Selecione uma cidade"); return; }
+              if (!cidadeId) { alert("Selecione uma cidade"); return; }
               if (itens.length === 0) { alert("Adicione pelo menos uma imagem"); return; }
               const formData = new FormData();
+              formData.append("cidade_id", cidadeId);
               formData.append("cidade", cidade);
+              formData.append("estado", estado);
               itens.forEach(item => {
                 const id = item.querySelector(".input-id").value;
 	                const fileInput = item.querySelector(".input-imagem");

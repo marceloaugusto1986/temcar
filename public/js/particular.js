@@ -27,6 +27,75 @@ function criarSlugVenda(texto) {
         .replace(/^-+|-+$/g, "")
 }
 
+function obterAcessorios(acessorios) {
+    if (!acessorios) return []
+    if (Array.isArray(acessorios)) return acessorios
+    if (typeof acessorios === "object") return Object.values(acessorios).flat().filter(Boolean)
+
+    try {
+        const parsed = JSON.parse(acessorios)
+        if (Array.isArray(parsed)) return parsed
+        if (parsed && typeof parsed === "object") return Object.values(parsed).flat().filter(Boolean)
+    } catch (erro) {
+        return String(acessorios)
+            .split(",")
+            .map(item => item.trim())
+            .filter(Boolean)
+    }
+
+    return []
+}
+
+function capitalize(texto) {
+    return (texto || "").replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+}
+
+function obterCidadeFiltro() {
+    const filtro = window.FILTRO || {}
+    return filtro.cidadeNome || capitalize(filtro.cidade)
+}
+
+function obterBairroFiltro() {
+    const filtro = window.FILTRO || {}
+    return filtro.bairroNome || capitalize(filtro.bairro)
+}
+
+function obterUfFiltro() {
+    const filtro = window.FILTRO || {}
+    return (filtro.ufNome || filtro.uf || "").toUpperCase()
+}
+
+function filtrarPorContexto(lista) {
+    const filtro = window.FILTRO || {}
+    const cidadeSlug = filtro.cidade || ""
+    const uf = (filtro.uf || "").toLowerCase()
+    const bairroSlug = filtro.bairro || ""
+
+    return lista.filter(item => {
+        if (cidadeSlug && criarSlugVenda(item.cidade) !== cidadeSlug) return false
+        if (uf && String(item.estado || "").toLowerCase() !== uf) return false
+        if (bairroSlug && criarSlugVenda(item.bairro) !== bairroSlug) return false
+        return true
+    })
+}
+
+function atualizarTituloParticular() {
+    const titulo = document.getElementById("titulo-particular")
+    const total = document.getElementById("total-particular")
+    const filtro = window.FILTRO || {}
+
+    let texto = "Veículos de particulares"
+
+    if (filtro.bairro) {
+        texto = `Particulares em ${obterBairroFiltro()}, ${obterCidadeFiltro()} - ${obterUfFiltro()}`
+    } else if (filtro.cidade) {
+        texto = `Particulares em ${obterCidadeFiltro()} - ${obterUfFiltro()}`
+    }
+
+    if (titulo) titulo.textContent = texto
+    if (total) total.textContent = `${anunciosFiltrados.length} anúncio(s)`
+}
+
 function montarUrlVenda(item) {
     const marcaModelo = criarSlugVenda([item.marca, item.versao || item.modelo].filter(Boolean).join(" ")) || "veiculo"
     const cidade = criarSlugVenda(item.cidade) || "cidade"
@@ -47,7 +116,7 @@ async function carregarAnuncios() {
         const data = await response.json()
         console.log("📦 Dados recebidos:", data)
 
-        anunciosOriginais = data
+        anunciosOriginais = filtrarPorContexto(data)
         anunciosFiltrados = [...anunciosOriginais]
 
         montarFiltrosDinamicos()
@@ -81,7 +150,7 @@ function montarFiltrosDinamicos() {
 
     // Opcionais / Acessórios
     const todosAcessorios = anunciosOriginais
-        .map(a => a.acessorios ? JSON.parse(a.acessorios) : [])
+        .map(a => obterAcessorios(a.acessorios))
         .flat();
     const opcionais = [...new Set(todosAcessorios.filter(Boolean))];
 
@@ -184,11 +253,11 @@ function aplicarFiltros() {
     console.log("📝 Filtros capturados:", filtros);
 
     anunciosFiltrados = anunciosOriginais.filter(item => {
-        const acessorios = item.acessorios ? JSON.parse(item.acessorios) : []
+        const acessorios = obterAcessorios(item.acessorios)
         const temBlindagem = acessorios.includes("blindado")
 
         if (filtros.busca && !(`${item.marca} ${item.versao}`.toLowerCase().includes(filtros.busca))) return false
-        if (filtros.modelo && item.modelo !== filtros.modelo) return false
+        if (filtros.modelo && (item.modelo || item.versao) !== filtros.modelo) return false
         if (filtros.versao && item.versao !== filtros.versao) return false
         if (item.ano_modelo < filtros.anoMin || item.ano_modelo > filtros.anoMax) return false
         if (item.preco < filtros.precoMin || item.preco > filtros.precoMax) return false
@@ -201,7 +270,8 @@ function aplicarFiltros() {
         if (filtros.local) {
             const cidade = (item.cidade || "").toLowerCase()
             const estado = (item.estado || "").toLowerCase()
-            if (!cidade.includes(filtros.local) && !estado.includes(filtros.local)) return false
+            const bairro = (item.bairro || "").toLowerCase()
+            if (!cidade.includes(filtros.local) && !estado.includes(filtros.local) && !bairro.includes(filtros.local)) return false
         }
         if (filtros.opcionaisSelecionados.length && !filtros.opcionaisSelecionados.every(o => acessorios.includes(o))) return false
         if (filtros.blindagemCom && !temBlindagem) return false
@@ -249,6 +319,7 @@ function atualizarLista() {
         km: a.km,
         cidade: a.cidade,
         estado: a.estado,
+        bairro: a.bairro,
         marca: a.marca,
         modelo: a.modelo,
         versao: a.versao,
@@ -261,6 +332,7 @@ function atualizarLista() {
     }))
     renderizarCards()
     renderizarPaginacao()
+    atualizarTituloParticular()
 }
 
 /* ================================
@@ -281,7 +353,7 @@ function renderizarCards() {
     paginaItens.forEach(item => {
         container.innerHTML += `
 <div>
-  <div class="card shadow-sm vehicle-card" style="width: 280px; cursor: pointer" onclick="window.location.href='${montarUrlVenda(item)}'">
+  <div class="card shadow-sm vehicle-card" onclick="window.location.href='${montarUrlVenda(item)}'">
 
     <img 
       src="${item.imagem ? `/uploads/anuncios/${item.imagem}` : '/img/sem-foto.jpg'}"
@@ -319,7 +391,7 @@ function renderizarCards() {
 
       <p>
         <i class="bi bi-geo-alt-fill" style="color:#C90B0C;"></i>
-        ${item.cidade || ''} - ${item.estado || ''}
+        ${item.bairro ? `${item.bairro}, ` : ''}${item.cidade || ''} - ${item.estado || ''}
       </p>
 
     </div>

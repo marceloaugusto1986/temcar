@@ -2,6 +2,42 @@ const express = require('express');
 const router = express.Router();
 const db = require("./../../database/pool_connection");
 const { getSeo } = require('../../helpers/seo');
+const { montarCaminhoRevenda } = require('../../helpers/revenda-url');
+const SITE_URL = (process.env.SITE_URL || 'https://www.temcar.com.br').replace(/\/$/, '');
+
+function slugify(texto) {
+  return (texto || '')
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function capitalize(texto) {
+  return (texto || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+async function buscarCidadePorSlugUf(cidadeSlug, ufSlug) {
+  const [cidades] = await db.query('SELECT nome, estado FROM cidades WHERE LOWER(estado) = ?', [ufSlug]);
+  return cidades.find(cidade => slugify(cidade.nome) === cidadeSlug) || null;
+}
+
+function montarSeoRevendasLocal({ cidade, uf, bairro = '', canonical }) {
+  const local = bairro ? `${bairro}, ${cidade} - ${uf}` : `${cidade} - ${uf}`;
+  const localDescricao = bairro ? `no bairro ${bairro}, em ${cidade} - ${uf}` : `em ${cidade} - ${uf}`;
+
+  return {
+    titulo: `Revendas de veículos em ${local} | TEMCAR`,
+    descricao: `Encontre revendas de veículos ${localDescricao}. Veja lojas com carros, motos e utilitários anunciados no TEMCAR.`,
+    keywords: bairro
+      ? `revendas em ${bairro}, revendas de veículos em ${bairro}, lojas de carros ${cidade}, ${uf}`
+      : `revendas em ${cidade}, revendas de veículos ${cidade}, lojas de carros ${uf}`,
+    texto_h1: `Revendas de veículos em ${local}`,
+    link_canonico: canonical
+  };
+}
 
 async function garantirTabelaCidadesRevendas() {
   await db.query(`
@@ -25,28 +61,122 @@ router.get('/buscar-revendas', async (req, res) => {
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
   const seo = await getSeo('buscar_revendas');
-  res.render('buscar-revendas', { seo });
+  const breadcrumbs = [
+    { name: 'Home', url: `${SITE_URL}/` },
+    { name: 'Revendas', url: `${SITE_URL}/buscar-revendas` }
+  ];
+  res.render('buscar-revendas', { seo, breadcrumbs, filtro: {} });
+});
+
+router.get('/buscar-revendas/:cidade/:uf', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
+  const cidadeSlug = slugify(req.params.cidade);
+  const ufSlug = slugify(req.params.uf);
+  const cidadeEncontrada = await buscarCidadePorSlugUf(cidadeSlug, ufSlug);
+
+  if (!cidadeEncontrada) {
+    const seo = await getSeo('buscar_revendas');
+    return res.render('buscar-revendas', { seo, breadcrumbs: [], filtro: {} });
+  }
+
+  const nomeCidade = cidadeEncontrada.nome;
+  const ufUpper = cidadeEncontrada.estado.toUpperCase();
+  const canonical = `${SITE_URL}/buscar-revendas/${cidadeSlug}/${ufSlug}`;
+  const seo = await getSeo('buscar_revendas', {
+    cidade: nomeCidade,
+    estado: ufUpper,
+    bairro: ''
+  }, montarSeoRevendasLocal({
+    cidade: nomeCidade,
+    uf: ufUpper,
+    canonical
+  }));
+
+  const breadcrumbs = [
+    { name: 'Home', url: `${SITE_URL}/` },
+    { name: 'Revendas', url: `${SITE_URL}/buscar-revendas` },
+    { name: `${nomeCidade} - ${ufUpper}`, url: canonical }
+  ];
+
+  res.render('buscar-revendas', {
+    seo,
+    breadcrumbs,
+    filtro: { cidade: cidadeSlug, cidadeNome: nomeCidade, uf: ufSlug, ufNome: ufUpper }
+  });
+});
+
+router.get('/buscar-revendas/:bairro/:cidade/:uf', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
+  const bairroSlug = slugify(req.params.bairro);
+  const cidadeSlug = slugify(req.params.cidade);
+  const ufSlug = slugify(req.params.uf);
+  const cidadeEncontrada = await buscarCidadePorSlugUf(cidadeSlug, ufSlug);
+  const nomeBairro = capitalize(bairroSlug);
+  const nomeCidade = cidadeEncontrada ? cidadeEncontrada.nome : capitalize(cidadeSlug);
+  const ufUpper = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : ufSlug.toUpperCase();
+  const canonical = `${SITE_URL}/buscar-revendas/${bairroSlug}/${cidadeSlug}/${ufSlug}`;
+  const seo = await getSeo('buscar_revendas', {
+    bairro: nomeBairro,
+    cidade: nomeCidade,
+    estado: ufUpper
+  }, montarSeoRevendasLocal({
+    cidade: nomeCidade,
+    uf: ufUpper,
+    bairro: nomeBairro,
+    canonical
+  }));
+
+  const breadcrumbs = [
+    { name: 'Home', url: `${SITE_URL}/` },
+    { name: 'Revendas', url: `${SITE_URL}/buscar-revendas` },
+    { name: `${nomeCidade} - ${ufUpper}`, url: `${SITE_URL}/buscar-revendas/${cidadeSlug}/${ufSlug}` },
+    { name: nomeBairro, url: canonical }
+  ];
+
+  res.render('buscar-revendas', {
+    seo,
+    breadcrumbs,
+    filtro: {
+      bairro: bairroSlug,
+      bairroNome: nomeBairro,
+      cidade: cidadeSlug,
+      cidadeNome: nomeCidade,
+      uf: ufSlug,
+      ufNome: ufUpper
+    }
+  });
 });
 
 router.get("/api/revendas-ativas", async (req, res) => {
   try {
+    await garantirTabelaCidadesRevendas();
+
     const [revendas] = await db.query(`
       SELECT 
         u.id,
         u.nome,
+        u.bairro,
         u.cidade,
         u.estado,
-        COALESCE(rl.logo, rlp.caminho) AS logo
+        CASE
+          WHEN rl.logo LIKE '%logo_pad_revenda.jpg' THEN NULL
+          ELSE rl.logo
+        END AS logo,
+        (
+          SELECT JSON_ARRAYAGG(JSON_OBJECT('cidade', rc.cidade, 'estado', rc.estado))
+          FROM revendas_cidades rc
+          WHERE rc.usuario_id = u.id
+        ) AS cidades_atendimento
       FROM usuarios u
 
       LEFT JOIN revendas_logos rl
         ON rl.usuario_id = u.id
-
-      CROSS JOIN (
-        SELECT caminho 
-        FROM revenda_logo_padrao 
-        LIMIT 1
-      ) rlp
 
       WHERE 
         u.tipo = 'revenda'
@@ -61,7 +191,10 @@ router.get("/api/revendas-ativas", async (req, res) => {
       ORDER BY u.nome ASC
     `);
 
-    return res.json(revendas);
+    return res.json(revendas.map((revenda) => ({
+      ...revenda,
+      url: montarCaminhoRevenda(revenda)
+    })));
 
   } catch (error) {
     console.error(error);
@@ -95,6 +228,7 @@ router.get("/api/anuncios-revenda-ativos", async (req, res) => {
   u.nome,
   u.cidade,
   u.estado,
+  u.bairro,
   u.tipo AS tipo_anunciante,
   (
     SELECT JSON_ARRAYAGG(JSON_OBJECT('cidade', rc.cidade, 'estado', rc.estado))

@@ -14,8 +14,7 @@ let paginaAtual = 1
 ================================ */
 
 function obterIdRevenda() {
-    const partes = window.location.pathname.split('/')
-    const id = partes[partes.length - 1]
+    const id = window.__REVENDA_ID__ || window.location.pathname.split('/').pop()
     console.log("ID REVENDa:", id)
     return id
 }
@@ -403,7 +402,7 @@ function toggleFiltro() {
 ===================================*/
 async function carregarDadosRevenda() {
     try {
-        const revendaId = window.location.pathname.split("/").pop(); // pega o último segmento da URL
+        const revendaId = window.__REVENDA_ID__ || window.location.pathname.split("/").pop();
         const response = await fetch(`/api/revenda/${revendaId}`);
         if (!response.ok) throw new Error("Erro ao carregar dados da revenda");
 
@@ -415,7 +414,7 @@ async function carregarDadosRevenda() {
         // fallback visual caso dê erro
         preencherBannerRevenda({
             nome: "Revenda",
-            logo: "/icones/logo.png",
+            logo: null,
             telefone: "",
             whatsapp: "",
         });
@@ -443,13 +442,20 @@ function formatarTelefone(numero) {
 }
 
 function preencherBannerRevenda(revenda) {
-    const logoPadrao = "/icones/logo.png";
-
     // LOGO
     const logo = document.getElementById("revendaLogo");
     if (logo) {
-        logo.src = revenda.logo || logoPadrao;
-        logo.onerror = () => (logo.src = logoPadrao);
+        if (revenda.logo) {
+            logo.src = revenda.logo;
+            logo.style.display = "";
+        } else {
+            logo.removeAttribute("src");
+            logo.style.display = "none";
+        }
+        logo.onerror = () => {
+            logo.removeAttribute("src");
+            logo.style.display = "none";
+        };
     }
 
     // NOME
