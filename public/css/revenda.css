@@ -177,3 +177,121 @@
          border-radius: 10px !important;
      }
  }
+
+/* EMPTY STATE */
+.veiculos-empty-heading {
+    color: #C90B0C;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+}
+
+.veiculos-empty-state {
+    width: 100%;
+    border: 1px solid rgba(201, 11, 12, 0.22);
+    border-radius: 8px;
+    background:
+        linear-gradient(135deg, rgba(201, 11, 12, 0.08), rgba(255, 255, 255, 0) 55%),
+        #fff;
+    padding: 32px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.veiculos-empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #C90B0C;
+    color: #fff;
+    font-size: 1.6rem;
+    margin-bottom: 16px;
+}
+
+.veiculos-empty-title {
+    color: #222;
+    font-size: 1.25rem;
+    line-height: 1.35;
+    margin-bottom: 14px;
+}
+
+.veiculos-empty-promo {
+    color: #444;
+    font-size: 1rem;
+    margin-bottom: 22px;
+}
+
+.veiculos-empty-promo strong {
+    color: #C90B0C;
+}
+
+.veiculos-empty-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.veiculos-empty-actions .btn {
+    border-radius: 6px;
+    font-weight: 700;
+    padding: 10px 18px;
+}
+
+.cidade-empty-state {
+    width: 100%;
+    border: 1px solid rgba(201, 11, 12, 0.18);
+    border-radius: 8px;
+    background:
+        linear-gradient(135deg, rgba(201, 11, 12, 0.08), rgba(255, 255, 255, 0) 55%),
+        #fff;
+    padding: 32px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.cidade-empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #C90B0C;
+    color: #fff;
+    font-size: 1.6rem;
+    margin-bottom: 16px;
+}
+
+.cidade-empty-title {
+    color: #222;
+    font-size: 1.25rem;
+    line-height: 1.35;
+    margin-bottom: 14px;
+}
+
+.cidade-empty-promo {
+    color: #444;
+    font-size: 1rem;
+    margin-bottom: 22px;
+}
+
+.cidade-empty-promo strong {
+    color: #C90B0C;
+}
+
+.cidade-empty-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cidade-empty-actions .btn {
+    border-radius: 6px;
+    font-weight: 700;
+    padding: 10px 18px;
+}

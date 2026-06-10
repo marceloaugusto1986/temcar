@@ -12,6 +12,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
+    <!-- Swiper -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     <link rel="stylesheet" href="/css/revenda.css">
 
     <style>
@@ -77,6 +79,40 @@
 			height: 200px;
 		}
 	}
+
+    .bannerSwiper {
+        width: 100%;
+    }
+
+    .bannerSwiper .swiper-slide {
+        width: 60%;
+    }
+
+    .bannerSwiper img {
+        width: 100%;
+        height: 350px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .bannerSwiper .swiper-slide a {
+        display: block;
+    }
+
+    @media(max-width: 767px) {
+        .bannerSwiper .swiper-slide {
+            width: 100%;
+        }
+
+        .bannerSwiper img {
+            height: 200px;
+        }
+    }
+
+    .veiculos-banner {
+        background: linear-gradient(135deg, #C90B0C 0%, #8B0000 100%);
+        padding: 40px 0;
+    }
     </style>
 </head>
 
@@ -88,6 +124,21 @@
         <% } else { %>
         <h1 class="visually-hidden">Veículos de Particulares - TEMCAR</h1>
         <% } %>
+
+        <!-- Banner Slider -->
+        <div class="swiper bannerSwiper d-none" id="bannerSlider">
+            <div class="swiper-wrapper" id="bannerWrapper"></div>
+            <div class="swiper-button-next" style="color:#C90B0C;"></div>
+            <div class="swiper-button-prev" style="color:#C90B0C;"></div>
+        </div>
+
+        <!-- Banner fallback -->
+        <section class="veiculos-banner text-white text-center" id="bannerFallback">
+            <div class="container">
+                <h2 class="fw-bold mb-2" id="titulo-pagina"></h2>
+                <p class="mb-0" id="subtitulo-pagina"></p>
+            </div>
+        </section>
 
         <div class="d-lg-none">
             <button class="btn btn-danger btn-abrir-filtro" onclick="toggleFiltro()">
@@ -113,8 +164,8 @@
                     <strong>Barra de pesquisa</strong>
                     <input id="filtroBusca" class="form-control mb-3" placeholder="Ex.: Chevrolet Tracker">
 
-                    <!-- REGIÃO (não usado no JS ainda, mas pronto) -->
-                    <strong>Regiões e Cidades</strong>
+                    <!-- REGIÃO -->
+                    <strong>Cidade</strong>
                     <input id="filtroLocal" class="form-control mb-3" placeholder="Digite seu estado ou cidade">
 
                     <!-- DISTÂNCIA (placeholder para futuro backend) -->
@@ -257,7 +308,8 @@
             <script>
                 window.FILTRO = <%- JSON.stringify(typeof filtro !== 'undefined' ? filtro : {}) %>;
             </script>
-            <script src="/js/particular.js?v=6"></script>
+            <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+            <script src="/js/particular.js?v=10"></script>
 </body>
 
 </html>

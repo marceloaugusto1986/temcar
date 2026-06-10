@@ -328,11 +328,31 @@ function atualizarLista() {
    RENDERIZAÇÃO CARDS
 ================================ */
 
+function renderizarSemResultados(container) {
+    container.innerHTML = `
+        <div style="grid-column: 1 / -1;">
+            <div class="cidade-empty-state">
+                <div class="cidade-empty-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <p class="cidade-empty-title">Nenhum veículo encontrado com os filtros selecionados.</p>
+                <p class="cidade-empty-promo">
+                    <strong>Atenção Revendas</strong><br>
+                    Aproveite nossa promoção de lançamento e anuncie seus veículos gratuitamente até agosto de 2026.
+                </p>
+                <div class="cidade-empty-actions">
+                    <a class="btn btn-danger" href="/vender">Anunciar grátis</a>
+                </div>
+            </div>
+        </div>
+    `
+}
+
 function renderizarCards() {
     const container = document.getElementById("listaCards")
     container.innerHTML = ""
     if (!itens.length) {
-        container.innerHTML = "<p class='text-center'>Nenhum anúncio encontrado</p>"
+        renderizarSemResultados(container)
         return
     }
     const inicio = (paginaAtual - 1) * itensPorPagina

@@ -3,6 +3,7 @@
 // ===============================
 
 let listaVeiculos = []
+let listaVeiculosOriginal = []
 let paginaAtual = 1
 const limitePorPagina = 12
 
@@ -230,7 +231,10 @@ async function carregarVeiculos() {
         if (!resp.ok) throw new Error("Erro ao buscar veículos")
 
         listaVeiculos = await resp.json()
+        listaVeiculosOriginal = [...listaVeiculos]
 
+        controlarVisibilidadeSidebar(listaVeiculosOriginal.length)
+        montarFiltrosDinamicos()
         atualizarTitulos()
         paginaAtual = 1
         renderizarLista()
@@ -467,6 +471,163 @@ function mudarPagina(pagina) {
     renderizarLista()
     renderizarPaginacao()
     window.scrollTo({ top: 0, behavior: "smooth" })
+}
+
+// ===============================
+// SIDEBAR — FILTROS DINÂMICOS
+// ===============================
+
+function obterAcessoriosVeiculo(acessorios) {
+    if (!acessorios) return []
+    if (Array.isArray(acessorios)) return acessorios
+    if (typeof acessorios === "object") return Object.values(acessorios).flat().filter(Boolean)
+    try {
+        const parsed = JSON.parse(acessorios)
+        if (Array.isArray(parsed)) return parsed
+        if (parsed && typeof parsed === "object") return Object.values(parsed).flat().filter(Boolean)
+    } catch (e) {
+        return String(acessorios).split(",").map(i => i.trim()).filter(Boolean)
+    }
+    return []
+}
+
+function preencherSelectVeiculos(id, valores) {
+    const select = document.getElementById(id)
+    if (!select) return
+    const primeiraOpcao = select.options[0]
+    select.innerHTML = ""
+    if (primeiraOpcao) select.appendChild(primeiraOpcao)
+    valores.forEach(v => {
+        const opt = document.createElement("option")
+        opt.value = v
+        opt.textContent = v
+        select.appendChild(opt)
+    })
+}
+
+function montarFiltrosDinamicos() {
+    const lista = listaVeiculosOriginal
+
+    const marcas = [...new Set(lista.map(a => a.marca).filter(Boolean))].sort()
+    const modelos = [...new Set(lista.map(a => a.modelo || a.versao).filter(Boolean))].sort()
+    const cambios = [...new Set(lista.map(a => a.cambio).filter(Boolean))].sort()
+    const combustiveis = [...new Set(lista.map(a => a.combustivel).filter(Boolean))].sort()
+    const carrocerias = [...new Set(lista.map(a => a.carroceria).filter(Boolean))].sort()
+    const anos = [...new Set(lista.map(a => a.ano_modelo).filter(Boolean))].sort((a, b) => a - b)
+
+    preencherSelectVeiculos("filtroModelo", modelos)
+    preencherSelectVeiculos("filtroCambio", cambios)
+    preencherSelectVeiculos("filtroCombustivel", combustiveis)
+    preencherSelectVeiculos("filtroCarroceria", carrocerias)
+    preencherSelectVeiculos("filtroAnoMin", anos)
+    preencherSelectVeiculos("filtroAnoMax", anos)
+
+    const container = document.getElementById("filtroMarcas")
+    if (container) {
+        container.innerHTML = ""
+        marcas.forEach(marca => {
+            container.innerHTML += `<label><input type="checkbox" value="${marca}"> ${marca}</label><br>`
+        })
+    }
+}
+
+function aplicarFiltros() {
+    const busca = document.getElementById("filtroBusca")?.value.toLowerCase().trim() || ""
+    const local = document.getElementById("filtroLocal")?.value.toLowerCase().trim() || ""
+    const modelo = document.getElementById("filtroModelo")?.value || ""
+    const anoMin = Number(document.getElementById("filtroAnoMin")?.value) || 0
+    const anoMax = Number(document.getElementById("filtroAnoMax")?.value) || Infinity
+    const precoMin = Number(document.getElementById("filtroPrecoMin")?.value) || 0
+    const precoMax = Number(document.getElementById("filtroPrecoMax")?.value) || Infinity
+    const kmMin = Number(document.getElementById("filtroKmMin")?.value) || 0
+    const kmMax = Number(document.getElementById("filtroKmMax")?.value) || Infinity
+    const cambio = document.getElementById("filtroCambio")?.value || ""
+    const combustivel = document.getElementById("filtroCombustivel")?.value || ""
+    const carroceria = document.getElementById("filtroCarroceria")?.value || ""
+    const marcasSelecionadas = [...document.querySelectorAll("#filtroMarcas input:checked")].map(el => el.value)
+    const blindagemCom = document.getElementById("filtroBlindado")?.checked || false
+    const blindagemSem = document.getElementById("filtroNaoBlindado")?.checked || false
+    const estadoNovo = document.getElementById("filtroNovo")?.checked || false
+    const estadoUsado = document.getElementById("filtroUsado")?.checked || false
+    const tipoInline = document.getElementById("filtro-tipo-anunciante")?.value || ""
+    const filtroParticular = tipoInline === "particular" || (document.getElementById("filtroParticular")?.checked || false)
+    const filtroRevenda = tipoInline === "revenda" || (document.getElementById("filtroRevenda")?.checked || false)
+
+    listaVeiculos = listaVeiculosOriginal.filter(item => {
+        const acessorios = obterAcessoriosVeiculo(item.acessorios)
+        const temBlindagem = acessorios.some(a => String(a).toLowerCase().includes("blindado"))
+
+        if (busca && !(`${item.marca || ""} ${item.versao || ""} ${item.modelo || ""}`).toLowerCase().includes(busca)) return false
+        if (local) {
+            const cidade = (item.cidade || "").toLowerCase()
+            const estado = (item.estado || "").toLowerCase()
+            const bairro = (item.bairro || "").toLowerCase()
+            if (!cidade.includes(local) && !estado.includes(local) && !bairro.includes(local)) return false
+        }
+        if (modelo && (item.modelo || item.versao) !== modelo) return false
+        if (anoMin && (Number(item.ano_modelo) || 0) < anoMin) return false
+        if (anoMax !== Infinity && (Number(item.ano_modelo) || 0) > anoMax) return false
+        if (precoMin && (Number(item.preco) || 0) < precoMin) return false
+        if (precoMax !== Infinity && (Number(item.preco) || 0) > precoMax) return false
+        if (kmMin && (Number(item.km) || 0) < kmMin) return false
+        if (kmMax !== Infinity && (Number(item.km) || 0) > kmMax) return false
+        if (cambio && item.cambio !== cambio) return false
+        if (combustivel && item.combustivel !== combustivel) return false
+        if (carroceria && item.carroceria !== carroceria) return false
+        if (marcasSelecionadas.length && !marcasSelecionadas.includes(item.marca)) return false
+        if (blindagemCom && !temBlindagem) return false
+        if (blindagemSem && temBlindagem) return false
+        if (estadoNovo && item.condicao !== "novo") return false
+        if (estadoUsado && item.condicao !== "usado") return false
+        if (filtroParticular && !filtroRevenda && item.tipo_anunciante !== "particular") return false
+        if (filtroRevenda && !filtroParticular && item.tipo_anunciante !== "revenda") return false
+
+        return true
+    })
+
+    paginaAtual = 1
+    renderizarLista()
+    renderizarPaginacao()
+    atualizarTitulos()
+
+    // fecha sidebar no mobile
+    const sidebar = document.getElementById("sidebar")
+    if (sidebar?.classList.contains("ativa")) toggleFiltro()
+}
+
+function limparFiltros() {
+    document.querySelectorAll(".barra_lateral input, .barra_lateral select").forEach(el => {
+        if (el.type === "checkbox" || el.type === "radio") el.checked = false
+        else el.value = ""
+    })
+
+    listaVeiculos = [...listaVeiculosOriginal]
+    paginaAtual = 1
+    renderizarLista()
+    renderizarPaginacao()
+    atualizarTitulos()
+}
+
+function toggleFiltro() {
+    document.getElementById("sidebar")?.classList.toggle("ativa")
+    document.getElementById("overlay")?.classList.toggle("ativo")
+}
+
+function controlarVisibilidadeSidebar(total) {
+    if (total > 20) {
+        document.getElementById("tipo-container")?.classList.add("d-none")
+        document.getElementById("sidebar")?.classList.remove("d-none")
+        document.getElementById("btn-filtro-wrapper")?.classList.remove("d-none")
+        document.getElementById("main-layout")?.classList.remove("sem-sidebar")
+        document.body.style.background = "#f5f5f5"
+    } else if (total > 0) {
+        document.getElementById("filtro-tipo-wrapper")?.classList.remove("d-none")
+        const select = document.getElementById("filtro-tipo-anunciante")
+        if (select && !select._inlineListenerAdded) {
+            select.addEventListener("change", () => aplicarFiltros())
+            select._inlineListenerAdded = true
+        }
+    }
 }
 
 // ===============================

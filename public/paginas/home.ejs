@@ -1473,17 +1473,28 @@
 
 							document.querySelectorAll(".categorias button").forEach(btn => {
 								btn.addEventListener("click", function () {
-									// troca botão ativo
 									document.querySelectorAll(".categorias button")
 										.forEach(b => b.classList.remove("active"))
-
 									this.classList.add("active")
 
-									// pega o tipo do botão clicado
 									const tipoSelecionado = this.dataset.tipo
 
-									// aplica o filtro
-									aplicarFiltroTipoCarro(tipoSelecionado)
+									const cidadeSelectValue = document.getElementById("selectCidadeFilter")?.value
+									if (cidadeSelectValue) {
+										const [cidadeNome, uf] = cidadeSelectValue.split('|')
+										const cidadeSlug = cidadeNome.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+										const ufSlug = (uf || '').toLowerCase().trim()
+
+										let tipo = 'carros'
+										if (tipoSelecionado === 'moto') tipo = 'motos'
+										else if (tipoSelecionado === 'utilitario') tipo = 'utilitarios'
+
+										window.location.href = `/${tipo}/${cidadeSlug}/${ufSlug}`
+										return
+									}
+
+									const tipoParaPagina = { carro: 'carros', moto: 'motos', utilitario: 'utilitarios' }
+									window.location.href = `/${tipoParaPagina[tipoSelecionado] || 'carros'}`
 								})
 							})
 

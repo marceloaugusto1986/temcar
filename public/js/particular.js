@@ -82,18 +82,25 @@ function filtrarPorContexto(lista) {
 function atualizarTituloParticular() {
     const titulo = document.getElementById("titulo-particular")
     const total = document.getElementById("total-particular")
+    const tituloBanner = document.getElementById("titulo-pagina")
+    const subtituloBanner = document.getElementById("subtitulo-pagina")
     const filtro = window.FILTRO || {}
 
-    let texto = "Veículos de particulares"
+    let texto = "Veículos de Particulares"
+    let sub = "Encontre veículos de particulares no TEMCAR"
 
     if (filtro.bairro) {
         texto = `Particulares em ${obterBairroFiltro()}, ${obterCidadeFiltro()} - ${obterUfFiltro()}`
+        sub = "Veículos de particulares no seu bairro"
     } else if (filtro.cidade) {
         texto = `Particulares em ${obterCidadeFiltro()} - ${obterUfFiltro()}`
+        sub = "Veículos de particulares na sua cidade"
     }
 
     if (titulo) titulo.textContent = texto
     if (total) total.textContent = `${anunciosFiltrados.length} anúncio(s)`
+    if (tituloBanner) tituloBanner.textContent = texto
+    if (subtituloBanner) subtituloBanner.textContent = sub
 }
 
 function montarUrlVenda(item) {
@@ -374,11 +381,41 @@ function atualizarLista() {
    RENDERIZAÇÃO CARDS
 ================================ */
 
+function renderizarSemResultados(container) {
+    const cidade = obterCidadeFiltro()
+    const uf = obterUfFiltro()
+    const bairro = obterBairroFiltro()
+
+    let textoTitulo = "Particulares à Venda"
+    if (bairro && cidade) textoTitulo = `Particulares à venda em <strong>${bairro}, ${cidade} - ${uf}</strong>`
+    else if (cidade) textoTitulo = `Particulares à venda em <strong>${cidade} - ${uf}</strong>`
+
+    document.getElementById("titulo-particular")?.closest("div")?.classList.add("d-none")
+
+    container.innerHTML = `
+        <div style="grid-column: 1 / -1;">
+            <div class="cidade-empty-state">
+                <div class="cidade-empty-icon">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <p class="cidade-empty-title">${textoTitulo}</p>
+                <p class="cidade-empty-promo">
+                    <strong>Atenção Particulares</strong><br>
+                    Aproveite nossa promoção de lançamento e anuncie seu veículo gratuitamente até agosto de 2026.
+                </p>
+                <div class="cidade-empty-actions">
+                    <a class="btn btn-danger" href="/vender">Anunciar grátis</a>
+                </div>
+            </div>
+        </div>
+    `
+}
+
 function renderizarCards() {
     const container = document.getElementById("listaCards")
     container.innerHTML = ""
     if (!itens.length) {
-        container.innerHTML = "<p class='text-center'>Nenhum anúncio encontrado</p>"
+        renderizarSemResultados(container)
         return
     }
     const inicio = (paginaAtual - 1) * itensPorPagina
@@ -486,6 +523,50 @@ function mudarPagina(pagina) {
 }
 
 /* ================================
+   BANNER SLIDER
+================================ */
+
+async function carregarBanners() {
+    try {
+        const resp = await fetch('/api/banners')
+        if (!resp.ok) return
+        const banners = await resp.json()
+        if (!banners.length) return
+
+        const wrapper = document.getElementById("bannerWrapper")
+        const slider = document.getElementById("bannerSlider")
+        const fallback = document.getElementById("bannerFallback")
+
+        banners.forEach(b => {
+            const slide = document.createElement("div")
+            slide.className = "swiper-slide"
+            if (b.link) {
+                slide.innerHTML = `<a href="${b.link}"><img src="/uploads/banners/${b.imagem}" alt="${b.titulo || ''}" onerror="this.parentElement.parentElement.remove()"></a>`
+            } else {
+                slide.innerHTML = `<img src="/uploads/banners/${b.imagem}" alt="${b.titulo || ''}" onerror="this.parentElement.remove()">`
+            }
+            wrapper.appendChild(slide)
+        })
+
+        slider.classList.remove("d-none")
+        if (fallback) fallback.classList.add("d-none")
+
+        new Swiper("#bannerSlider", {
+            loop: banners.length > 1,
+            centeredSlides: true,
+            slidesPerView: 1.3,
+            spaceBetween: 15,
+            speed: 800,
+            autoplay: { delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true },
+            navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+            breakpoints: { 768: { slidesPerView: 1.5 } }
+        })
+    } catch (e) {
+        console.error("Erro ao carregar banners:", e)
+    }
+}
+
+/* ================================
    SIDEBAR
 ================================ */
 
@@ -499,5 +580,6 @@ function toggleFiltro() {
 ================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
-    carregarAnuncios();
+    carregarBanners()
+    carregarAnuncios()
 });

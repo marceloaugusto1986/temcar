@@ -624,24 +624,29 @@ function preencherRevendasSelectFilter() {
     const select = document.getElementById("selectRevendaFilter")
     if (!select) return
 
-    const nomeRevenda = todosItensOriginais
-
-        .filter(item => item.tipo_anunciante === "revenda")
-        .map(item => item.nome)
-        .filter(Boolean)
-
-
-    const unicas = [...new Set(nomeRevenda)].sort()
+    const revendasUnicas = new Map()
+    todosItensOriginais
+        .filter(item => item.tipo_anunciante === "revenda" && item.nome)
+        .forEach(item => {
+            if (!revendasUnicas.has(item.nome)) revendasUnicas.set(item.nome, item)
+        })
 
     select.innerHTML = `<option value="">Filtre por Revendas</option>`
 
-
-    unicas.forEach(nome => {
-        const option = document.createElement("option")
-        option.value = nome
-        option.textContent = nome
-        select.appendChild(option)
-    })
+    ;[...revendasUnicas.values()]
+        .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''))
+        .forEach(item => {
+            const option = document.createElement("option")
+            const segmentos = [
+                criarSlugVenda(item.nome),
+                criarSlugVenda(item.bairro),
+                criarSlugVenda(item.cidade),
+                criarSlugVenda(item.estado)
+            ].filter(Boolean).join('/')
+            option.value = `/revenda/${segmentos}`
+            option.textContent = item.nome
+            select.appendChild(option)
+        })
 }
 
 function preencherCidadesSelectFilter() {
@@ -662,14 +667,11 @@ function preencherCidadesSelectFilter() {
 
     select.innerHTML = `<option value="">Filtre por cidades</option>`
 
-
     unicas.forEach(item => {
-        const [cidade, estado] = item.split(" - ")
-
+        const [cidade, uf] = item.split(" - ")
         const option = document.createElement("option")
-        option.value = cidade // 🔥 só a cidade
-        option.textContent = item // 👀 cidade - estado (visual)
-
+        option.value = `${cidade}|${uf}` // cidade|estado para navegação
+        option.textContent = item // cidade - estado (visual)
         select.appendChild(option)
     })
 }
@@ -778,7 +780,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (selectRevendaFilter) {
         selectRevendaFilter.addEventListener("change", () => {
-            aplicarFiltroRevenda()
+            const url = selectRevendaFilter.value
+            if (url) {
+                window.location.href = url
+            }
         })
     }
 
@@ -786,11 +791,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (selectCidadeFilter) {
         selectCidadeFilter.addEventListener("change", () => {
-            aplicarFiltroRevenda()
+            const value = selectCidadeFilter.value
+            if (!value) return
 
-            if (typeof atualizarSliderPorCidade === 'function') {
-                atualizarSliderPorCidade(selectCidadeFilter.value)
-            }
+            const [cidadeNome, uf] = value.split('|')
+            const cidadeSlug = criarSlugVenda(cidadeNome)
+            const ufSlug = (uf || '').toLowerCase().trim()
+            const tipoAtivo = obterTipoCategoriaAtiva()
+
+            let tipo = 'carros'
+            if (tipoAtivo === 'moto') tipo = 'motos'
+            else if (tipoAtivo === 'utilitario') tipo = 'utilitarios'
+
+            window.location.href = `/${tipo}/${cidadeSlug}/${ufSlug}`
         })
     }
 

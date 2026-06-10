@@ -15,9 +15,65 @@
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
             <!-- Swiper -->
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+            <link rel="stylesheet" href="/css/revenda.css">
 </head>
 
 <style>
+    /* Sem sidebar: layout original (container Bootstrap centralizado) */
+    body { background: white; }
+
+    .layout.sem-sidebar {
+        display: block;
+    }
+    .layout.sem-sidebar .conteudo {
+        flex: unset;
+        max-width: 1140px;
+        margin: 3rem auto;
+        padding: 0 12px;
+    }
+
+    .cidade-filtros {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 0;
+        padding: 14px;
+        border: 1px solid rgba(201, 11, 12, .14);
+        border-radius: 8px;
+        background:
+            linear-gradient(135deg, rgba(201, 11, 12, .06), rgba(255, 255, 255, 0) 60%),
+            #fafafa;
+    }
+
+    .cidade-filtro-copy { min-width: 0; }
+
+    .cidade-filtro-label {
+        display: block;
+        color: #C90B0C;
+        font-weight: 800;
+        font-size: .86rem;
+        margin-bottom: 2px;
+    }
+
+    .cidade-filtro-help { color: #68707d; font-size: .88rem; }
+
+    .cidade-filtro-control { width: min(100%, 320px); }
+
+    .cidade-filtro-bairro {
+        min-height: 44px;
+        border-color: rgba(201, 11, 12, .22);
+        border-radius: 8px;
+        font-weight: 700;
+        color: #2b2f36;
+        box-shadow: none;
+    }
+
+    .cidade-filtro-bairro:focus {
+        border-color: #C90B0C;
+        box-shadow: 0 0 0 .18rem rgba(201, 11, 12, .12);
+    }
+
     .descricao-card {
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -159,27 +215,143 @@
                         </div>
                     </section>
 
-                    <!-- Conteúdo -->
-                    <section class="container my-5" style="min-height: 80vh !important;">
-                        <div class="bg-white p-3 rounded">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h4 id="titulo-resultados" class="fw-bold mb-0" style="color:#C90B0C;"></h4>
-                                <span id="total-resultados" class="text-muted"></span>
+                    <!-- Tipo de anúncio inline (visível quando ≤20 registros) -->
+                    <div class="container" id="tipo-container">
+                        <div id="filtro-tipo-wrapper" class="cidade-filtros d-none mt-3">
+                            <div class="cidade-filtro-copy">
+                                <span class="cidade-filtro-label">Tipo de anúncio</span>
+                                <span class="cidade-filtro-help">Filtre por particular ou loja.</span>
                             </div>
-
-                            <div id="loading" class="text-center py-5">
-                                <div class="spinner-border text-danger" role="status">
-                                    <span class="visually-hidden">Carregando...</span>
-                                </div>
+                            <div class="cidade-filtro-control">
+                                <select id="filtro-tipo-anunciante" class="form-select cidade-filtro-bairro">
+                                    <option value="">Todos</option>
+                                    <option value="particular">Particular</option>
+                                    <option value="revenda">Loja / Revenda</option>
+                                </select>
                             </div>
-
-                            <div id="container-card-primary" class="row g-3"></div>
-
-                            <nav class="mt-4">
-                                <ul class="pagination justify-content-center" id="paginacao"></ul>
-                            </nav>
                         </div>
-                    </section>
+                    </div>
+
+                    <!-- Botão filtro mobile -->
+                    <div class="d-lg-none d-none" id="btn-filtro-wrapper">
+                        <button class="btn btn-danger btn-abrir-filtro" onclick="toggleFiltro()">
+                            <i class="bi bi-funnel"></i> Filtrar resultados
+                        </button>
+                    </div>
+
+                    <div class="layout sem-sidebar" id="main-layout">
+
+                        <!-- SIDEBAR -->
+                        <aside class="barra_lateral d-none" id="sidebar">
+
+                            <div class="sidebar-header">
+                                <h5 class="m-0">Filtros</h5>
+                                <button class="btn btn-sm btn-outline-dark" onclick="toggleFiltro()">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+
+                            <div class="sidebar-body">
+
+                                <strong>Barra de pesquisa</strong>
+                                <input id="filtroBusca" class="form-control mb-3" placeholder="Ex.: Chevrolet Tracker">
+
+                                <strong>Cidade</strong>
+                                <input id="filtroLocal" class="form-control mb-3" placeholder="Digite seu estado ou cidade">
+
+                                <strong>Marcas</strong>
+                                <div id="filtroMarcas" class="mb-3"></div>
+
+                                <strong>Modelo / Versão</strong>
+                                <select id="filtroModelo" class="form-select mb-3">
+                                    <option value="">Todos</option>
+                                </select>
+
+                                <strong>Ano</strong>
+                                <div class="d-flex gap-2 mb-3">
+                                    <select id="filtroAnoMin" class="form-select">
+                                        <option value="">Min.</option>
+                                    </select>
+                                    <select id="filtroAnoMax" class="form-select">
+                                        <option value="">Max.</option>
+                                    </select>
+                                </div>
+
+                                <strong>Faixa de preço</strong>
+                                <input id="filtroPrecoMin" class="form-control mb-2" placeholder="Min">
+                                <input id="filtroPrecoMax" class="form-control mb-3" placeholder="Max">
+
+                                <strong>Quilometragem</strong>
+                                <input id="filtroKmMin" class="form-control mb-2" placeholder="Min">
+                                <input id="filtroKmMax" class="form-control mb-3" placeholder="Max">
+
+                                <strong>Câmbio</strong>
+                                <select id="filtroCambio" class="form-select mb-3">
+                                    <option value="">Todos</option>
+                                </select>
+
+                                <strong>Combustível</strong>
+                                <select id="filtroCombustivel" class="form-select mb-3">
+                                    <option value="">Todos</option>
+                                </select>
+
+                                <strong>Estado do veículo</strong>
+                                <div class="mb-3">
+                                    <label><input type="checkbox" id="filtroNovo"> Novo</label><br>
+                                    <label><input type="checkbox" id="filtroUsado"> Usado</label>
+                                </div>
+
+                                <strong>Blindagem</strong>
+                                <div class="mb-3">
+                                    <label><input type="checkbox" id="filtroBlindado"> Com blindagem</label><br>
+                                    <label><input type="checkbox" id="filtroNaoBlindado"> Sem blindagem</label>
+                                </div>
+
+                                <strong>Carroceria</strong>
+                                <select id="filtroCarroceria" class="form-select mb-3">
+                                    <option value="">Todas</option>
+                                </select>
+
+                                <strong>Tipo de anúncio</strong>
+                                <div class="mb-3">
+                                    <label><input type="checkbox" id="filtroParticular"> Particular</label><br>
+                                    <label><input type="checkbox" id="filtroRevenda"> Loja / Revenda</label>
+                                </div>
+
+                            </div>
+
+                            <div class="sidebar-footer d-flex gap-2">
+                                <button onclick="limparFiltros()" class="btn btn-outline-secondary w-50">Limpar</button>
+                                <button onclick="aplicarFiltros()" class="btn btn-danger w-50">Aplicar filtros</button>
+                            </div>
+
+                        </aside>
+
+                        <div class="overlay" id="overlay" onclick="toggleFiltro()"></div>
+
+                        <!-- CONTEÚDO -->
+                        <main class="conteudo">
+                            <div class="bg-white p-3 rounded" style="min-height: 70vh;">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h4 id="titulo-resultados" class="fw-bold mb-0" style="color:#C90B0C;"></h4>
+                                    <span id="total-resultados" class="text-muted"></span>
+                                </div>
+
+                                <div id="loading" class="text-center py-5">
+                                    <div class="spinner-border text-danger" role="status">
+                                        <span class="visually-hidden">Carregando...</span>
+                                    </div>
+                                </div>
+
+                                <div id="container-card-primary" class="row g-3"></div>
+
+                                <nav class="mt-4">
+                                    <ul class="pagination justify-content-center" id="paginacao"></ul>
+                                </nav>
+                            </div>
+                        </main>
+
+                    </div>
 
                     <!-- Filtro passado pelo servidor (inclui bairro agora) -->
                     <script>
@@ -187,7 +359,7 @@
                         window.SEO_PAGINA = <%- JSON.stringify(typeof seo !== 'undefined' ? seo : {}) %>;
                     </script>
                     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-                    <script src="/js/veiculos.js?v=15"></script>
+                    <script src="/js/veiculos.js?v=18"></script>
 
                     <%- include('./reutilizavel/footer-public') %>
 </body>

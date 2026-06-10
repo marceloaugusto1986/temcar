@@ -211,6 +211,8 @@ async function carregarAnunciosDaCidade() {
         listaCidadeAnuncios = listaAnuncios.filter(item => anuncioAtendeCidade(item, slug, uf))
         aplicarFiltroBairro(false)
 
+        controlarVisibilidadeSidebar(listaCidadeAnuncios.length)
+        montarFiltrosDinamicosCidade()
         atualizarTituloCidade()
 
         paginaAtualCidade = 1
@@ -303,7 +305,16 @@ async function carregarFiltroBairrosCidade() {
 
         const bairros = await res.json()
         const bairrosValidosApi = bairros.filter(bairro => bairro.nome)
-        const bairrosValidos = bairrosValidosApi.length ? bairrosValidosApi : obterBairrosDosAnunciosDaCidade()
+
+        // apenas bairros que têm pelo menos um veículo na cidade
+        const bairrosComVeiculos = obterBairrosDosAnunciosDaCidade()
+        const nomesComVeiculos = new Set(bairrosComVeiculos.map(b => normalizarTexto(b.nome)))
+
+        const bairrosFiltrados = bairrosValidosApi.length
+            ? bairrosValidosApi.filter(b => nomesComVeiculos.has(normalizarTexto(b.nome)))
+            : bairrosComVeiculos
+
+        const bairrosValidos = bairrosFiltrados.length ? bairrosFiltrados : bairrosComVeiculos
 
         if (!bairrosValidos.length) {
             if (bairroSelecionado) {
@@ -311,8 +322,7 @@ async function carregarFiltroBairrosCidade() {
                 return
             }
 
-            select.innerHTML = '<option value="">Nenhum bairro cadastrado</option>'
-            select.disabled = true
+            wrapper.classList.add("d-none")
             return
         }
 
@@ -341,11 +351,6 @@ async function carregarFiltroBairrosCidade() {
             select.disabled = true
         }
 
-        select.addEventListener("change", () => {
-            bairroSelecionado = select.value
-            aplicarFiltroBairro()
-        })
-
         wrapper.classList.remove("d-none")
     } catch (erro) {
         console.error("Erro ao carregar filtro de bairros:", erro)
@@ -367,15 +372,10 @@ async function carregarFiltroBairrosCidade() {
                 select.appendChild(option)
             })
 
-            select.addEventListener("change", () => {
-                bairroSelecionado = select.value
-                aplicarFiltroBairro()
-            })
             return
         }
 
-        select.innerHTML = '<option value="">Bairros indisponíveis</option>'
-        select.disabled = true
+        wrapper.classList.add("d-none")
     }
 }
 
@@ -685,6 +685,182 @@ function mudarPaginaCidade(pagina) {
     renderizarLista()
 
     window.scrollTo({ top: 0, behavior: "smooth" })
+}
+
+// ===============================
+// SIDEBAR — FILTROS DINÂMICOS
+// ===============================
+
+function obterAcessoriosCidade(acessorios) {
+    if (!acessorios) return []
+    if (Array.isArray(acessorios)) return acessorios
+    if (typeof acessorios === "object") return Object.values(acessorios).flat().filter(Boolean)
+    try {
+        const parsed = JSON.parse(acessorios)
+        if (Array.isArray(parsed)) return parsed
+        if (parsed && typeof parsed === "object") return Object.values(parsed).flat().filter(Boolean)
+    } catch (e) {
+        return String(acessorios).split(",").map(i => i.trim()).filter(Boolean)
+    }
+    return []
+}
+
+function preencherSelectCidade(id, valores) {
+    const select = document.getElementById(id)
+    if (!select) return
+    const primeiraOpcao = select.options[0]
+    select.innerHTML = ""
+    if (primeiraOpcao) select.appendChild(primeiraOpcao)
+    valores.forEach(v => {
+        const opt = document.createElement("option")
+        opt.value = v
+        opt.textContent = v
+        select.appendChild(opt)
+    })
+}
+
+function montarFiltrosDinamicosCidade() {
+    const lista = listaCidadeAnuncios
+
+    const marcas = [...new Set(lista.map(a => a.marca).filter(Boolean))].sort()
+    const modelos = [...new Set(lista.map(a => a.modelo || a.versao).filter(Boolean))].sort()
+    const cambios = [...new Set(lista.map(a => a.cambio).filter(Boolean))].sort()
+    const combustiveis = [...new Set(lista.map(a => a.combustivel).filter(Boolean))].sort()
+    const carrocerias = [...new Set(lista.map(a => a.carroceria).filter(Boolean))].sort()
+    const anos = [...new Set(lista.map(a => a.ano_modelo).filter(Boolean))].sort((a, b) => a - b)
+
+    preencherSelectCidade("filtroModelo", modelos)
+    preencherSelectCidade("filtroCambio", cambios)
+    preencherSelectCidade("filtroCombustivel", combustiveis)
+    preencherSelectCidade("filtroCarroceria", carrocerias)
+    preencherSelectCidade("filtroAnoMin", anos)
+    preencherSelectCidade("filtroAnoMax", anos)
+
+    const container = document.getElementById("filtroMarcas")
+    if (container) {
+        container.innerHTML = ""
+        marcas.forEach(marca => {
+            container.innerHTML += `<label><input type="checkbox" value="${marca}"> ${marca}</label><br>`
+        })
+    }
+}
+
+function aplicarFiltros() {
+    const busca = document.getElementById("filtroBusca")?.value.toLowerCase().trim() || ""
+    const bairro = document.getElementById("filtro-bairro-cidade")?.value || ""
+    const modelo = document.getElementById("filtroModelo")?.value || ""
+    const anoMin = Number(document.getElementById("filtroAnoMin")?.value) || 0
+    const anoMax = Number(document.getElementById("filtroAnoMax")?.value) || Infinity
+    const precoMin = Number(document.getElementById("filtroPrecoMin")?.value) || 0
+    const precoMax = Number(document.getElementById("filtroPrecoMax")?.value) || Infinity
+    const kmMin = Number(document.getElementById("filtroKmMin")?.value) || 0
+    const kmMax = Number(document.getElementById("filtroKmMax")?.value) || Infinity
+    const cambio = document.getElementById("filtroCambio")?.value || ""
+    const combustivel = document.getElementById("filtroCombustivel")?.value || ""
+    const carroceria = document.getElementById("filtroCarroceria")?.value || ""
+    const marcasSelecionadas = [...document.querySelectorAll("#filtroMarcas input:checked")].map(el => el.value)
+    const blindagemCom = document.getElementById("filtroBlindado")?.checked || false
+    const blindagemSem = document.getElementById("filtroNaoBlindado")?.checked || false
+    const estadoNovo = document.getElementById("filtroNovo")?.checked || false
+    const estadoUsado = document.getElementById("filtroUsado")?.checked || false
+    const tipoInline = document.getElementById("filtro-tipo-anunciante")?.value || ""
+    const filtroParticular = tipoInline === "particular" || (document.getElementById("filtroParticular")?.checked || false)
+    const filtroRevenda = tipoInline === "revenda" || (document.getElementById("filtroRevenda")?.checked || false)
+
+    // mantém bairroSelecionado sincronizado para o título
+    bairroSelecionado = bairro
+
+    listaFiltrada = listaCidadeAnuncios.filter(item => {
+        const acessorios = obterAcessoriosCidade(item.acessorios)
+        const temBlindagem = acessorios.some(a => String(a).toLowerCase().includes("blindado"))
+        const tipoAnunciante = item.tipo_anunciante || item.tipoAnunciante || ""
+
+        if (busca && !(`${item.marca || ""} ${item.versao || ""} ${item.modelo || ""}`).toLowerCase().includes(busca)) return false
+        if (bairro && normalizarTexto(item.bairro) !== normalizarTexto(bairro)) return false
+        if (modelo && (item.modelo || item.versao) !== modelo) return false
+        if (anoMin && (Number(item.ano_modelo) || 0) < anoMin) return false
+        if (anoMax !== Infinity && (Number(item.ano_modelo) || 0) > anoMax) return false
+        if (precoMin && (Number(item.preco) || 0) < precoMin) return false
+        if (precoMax !== Infinity && (Number(item.preco) || 0) > precoMax) return false
+        if (kmMin && (Number(item.km) || 0) < kmMin) return false
+        if (kmMax !== Infinity && (Number(item.km) || 0) > kmMax) return false
+        if (cambio && item.cambio !== cambio) return false
+        if (combustivel && item.combustivel !== combustivel) return false
+        if (carroceria && item.carroceria !== carroceria) return false
+        if (marcasSelecionadas.length && !marcasSelecionadas.includes(item.marca)) return false
+        if (blindagemCom && !temBlindagem) return false
+        if (blindagemSem && temBlindagem) return false
+        if (estadoNovo && item.condicao !== "novo") return false
+        if (estadoUsado && item.condicao !== "usado") return false
+        if (filtroParticular && !filtroRevenda && tipoAnunciante !== "particular") return false
+        if (filtroRevenda && !filtroParticular && tipoAnunciante !== "revenda") return false
+
+        return true
+    })
+
+    paginaAtualCidade = 1
+    atualizarTituloCidade()
+    renderizarLista()
+    renderizarPaginacaoCidade()
+
+    // fecha sidebar no mobile
+    const sidebar = document.getElementById("sidebar")
+    if (sidebar?.classList.contains("ativa")) toggleFiltro()
+}
+
+function limparFiltros() {
+    document.querySelectorAll(".barra_lateral input, .barra_lateral select").forEach(el => {
+        if (el.type === "checkbox" || el.type === "radio") el.checked = false
+        else el.value = ""
+    })
+
+    bairroSelecionado = ""
+    listaFiltrada = [...listaCidadeAnuncios]
+    paginaAtualCidade = 1
+    atualizarTituloCidade()
+    renderizarLista()
+    renderizarPaginacaoCidade()
+}
+
+function toggleFiltro() {
+    document.getElementById("sidebar")?.classList.toggle("ativa")
+    document.getElementById("overlay")?.classList.toggle("ativo")
+}
+
+function controlarVisibilidadeSidebar(total) {
+    if (total > 20) {
+        // Move bairro inline para dentro da sidebar
+        const bairroSection = document.getElementById("cidade-filtros")
+        const slot = document.getElementById("sidebar-bairro-slot")
+        if (bairroSection && slot) {
+            bairroSection.classList.remove("cidade-filtros")
+            bairroSection.classList.add("in-sidebar")
+            slot.appendChild(bairroSection)
+        }
+        document.getElementById("bairro-container")?.classList.add("d-none")
+
+        document.getElementById("sidebar")?.classList.remove("d-none")
+        document.getElementById("btn-filtro-wrapper")?.classList.remove("d-none")
+        document.getElementById("main-layout")?.classList.remove("sem-sidebar")
+        document.body.style.background = "#f5f5f5"
+    } else {
+        // ≤20: mostra filtro de tipo e adiciona listeners de change
+        if (total > 0) {
+            document.getElementById("filtro-tipo-container")?.classList.remove("d-none")
+        }
+
+        const selectBairro = document.getElementById("filtro-bairro-cidade")
+        if (selectBairro && !selectBairro._inlineListenerAdded) {
+            selectBairro.addEventListener("change", () => aplicarFiltros())
+            selectBairro._inlineListenerAdded = true
+        }
+
+        const selectTipo = document.getElementById("filtro-tipo-anunciante")
+        if (selectTipo && !selectTipo._inlineListenerAdded) {
+            selectTipo.addEventListener("change", () => aplicarFiltros())
+            selectTipo._inlineListenerAdded = true
+        }
+    }
 }
 
 // ===============================

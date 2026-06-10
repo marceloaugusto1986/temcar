@@ -286,12 +286,35 @@ function renderizarPagina() {
         obterPaginaAtual();
 
     if (!pagina.length) {
+        const cidade = obterCidadeFiltro()
+        const uf = obterUfFiltro()
+        const bairro = obterBairroFiltro()
 
-        cardsContainer.innerHTML =
-            "<p>Nenhuma revenda encontrada.</p>";
+        let textoTitulo = "Revendas Parceiras"
+        if (bairro && cidade) textoTitulo = `Revendas em <strong>${bairro}, ${cidade} - ${uf}</strong>`
+        else if (cidade) textoTitulo = `Revendas em <strong>${cidade} - ${uf}</strong>`
+
+        document.getElementById("titulo-revendas")?.classList.add("d-none")
+
+        cardsContainer.innerHTML = `
+            <div style="grid-column: 1 / -1;">
+                <div class="cidade-empty-state">
+                    <div class="cidade-empty-icon">
+                        <i class="bi bi-buildings"></i>
+                    </div>
+                    <p class="cidade-empty-title">${textoTitulo}</p>
+                    <p class="cidade-empty-promo">
+                        <strong>Atenção Revendas</strong><br>
+                        Aproveite nossa promoção de lançamento e anuncie seus veículos gratuitamente até agosto de 2026.
+                    </p>
+                    <div class="cidade-empty-actions">
+                        <a class="btn btn-danger" href="/vender">Anunciar grátis</a>
+                    </div>
+                </div>
+            </div>
+        `
 
         atualizarPaginacao();
-
         return;
     }
 
