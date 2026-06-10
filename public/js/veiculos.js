@@ -51,7 +51,6 @@ function montarDetalhesPrincipais(item) {
 
 function montarDetalhesSecundarios(item) {
     return [
-        item.cambio,
         item.combustivel,
         formatarKm(item.km)
     ].filter(Boolean).join(" | ")

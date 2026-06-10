@@ -10,8 +10,6 @@ const limitePorPagina = 10
 let cidadeAtual = null
 let cidadeBannerSwiper = null
 let bairroSelecionado = ""
-const BANNER_CIDADE_DEFAULT_DESKTOP = "/imagens/img/banner-cidade-default.png"
-const BANNER_CIDADE_DEFAULT_MOBILE = "/imagens/img/banner-cidade-default-mobile.png"
 
 // ===============================
 // UTIL
@@ -41,19 +39,62 @@ function formatarValor(valor) {
     return numero.toLocaleString("pt-BR")
 }
 
+function formatarKm(valor) {
+    if (valor === null || valor === undefined || valor === "") return ""
+    const numero = Number(valor)
+    if (isNaN(numero)) return ""
+    return `${numero.toLocaleString("pt-BR")} km`
+}
+
+function formatarPreco(valor) {
+    const preco = formatarValor(valor)
+    return preco === "Consulte" ? preco : `R$ ${preco}`
+}
+
+function montarDetalhesPrincipais(item) {
+    return [
+        item.motorizacao,
+        item.portas ? `${item.portas}P` : "",
+        item.cambio
+    ].filter(Boolean).join(" ")
+}
+
+function montarDetalhesSecundarios(item) {
+    return [
+        item.combustivel,
+        formatarKm(item.km)
+    ].filter(Boolean).join(" | ")
+}
+
+function montarLocalizacao(item) {
+    const cidadeEstado = [item.cidade, item.estado].filter(Boolean).join(" - ")
+    return item.bairro ? `${item.bairro}, ${cidadeEstado}` : cidadeEstado
+}
+
 // ===============================
 // CAPTURAR SLUG E UF DA URL
-// URL: /cidade/:slug/:uf
+// URL: /cidade/:slug/:uf ou /cidade/:bairro/:slug/:uf
 // ===============================
 
 function obterSlugAtual() {
+    const filtro = window.FILTRO || {}
+    if (filtro.cidade) return criarSlug(filtro.cidade)
+
     const partes = window.location.pathname.split("/")
-    // partes = ["", "cidade", "slug", "uf"]
+    if (partes[1] === "cidade" && partes.length >= 5) return partes[3] || ""
+    if (partes[1] === "veiculos" && partes.length >= 5) return partes[3] || ""
+    if (partes[1] === "veiculos" && partes.length >= 4) return partes[3] || ""
     return partes[2] || ""
 }
 
 function obterUfAtual() {
+    const filtro = window.FILTRO || {}
+    if (filtro.uf) return criarSlug(filtro.uf)
+
     const partes = window.location.pathname.split("/")
+    if (partes[1] === "cidade" && partes.length >= 5) return partes[4] || ""
+    if (partes[1] === "veiculos" && partes.length >= 5) return partes[2] || ""
+    if (partes[1] === "veiculos" && partes.length >= 4) return partes[2] || ""
     return partes[3] || ""
 }
 
@@ -64,11 +105,13 @@ function formatarNomeCidade(slug) {
 }
 
 function obterNomeCidadeAtual() {
-    return cidadeAtual ? cidadeAtual.nome : formatarNomeCidade(obterSlugAtual())
+    const filtro = window.FILTRO || {}
+    return filtro.cidadeNome || (cidadeAtual ? cidadeAtual.nome : formatarNomeCidade(obterSlugAtual()))
 }
 
 function obterEstadoAtual() {
-    return cidadeAtual ? cidadeAtual.estado : (listaFiltrada[0]?.estado || obterUfAtual().toUpperCase())
+    const filtro = window.FILTRO || {}
+    return (filtro.ufNome || filtro.uf || (cidadeAtual ? cidadeAtual.estado : (listaFiltrada[0]?.estado || obterUfAtual())) || "").toUpperCase()
 }
 
 function escaparHtml(texto) {
@@ -132,6 +175,10 @@ function anuncioAtendeCidade(item, slug, uf) {
 async function carregarAnunciosDaCidade() {
     try {
         const slug = obterSlugAtual()
+        const bairroInicial = obterBairroFiltro()
+        if (bairroInicial) {
+            bairroSelecionado = bairroInicial
+        }
 
         const [respParticular, respRevenda] = await Promise.all([
             fetch("/api/particular-ativos-home"),
@@ -162,10 +209,6 @@ async function carregarAnunciosDaCidade() {
         // filtrar pela cidade do slug E pelo estado (UF)
         const uf = obterUfAtual()
         listaCidadeAnuncios = listaAnuncios.filter(item => anuncioAtendeCidade(item, slug, uf))
-        if (!listaCidadeAnuncios.length) {
-            renderizarBannerCidadeDefault()
-        }
-
         aplicarFiltroBairro(false)
 
         atualizarTituloCidade()
@@ -208,11 +251,43 @@ function aplicarFiltroBairro(renderizar = true) {
     renderizarPaginacaoCidade()
 }
 
+function obterBairrosDosAnunciosDaCidade() {
+    const bairrosPorNome = new Map()
+
+    listaCidadeAnuncios.forEach(item => {
+        const bairro = String(item.bairro || "").trim()
+        if (!bairro) return
+
+        const chave = normalizarTexto(bairro)
+        if (!bairrosPorNome.has(chave)) {
+            bairrosPorNome.set(chave, { nome: bairro })
+        }
+    })
+
+    return Array.from(bairrosPorNome.values())
+        .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+}
+
 async function carregarFiltroBairrosCidade() {
     const wrapper = document.getElementById("cidade-filtros")
     const select = document.getElementById("filtro-bairro-cidade")
 
     if (!wrapper || !select) return
+
+    const bairroInicial = obterBairroFiltro()
+    if (bairroInicial) {
+        bairroSelecionado = bairroInicial
+    }
+
+    const fixarBairroDaUrl = () => {
+        select.innerHTML = ""
+        const option = document.createElement("option")
+        option.value = bairroSelecionado
+        option.textContent = bairroSelecionado
+        option.selected = true
+        select.appendChild(option)
+        select.disabled = true
+    }
 
     wrapper.classList.remove("d-none")
     select.disabled = true
@@ -227,23 +302,44 @@ async function carregarFiltroBairrosCidade() {
         if (!res.ok) throw new Error("Erro ao buscar bairros")
 
         const bairros = await res.json()
-        const bairrosValidos = bairros.filter(bairro => bairro.nome)
+        const bairrosValidosApi = bairros.filter(bairro => bairro.nome)
+        const bairrosValidos = bairrosValidosApi.length ? bairrosValidosApi : obterBairrosDosAnunciosDaCidade()
 
         if (!bairrosValidos.length) {
+            if (bairroSelecionado) {
+                fixarBairroDaUrl()
+                return
+            }
+
             select.innerHTML = '<option value="">Nenhum bairro cadastrado</option>'
             select.disabled = true
             return
         }
 
-        select.disabled = false
+        select.disabled = Boolean(bairroSelecionado)
         select.innerHTML = '<option value="">Todos os bairros</option>'
 
         bairrosValidos.forEach(bairro => {
             const option = document.createElement("option")
             option.value = bairro.nome
             option.textContent = bairro.nome
+            if (normalizarTexto(bairro.nome) === normalizarTexto(bairroSelecionado)) {
+                option.selected = true
+            }
             select.appendChild(option)
         })
+
+        if (bairroSelecionado && !Array.from(select.options).some(option => normalizarTexto(option.value) === normalizarTexto(bairroSelecionado))) {
+            const option = document.createElement("option")
+            option.value = bairroSelecionado
+            option.textContent = bairroSelecionado
+            option.selected = true
+            select.appendChild(option)
+        }
+
+        if (bairroSelecionado) {
+            select.disabled = true
+        }
 
         select.addEventListener("change", () => {
             bairroSelecionado = select.value
@@ -254,6 +350,30 @@ async function carregarFiltroBairrosCidade() {
     } catch (erro) {
         console.error("Erro ao carregar filtro de bairros:", erro)
         wrapper.classList.remove("d-none")
+        if (bairroSelecionado) {
+            fixarBairroDaUrl()
+            return
+        }
+
+        const bairrosDosAnuncios = obterBairrosDosAnunciosDaCidade()
+        if (bairrosDosAnuncios.length) {
+            select.disabled = false
+            select.innerHTML = '<option value="">Todos os bairros</option>'
+
+            bairrosDosAnuncios.forEach(bairro => {
+                const option = document.createElement("option")
+                option.value = bairro.nome
+                option.textContent = bairro.nome
+                select.appendChild(option)
+            })
+
+            select.addEventListener("change", () => {
+                bairroSelecionado = select.value
+                aplicarFiltroBairro()
+            })
+            return
+        }
+
         select.innerHTML = '<option value="">Bairros indisponíveis</option>'
         select.disabled = true
     }
@@ -306,67 +426,65 @@ function renderizarLista() {
 
     pagina.forEach(item => {
         const wrapper = document.createElement("div")
+        const detalhesPrincipais = montarDetalhesPrincipais(item)
+        const detalhesSecundarios = montarDetalhesSecundarios(item)
+        const localizacao = montarLocalizacao(item)
 
         wrapper.innerHTML = `
             <div class="card shadow-sm vehicle-card position-relative"
-                 style="width: 280px; cursor: pointer"
+                 style="width: 280px; cursor: pointer; border-radius: 6px; overflow: hidden;"
                  onclick="window.location.href='${montarUrlVenda(item)}'">
 
                 ${item.destaque == 1 ? `
                     <span style="
-                        position:absolute;
-                        top:10px;
-                        left:10px;
-                        background:#ffc107;
-                        color:#000;
-                        padding:5px 10px;
-                        border-radius:6px;
-                        font-size:12px;
-                        font-weight:bold;
-                        z-index:10;
-                    ">
+                        position:absolute;top:10px;left:10px;
+                        background:#ffc107;color:#000;
+                        padding:5px 10px;border-radius:6px;
+                        font-size:12px;font-weight:bold;z-index:10;">
                         ⭐ Destaque
-                    </span>
-                ` : ''}
+                    </span>` : ''}
 
                 <img
                   src="${item.imagem ? `/uploads/anuncios/${item.imagem}` : '/img/sem-foto.jpg'}"
                   class="card-img-top vehicle-img"
+                  style="height:182px;object-fit:cover;"
                   onerror="this.src='/img/sem-foto.jpg'"
                 >
 
-                <div class="card-body">
-
-                  <h5 class="fw-bold">
-                    <span style="color:#000;">${item.marca || ''}</span>
+                <div class="card-body d-flex flex-column" style="padding:14px 16px 12px;">
+                  <h5 class="fw-bold text-uppercase mb-1" style="font-size:1rem; line-height:1.2;">
+                    <span style="color:#1f2328;">${item.marca || ''}</span>
                     <span style="color:#C90B0C;"> ${item.versao || ''}</span>
                   </h5>
 
-                  <p class="small text-secondary mb-1 descricao-card">
-                    ${item.descricao || ''}
+                  <p class="mb-2" style="color:#666; font-size:.88rem; line-height:1.25; font-weight:600;">
+                    ${detalhesPrincipais || "&nbsp;"}
                   </p>
 
-                  <p class="mb-1 text-secondary">
-                    ${item.motorizacao || ''} ${item.combustivel || ''}
+                  <div class="d-flex align-items-baseline mb-1" style="gap:6px;">
+                    <strong style="color:#C90B0C; font-size:1.18rem; line-height:1;">
+                      ${formatarPreco(item.preco)}
+                    </strong>
+                    <strong style="color:#2b2f36; font-size:1.05rem;">
+                      ${item.ano_modelo ? `| ${item.ano_modelo}` : ""}
+                    </strong>
+                  </div>
+
+                  <p class="mb-2" style="color:#666; font-size:.84rem; line-height:1.25; font-weight:600;">
+                    ${detalhesSecundarios || "&nbsp;"}
                   </p>
 
-                  <p class="fw-bold" style="color:#C90B0C;">
-                    ${formatarValor(item.preco)}
-                    <span class="text-dark"> | ${item.ano_modelo}</span>
-                  </p>
-
-                  <p class="fw-bold d-flex align-items-center gap-2">
+                  <p class="small fw-bold mb-1 d-flex align-items-center gap-1 mt-auto" style="font-size:.83rem;">
                     ${item.tipo_anunciante === "particular"
                 ? `<i class="bi bi-person-fill"></i> Particular`
                 : `<i class="bi bi-building"></i> ${item.nome || "Revenda"}`
             }
                   </p>
 
-                  <p>
+                  <p class="small mb-0 text-truncate" style="min-width:0; color:#3f4650; font-size:.88rem;">
                     <i class="bi bi-geo-alt-fill" style="color:#C90B0C;"></i>
-                    ${item.cidade || ''} - ${item.estado || ''}
+                    ${localizacao}
                   </p>
-
                 </div>
             </div>
         `
@@ -432,7 +550,7 @@ function obterLocalizacaoEmptyState() {
 function obterTextoSeoEmptyState(localizacao, tipo) {
     const seo = window.SEO_PAGINA || {}
     const dados = seo.dados_contexto || {}
-    const template = String(seo.descricao_template || "")
+    const template = String(seo.descricao_template_original || seo.descricao_template || "")
     const marcadorCidade = "#cidade"
     const indiceCidade = template.indexOf(marcadorCidade)
     // Na página /cidade/:slug/:uf sempre temos contexto local
@@ -486,10 +604,6 @@ function renderizarCidadeSemAnuncios(container) {
     const nomeCidade = escaparHtml(obterNomeCidadeAtual())
     const estado = escaparHtml(obterEstadoAtual())
     const tituloHeading = estado ? `${nomeCidade}, ${estado}` : nomeCidade
-
-    if (!listaCidadeAnuncios.length) {
-        renderizarBannerCidadeDefault()
-    }
 
     container.classList.remove("overflow-auto")
     container.classList.add("overflow-visible")
@@ -628,7 +742,7 @@ async function carregarBannersCidade() {
             .filter(banner => banner.src)
 
         if (!banners.length) {
-            renderizarBannerCidadeDefault()
+            renderizarBannerFallback()
             return
         }
 
@@ -698,34 +812,12 @@ function renderizarBannerFallback() {
     iniciarSliderCidade(1)
 }
 
-function renderizarBannerCidadeDefault() {
-    const wrapper = document.getElementById("cidadeBannerWrapper")
-    if (!wrapper) return
-
-    wrapper.innerHTML = `
-        <div class="swiper-slide">
-            <picture class="cidade-banner-picture">
-                <source media="(max-width: 768px)" srcset="${BANNER_CIDADE_DEFAULT_MOBILE}">
-                <img
-                    src="${BANNER_CIDADE_DEFAULT_DESKTOP}"
-                    class="cidade-banner-img"
-                    alt="Anuncie seu veículo no TEMCAR"
-                    loading="eager"
-                    onerror="renderizarBannerFallback()"
-                >
-            </picture>
-        </div>
-    `
-
-    iniciarSliderCidade(1)
-}
-
 // ===============================
 // INIT
 // ===============================
 
 document.addEventListener("DOMContentLoaded", async () => {
     await carregarDadosCidade()
+    await carregarAnunciosDaCidade()
     await carregarFiltroBairrosCidade()
-    carregarAnunciosDaCidade()
 })

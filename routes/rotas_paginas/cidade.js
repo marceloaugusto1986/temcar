@@ -4,15 +4,41 @@ const db = require("./../../database/pool_connection");
 const { getSeoCidade } = require('../../helpers/seo');
 
 function slugify(texto) {
-  return texto
+  return (texto || '')
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "-");
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function capitalize(texto) {
   return (texto || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+async function buscarCidadePorSlugUf(slug, uf) {
+  const [cidades] = await db.query(`SELECT * FROM cidades WHERE LOWER(estado) = ?`, [uf.toLowerCase()]);
+  return cidades.find(c => slugify(c.nome) === slug) || null;
+}
+
+async function buscarBairroPorSlugCidadeUf(bairroSlug, cidade, uf) {
+  let bairros = [];
+
+  try {
+    [bairros] = await db.query(
+      `
+      SELECT nome
+      FROM bairros
+      WHERE cidade COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci
+        AND LOWER(estado) = ?
+      `,
+      [cidade.nome, uf.toLowerCase()]
+    );
+  } catch (error) {
+    if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
+  }
+
+  return bairros.find(bairro => slugify(bairro.nome) === bairroSlug) || null;
 }
 
 function obterUrlUpload(imagem) {
@@ -80,18 +106,64 @@ async function garantirColunaImagemMobileCidades() {
 // ── /cidade/:slug/:uf (rota original) ──
 router.get("/cidade/:slug/:uf", async (req, res) => {
   const { slug, uf } = req.params;
-  const [cidades] = await db.query(`SELECT * FROM cidades`);
-  const cidade = cidades.find(c =>
-    slugify(c.nome) === slug && c.estado.toLowerCase() === uf.toLowerCase()
-  );
+  const cidade = await buscarCidadePorSlugUf(slugify(slug), slugify(uf));
   if (!cidade) return res.status(404).send("Cidade não encontrada");
   const seo = await getSeoCidade(cidade);
   const breadcrumbs = [
     { name: 'Home', url: 'https://www.temcar.com.br/' },
     { name: 'Cidades', url: 'https://www.temcar.com.br/buscar-cidades' },
-    { name: cidade.nome, url: `https://www.temcar.com.br/cidade/${slug}/${uf}` }
+    { name: cidade.nome, url: `https://www.temcar.com.br/cidade/${slugify(cidade.nome)}/${cidade.estado.toLowerCase()}` }
   ];
-  res.render("cidade", { cidade, seo, breadcrumbs });
+  res.render("cidade", {
+    cidade,
+    seo,
+    breadcrumbs,
+    filtro: {
+      cidade: slugify(cidade.nome),
+      cidadeNome: cidade.nome,
+      uf: cidade.estado.toLowerCase(),
+      ufNome: cidade.estado.toUpperCase(),
+      bairro: '',
+      bairroNome: ''
+    }
+  });
+});
+
+// ── /cidade/:bairro/:cidade/:uf ──
+router.get("/cidade/:bairro/:cidade/:uf", async (req, res) => {
+  const bairroSlug = slugify(req.params.bairro);
+  const cidadeSlug = slugify(req.params.cidade);
+  const ufSlug = slugify(req.params.uf);
+  const cidade = await buscarCidadePorSlugUf(cidadeSlug, ufSlug);
+
+  if (!cidade) return res.status(404).send("Cidade não encontrada");
+
+  const bairroEncontrado = await buscarBairroPorSlugCidadeUf(bairroSlug, cidade, ufSlug);
+  const nomeBairro = bairroEncontrado?.nome || capitalize(bairroSlug);
+  const cidadeCanonical = slugify(cidade.nome);
+  const ufCanonical = cidade.estado.toLowerCase();
+  const seo = await getSeoCidade(cidade, nomeBairro);
+  seo.link_canonico = `https://www.temcar.com.br/cidade/${bairroSlug}/${cidadeCanonical}/${ufCanonical}`;
+  const breadcrumbs = [
+    { name: 'Home', url: 'https://www.temcar.com.br/' },
+    { name: 'Cidades', url: 'https://www.temcar.com.br/buscar-cidades' },
+    { name: cidade.nome, url: `https://www.temcar.com.br/cidade/${cidadeCanonical}/${ufCanonical}` },
+    { name: nomeBairro, url: `https://www.temcar.com.br/cidade/${bairroSlug}/${cidadeCanonical}/${ufCanonical}` }
+  ];
+
+  res.render("cidade", {
+    cidade,
+    seo,
+    breadcrumbs,
+    filtro: {
+      bairro: bairroSlug,
+      bairroNome: nomeBairro,
+      cidade: cidadeCanonical,
+      cidadeNome: cidade.nome,
+      uf: ufCanonical,
+      ufNome: cidade.estado.toUpperCase()
+    }
+  });
 });
 
 // ── /veiculos/:estado/:cidade/:bairro ──
@@ -110,7 +182,16 @@ router.get("/veiculos/:estado/:cidade/:bairro", async (req, res) => {
   ];
   res.render("cidade", {
     cidade: { nome: nomeBairro, estado: ufUpper, imagem: null },
-    seo, breadcrumbs
+    seo,
+    breadcrumbs,
+    filtro: {
+      bairro,
+      bairroNome: nomeBairro,
+      cidade,
+      cidadeNome: nomeCidade,
+      uf: estado,
+      ufNome: ufUpper
+    }
   });
 });
 
@@ -134,7 +215,16 @@ router.get("/veiculos/:estado/:cidade", async (req, res) => {
   ];
   res.render("cidade", {
     cidade: { nome: nomeCidade, estado: ufUpper, imagem: null },
-    seo, breadcrumbs
+    seo,
+    breadcrumbs,
+    filtro: {
+      cidade,
+      cidadeNome: nomeCidade,
+      uf: estado,
+      ufNome: ufUpper,
+      bairro: '',
+      bairroNome: ''
+    }
   });
 });
 
@@ -156,7 +246,9 @@ router.get("/veiculos/:estado", async (req, res) => {
   ];
   res.render("cidade", {
     cidade: { nome: ufUpper, estado: ufUpper, imagem: null },
-    seo, breadcrumbs
+    seo,
+    breadcrumbs,
+    filtro: { uf: estado, ufNome: ufUpper, bairro: '', bairroNome: '' }
   });
 });
 

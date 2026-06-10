@@ -410,7 +410,8 @@ async function getSeoCidade(cidade, bairro = '') {
       texto_h1: aplicarCampo('texto_h1', fallbackSeo.texto_h1),
       texto_conteudo: aplicarCampo('texto_conteudo', fallbackSeo.texto_conteudo),
       link_canonico: linkCanonico,
-      descricao_template: seo.descricao || '',       // ← ADICIONADO
+      descricao_template: substituir(seo.descricao || ''),
+      descricao_template_original: seo.descricao || '',
       dados_contexto: {                               // ← ADICIONADO
         cidade: cidade.nome || '',
         estado: cidade.estado || '',

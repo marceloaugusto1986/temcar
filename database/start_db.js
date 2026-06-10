@@ -88,6 +88,31 @@ CREATE TABLE IF NOT EXISTS bairros (
 
         await db.query(criarTabelaBairros);
 
+        // Migração: garante que o índice único de bairros seja composto (cidade, estado, slug)
+        // Se a tabela foi criada antes com UNIQUE só em slug, o CREATE TABLE IF NOT EXISTS não corrige
+        const [bairrosIndexes] = await db.query(`
+          SELECT DISTINCT INDEX_NAME
+          FROM information_schema.STATISTICS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'bairros'
+            AND NON_UNIQUE = 0
+            AND INDEX_NAME != 'PRIMARY'
+            AND INDEX_NAME != 'uniq_bairro_cidade_estado'
+        `);
+        for (const row of bairrosIndexes) {
+          await db.query(`ALTER TABLE bairros DROP INDEX \`${row.INDEX_NAME}\``);
+        }
+        const [temIndiceCorreto] = await db.query(`
+          SELECT 1 FROM information_schema.STATISTICS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'bairros'
+            AND INDEX_NAME = 'uniq_bairro_cidade_estado'
+          LIMIT 1
+        `);
+        if (!temIndiceCorreto.length) {
+          await db.query(`ALTER TABLE bairros ADD UNIQUE KEY uniq_bairro_cidade_estado (cidade, estado, slug)`);
+        }
+
         const criarTabelaDeAnuncios = `
 CREATE TABLE IF NOT EXISTS anuncios (
     id INT AUTO_INCREMENT PRIMARY KEY,

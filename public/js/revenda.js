@@ -41,6 +41,39 @@ function montarUrlVenda(item) {
     return `/venda/${marcaModelo}/${cidade}/${estado}`
 }
 
+function formatarKm(valor) {
+    if (valor === null || valor === undefined || valor === "") return ""
+    const numero = Number(valor)
+    if (isNaN(numero)) return ""
+    return `${numero.toLocaleString("pt-BR")} km`
+}
+
+function formatarPreco(valor) {
+    const numero = Number(valor)
+    if (!numero || isNaN(numero)) return "Consulte"
+    return `R$ ${numero.toLocaleString("pt-BR")}`
+}
+
+function montarDetalhesPrincipais(item) {
+    return [
+        item.motorizacao,
+        item.portas ? `${item.portas}P` : "",
+        item.cambio
+    ].filter(Boolean).join(" ")
+}
+
+function montarDetalhesSecundarios(item) {
+    return [
+        item.combustivel,
+        formatarKm(item.km)
+    ].filter(Boolean).join(" | ")
+}
+
+function montarLocalizacao(item) {
+    const cidadeEstado = [item.cidade, item.estado].filter(Boolean).join(" - ")
+    return item.bairro ? `${item.bairro}, ${cidadeEstado}` : cidadeEstado
+}
+
 /* ================================
    CARREGAR ANÚNCIOS
 ================================ */
@@ -264,12 +297,13 @@ function atualizarLista() {
     itens = anunciosFiltrados.map(a => ({
         titulo: `${a.marca || ''} ${a.versao || ''}`.trim(),
         preco: Number(a.preco),
-        imagem: a.imagem || "/icones/logo.png",
+        imagem: a.imagem,
         id: a.id,
         ano: a.ano_modelo,
         descricao: a.descricao,
         km: a.km,
         motorizacao: a.motorizacao,
+        portas: a.portas,
         cidade: a.cidade,
         estado: a.estado,
         marca: a.marca,
@@ -281,6 +315,7 @@ function atualizarLista() {
         cor: a.cor,
         condicao: a.condicao,
         acessorios: a.acessorios,
+        destaque: a.destaque,
         nome: a.nome
     }))
     console.log("🎨 Renderizando tela")
@@ -305,47 +340,63 @@ function renderizarCards() {
     const paginaItens = itens.slice(inicio, fim)
     console.log("Itens exibidos:", paginaItens.length)
     paginaItens.forEach(item => {
+        const detalhesPrincipais = montarDetalhesPrincipais(item)
+        const detalhesSecundarios = montarDetalhesSecundarios(item)
+        const localizacao = montarLocalizacao(item)
+
         container.innerHTML += `
 <div>
-  <div class="card shadow-sm vehicle-card" style="width: 280px; cursor: pointer" onclick="window.location.href='${montarUrlVenda(item)}'">
+  <div class="card shadow-sm vehicle-card position-relative"
+       style="width: 280px; cursor: pointer; border-radius: 6px; overflow: hidden;"
+       onclick="window.location.href='${montarUrlVenda(item)}'">
+
+    ${item.destaque == 1 ? `
+      <span style="
+        position:absolute;top:10px;left:10px;
+        background:#ffc107;color:#000;
+        padding:5px 10px;border-radius:6px;
+        font-size:12px;font-weight:bold;z-index:10;">
+        ⭐ Destaque
+      </span>` : ''}
 
     <img 
       src="${item.imagem ? `/uploads/anuncios/${item.imagem}` : '/img/sem-foto.jpg'}"
       class="card-img-top vehicle-img"
+      style="height:182px;object-fit:cover;"
       onerror="this.src='/img/sem-foto.jpg'"
     >
 
-    <div class="card-body">
+    <div class="card-body d-flex flex-column" style="padding:14px 16px 12px;">
 
-      <h5 class="fw-bold">
-        <span style="color:#000;">${item.marca || ''}</span>
+      <h5 class="fw-bold text-uppercase mb-1" style="font-size:1rem; line-height:1.2;">
+        <span style="color:#1f2328;">${item.marca || ''}</span>
         <span style="color:#C90B0C;"> ${item.versao || ''}</span>
       </h5>
 
-          <p class="small text-secondary mb-1 descricao-card">
-            ${item.descricao || ''}
-          </p>
-
-      <p class="mb-1 text-secondary">
-        ${item.motorizacao || ''} ${item.combustivel || ''}
+      <p class="mb-2" style="color:#666; font-size:.88rem; line-height:1.25; font-weight:600;">
+        ${detalhesPrincipais || "&nbsp;"}
       </p>
 
-      <p class="fw-bold" style="color:#C90B0C;">
-        ${item.preco
-                ? `R$` + item.preco.toLocaleString('pt-BR')
-                : 'Consulte'}
-        <span class="text-dark">
-         | ${item.ano}
-        </span>
+      <div class="d-flex align-items-baseline mb-1" style="gap:6px;">
+        <strong style="color:#C90B0C; font-size:1.18rem; line-height:1;">
+          ${formatarPreco(item.preco)}
+        </strong>
+        <strong style="color:#2b2f36; font-size:1.05rem;">
+          ${item.ano ? `| ${item.ano}` : ""}
+        </strong>
+      </div>
+
+      <p class="mb-2" style="color:#666; font-size:.84rem; line-height:1.25; font-weight:600;">
+        ${detalhesSecundarios || "&nbsp;"}
       </p>
 
-       <p class="fw-bold d-flex align-items-center gap-2">
-            <i class="bi bi-building"></i> ${item.nome || "Revenda"}
-        </p>
+      <p class="small fw-bold mb-1 d-flex align-items-center gap-1 mt-auto" style="font-size:.83rem;">
+        <i class="bi bi-building"></i> ${item.nome || "Revenda"}
+      </p>
 
-      <p>
+      <p class="small mb-0 text-truncate" style="min-width:0; color:#3f4650; font-size:.88rem;">
         <i class="bi bi-geo-alt-fill" style="color:#C90B0C;"></i>
-        ${item.cidade || ''} - ${item.estado || ''}
+        ${localizacao}
       </p>
 
     </div>
