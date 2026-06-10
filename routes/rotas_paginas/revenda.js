@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const db = require("./../../database/pool_connection");
 const { getSeoRevenda } = require('../../helpers/seo');
-const { montarCaminhoRevenda, montarUrlRevenda, montarSlugRevenda } = require('../../helpers/revenda-url');
+const { montarCaminhoRevenda, montarUrlRevenda, montarSlugRevenda, montarSegmentosRevenda, montarSlugRevendaLegado } = require('../../helpers/revenda-url');
 
 async function buscarRevendaPorId(id) {
   const [[revenda]] = await db.query(`
-    SELECT id, nome
+    SELECT id, nome, bairro, cidade, estado
     FROM usuarios
     WHERE id = ? AND tipo = 'revenda'
     LIMIT 1
@@ -15,30 +15,34 @@ async function buscarRevendaPorId(id) {
   return revenda || null;
 }
 
-async function buscarRevendaPorIdentificador(identificador) {
+async function buscarRevendaPorIdentificador(identificador, partes = []) {
   if (/^\d+$/.test(identificador)) {
     return buscarRevendaPorId(identificador);
   }
 
   const [revendas] = await db.query(`
-    SELECT id, nome
+    SELECT id, nome, bairro, cidade, estado
     FROM usuarios
     WHERE tipo = 'revenda'
     ORDER BY id ASC
   `);
 
-  return revendas.find((revenda) => montarSlugRevenda(revenda) === identificador) || null;
+  const caminhoSegmentado = [identificador, ...partes].filter(Boolean).join('/');
+
+  return revendas.find((revenda) => {
+    const segmentos = montarSegmentosRevenda(revenda);
+    return segmentos.join('/') === caminhoSegmentado ||
+      montarSlugRevenda(revenda) === identificador ||
+      montarSlugRevendaLegado(revenda) === identificador;
+  }) || null;
 }
 
-/* =========================================================
-   🔹 PÁGINA DA REVENDA
-   ========================================================= */
-router.get('/revenda/:identificador', async (req, res) => {
+async function renderizarPaginaRevenda(req, res, identificador, partes = []) {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
 
-  const revenda = await buscarRevendaPorIdentificador(req.params.identificador);
+  const revenda = await buscarRevendaPorIdentificador(identificador, partes);
   if (!revenda) {
     return res.status(404).render('error-page', {
       statusCode: 404,
@@ -57,7 +61,19 @@ router.get('/revenda/:identificador', async (req, res) => {
     { name: 'Revendas', url: 'https://www.temcar.com.br/buscar-revendas' },
     { name: seo.texto_h1 || 'Revenda', url: montarUrlRevenda(revenda) }
   ];
-  res.render('revenda', { seo: { ...seo, link_canonico: montarUrlRevenda(revenda) }, breadcrumbs, revendaId: revenda.id });
+  return res.render('revenda', { seo: { ...seo, link_canonico: montarUrlRevenda(revenda) }, breadcrumbs, revendaId: revenda.id });
+}
+
+/* =========================================================
+   🔹 PÁGINA DA REVENDA
+   ========================================================= */
+router.get('/revenda/:identificador', async (req, res) => {
+  return renderizarPaginaRevenda(req, res, req.params.identificador);
+});
+
+router.get('/revenda/:identificador/:bairro/:cidade/:estado', async (req, res) => {
+  const { identificador, bairro, cidade, estado } = req.params;
+  return renderizarPaginaRevenda(req, res, identificador, [bairro, cidade, estado]);
 });
 
 

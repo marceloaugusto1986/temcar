@@ -44,16 +44,59 @@ async function garantirTabelaCidadesRevendas() {
     CREATE TABLE IF NOT EXISTS revendas_cidades (
       id INT AUTO_INCREMENT PRIMARY KEY,
       usuario_id INT NOT NULL,
+      bairro VARCHAR(150) NOT NULL DEFAULT '',
       cidade VARCHAR(150) NOT NULL,
       estado VARCHAR(2) NOT NULL,
       criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE KEY uniq_revenda_cidade (usuario_id, cidade, estado),
+      UNIQUE KEY uniq_revenda_cidade (usuario_id, bairro, cidade, estado),
+      KEY idx_revendas_cidades_usuario (usuario_id),
       CONSTRAINT fk_revenda_cidade_usuario
         FOREIGN KEY (usuario_id)
         REFERENCES usuarios(id)
         ON DELETE CASCADE
     )
   `);
+
+  const [colunas] = await db.query(`
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'revendas_cidades'
+      AND COLUMN_NAME = 'bairro'
+  `);
+
+  if (!colunas.length) {
+    await db.query(`
+      ALTER TABLE revendas_cidades
+      ADD COLUMN bairro VARCHAR(150) NOT NULL DEFAULT '' AFTER usuario_id
+    `);
+  }
+
+  const [indices] = await db.query(`
+    SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) AS colunas
+    FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'revendas_cidades'
+      AND INDEX_NAME = 'uniq_revenda_cidade'
+    GROUP BY INDEX_NAME
+  `);
+
+  if (indices[0]?.colunas !== 'usuario_id,bairro,cidade,estado') {
+    await db.query(`
+      ALTER TABLE revendas_cidades
+      ADD INDEX idx_revendas_cidades_usuario (usuario_id)
+    `).catch(error => {
+      if (error.code !== 'ER_DUP_KEYNAME') throw error;
+    });
+
+    if (indices.length) {
+      await db.query('ALTER TABLE revendas_cidades DROP INDEX uniq_revenda_cidade');
+    }
+    await db.query(`
+      ALTER TABLE revendas_cidades
+      ADD UNIQUE KEY uniq_revenda_cidade (usuario_id, bairro, cidade, estado)
+    `);
+  }
 }
 
 router.get('/buscar-revendas', async (req, res) => {
@@ -169,7 +212,7 @@ router.get("/api/revendas-ativas", async (req, res) => {
           ELSE rl.logo
         END AS logo,
         (
-          SELECT JSON_ARRAYAGG(JSON_OBJECT('cidade', rc.cidade, 'estado', rc.estado))
+          SELECT JSON_ARRAYAGG(JSON_OBJECT('bairro', rc.bairro, 'cidade', rc.cidade, 'estado', rc.estado))
           FROM revendas_cidades rc
           WHERE rc.usuario_id = u.id
         ) AS cidades_atendimento
@@ -219,6 +262,7 @@ router.get("/api/anuncios-revenda-ativos", async (req, res) => {
   a.km,
   a.cambio,
   a.motorizacao,
+  a.portas,
   a.combustivel,
   a.carroceria,
   a.cor,
@@ -231,7 +275,7 @@ router.get("/api/anuncios-revenda-ativos", async (req, res) => {
   u.bairro,
   u.tipo AS tipo_anunciante,
   (
-    SELECT JSON_ARRAYAGG(JSON_OBJECT('cidade', rc.cidade, 'estado', rc.estado))
+    SELECT JSON_ARRAYAGG(JSON_OBJECT('bairro', rc.bairro, 'cidade', rc.cidade, 'estado', rc.estado))
     FROM revendas_cidades rc
     WHERE rc.usuario_id = u.id
   ) AS cidades_atendimento,

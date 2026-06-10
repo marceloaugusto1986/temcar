@@ -91,6 +91,21 @@ function revendaAtendeCidade(revenda, cidadeSlug, ufSlug) {
     );
 }
 
+function revendaAtendeBairro(revenda, bairroSlug, cidadeSlug, ufSlug) {
+    const enderecoPrincipalOk =
+        slugify(revenda.bairro) === bairroSlug &&
+        slugify(revenda.cidade) === cidadeSlug &&
+        normalizar(revenda.estado) === ufSlug;
+
+    if (enderecoPrincipalOk) return true;
+
+    return obterCidadesAtendimento(revenda).some(item =>
+        slugify(item.bairro) === bairroSlug &&
+        slugify(item.cidade) === cidadeSlug &&
+        normalizar(item.estado) === ufSlug
+    );
+}
+
 function filtrarPorContexto(lista) {
     const filtro = window.FILTRO || {};
     const cidadeSlug = filtro.cidade || "";
@@ -99,10 +114,7 @@ function filtrarPorContexto(lista) {
 
     return lista.filter(revenda => {
         if (bairroSlug) {
-            if (slugify(revenda.bairro) !== bairroSlug) return false;
-            if (slugify(revenda.cidade) !== cidadeSlug) return false;
-            if (normalizar(revenda.estado) !== ufSlug) return false;
-            return true;
+            return revendaAtendeBairro(revenda, bairroSlug, cidadeSlug, ufSlug);
         }
 
         if (cidadeSlug && !revendaAtendeCidade(revenda, cidadeSlug, ufSlug)) return false;

@@ -266,8 +266,16 @@ renderizarLogo();
     if (!cidades || !cidades.length) return '<span class="text-muted">Nenhuma cidade adicional cadastrada.</span>';
 
     return cidades
-      .map(cidade => `<span class="cidade-atendimento-pill">${cidade.cidade || cidade.nome} / ${cidade.estado}</span>`)
+      .map(cidade => `<span class="cidade-atendimento-pill">${formatarLocalAtendimento(cidade)}</span>`)
       .join('');
+  }
+
+  function formatarLocalAtendimento(cidade) {
+    const nomeCidade = cidade.cidade || cidade.nome || '';
+    const estado = cidade.estado || '';
+    return cidade.bairro
+      ? `${cidade.bairro}, ${nomeCidade} - ${estado}`
+      : `${nomeCidade} - ${estado}`;
   }
 
   /* PREENCHER IFORMAÇÕES DO USUÁRIO */
@@ -640,17 +648,18 @@ renderizarLogo();
               <h6 class="text-uppercase text-muted mb-2">Cidades onde seus anúncios são encontrados</h6>
               <div class="row g-3 align-items-end">
                 <div class="col-md-8">
-                  <label class="form-label">Cidade de atuação</label>
+                  <label class="form-label">Local de atuação</label>
                   <select id="editCidadeAtendimento" class="form-control">
-                    <option value="">Selecione uma cidade</option>
+                    <option value="">Selecione uma cidade ou bairro</option>
                   </select>
                 </div>
                 <div class="col-md-4">
                   <button type="button" id="btnAddCidadeAtendimento" class="btn btn-outline-danger w-100">
-                    Adicionar cidade
+                    Adicionar local
                   </button>
                 </div>
               </div>
+              <small class="text-muted d-block mt-2">Escolha até 3 locais.</small>
               <div id="editCidadesAtendimentoLista" class="cidade-atendimento-lista"></div>
             </div>
           ` : ''}
@@ -741,14 +750,16 @@ renderizarLogo();
 
       const cidadesAtendimentoSelecionadas = obterCidadesAtendimentoPerfil(usuario)
         .map(item => ({
+          bairro: item.bairro || '',
           nome: item.nome || item.cidade,
           cidade: item.cidade || item.nome,
           estado: item.estado
         }))
-        .filter(item => (item.nome || item.cidade) && item.estado);
+        .filter(item => (item.nome || item.cidade) && item.estado)
+        .slice(0, 3);
 
       function chaveCidadeAtendimento(cidade) {
-        return `${cidade.nome || cidade.cidade}|${cidade.estado}`.toLowerCase();
+        return `${cidade.bairro || ''}|${cidade.nome || cidade.cidade}|${cidade.estado}`.toLowerCase();
       }
 
       function renderizarCidadesAtendimentoEdicao() {
@@ -765,7 +776,7 @@ renderizarLogo();
         cidadesAtendimentoSelecionadas.forEach((cidade, index) => {
           const item = document.createElement('span');
           item.className = 'cidade-atendimento-pill';
-          item.textContent = `${cidade.nome || cidade.cidade} / ${cidade.estado}`;
+          item.textContent = formatarLocalAtendimento(cidade);
 
           const remover = document.createElement('button');
           remover.type = 'button';
@@ -786,16 +797,38 @@ renderizarLogo();
         if (!select) return;
 
         try {
-          const res = await fetch('/api/cidades');
-          if (!res.ok) throw new Error('Erro ao carregar cidades');
+          const [resCidades, resBairros] = await Promise.all([
+            fetch('/api/cidades'),
+            fetch('/api/bairros')
+          ]);
+          if (!resCidades.ok) throw new Error('Erro ao carregar cidades');
 
-          const cidades = await res.json();
-          cidades
-            .sort((a, b) => `${a.nome} ${a.estado}`.localeCompare(`${b.nome} ${b.estado}`, 'pt-BR'))
-            .forEach(cidade => {
+          const cidades = await resCidades.json();
+          const bairros = resBairros.ok ? await resBairros.json() : [];
+          const locais = [
+            ...cidades.map(cidade => ({
+              tipo: 'cidade',
+              nome: cidade.nome,
+              cidade: cidade.nome,
+              estado: cidade.estado,
+              bairro: ''
+            })),
+            ...bairros.map(bairro => ({
+              tipo: 'bairro',
+              nome: bairro.cidade || bairro.cidade_nome,
+              cidade: bairro.cidade || bairro.cidade_nome,
+              estado: bairro.estado,
+              bairro: bairro.nome
+            }))
+          ];
+
+          locais
+            .filter(local => local.cidade && local.estado)
+            .sort((a, b) => formatarLocalAtendimento(a).localeCompare(formatarLocalAtendimento(b), 'pt-BR'))
+            .forEach(local => {
               const option = document.createElement('option');
-              option.value = JSON.stringify({ nome: cidade.nome, estado: cidade.estado });
-              option.textContent = `${cidade.nome} / ${cidade.estado}`;
+              option.value = JSON.stringify(local);
+              option.textContent = formatarLocalAtendimento(local);
               select.appendChild(option);
             });
         } catch (error) {
@@ -811,6 +844,11 @@ renderizarLogo();
           const select = document.getElementById('editCidadeAtendimento');
           if (!select || !select.value) return;
 
+          if (cidadesAtendimentoSelecionadas.length >= 3) {
+            alert('Escolha no máximo 3 locais de atuação.');
+            return;
+          }
+
           const cidade = JSON.parse(select.value);
           const jaExiste = cidadesAtendimentoSelecionadas.some(item =>
             chaveCidadeAtendimento(item) === chaveCidadeAtendimento(cidade)
@@ -818,8 +856,9 @@ renderizarLogo();
 
           if (!jaExiste) {
             cidadesAtendimentoSelecionadas.push({
+              bairro: cidade.bairro || '',
               nome: cidade.nome,
-              cidade: cidade.nome,
+              cidade: cidade.cidade || cidade.nome,
               estado: cidade.estado
             });
             renderizarCidadesAtendimentoEdicao();

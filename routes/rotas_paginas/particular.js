@@ -240,6 +240,7 @@ router.get("/api/particular-ativos-home", async (req, res) => {
   a.km,
   a.cambio,
   a.motorizacao,
+  a.portas,
   a.combustivel,
   a.carroceria,
   a.cor,

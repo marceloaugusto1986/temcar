@@ -27,16 +27,59 @@ async function garantirTabelaCidadesRevendas() {
     CREATE TABLE IF NOT EXISTS revendas_cidades (
       id INT AUTO_INCREMENT PRIMARY KEY,
       usuario_id INT NOT NULL,
+      bairro VARCHAR(150) NOT NULL DEFAULT '',
       cidade VARCHAR(150) NOT NULL,
       estado VARCHAR(2) NOT NULL,
       criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE KEY uniq_revenda_cidade (usuario_id, cidade, estado),
+      UNIQUE KEY uniq_revenda_cidade (usuario_id, bairro, cidade, estado),
+      KEY idx_revendas_cidades_usuario (usuario_id),
       CONSTRAINT fk_revenda_cidade_usuario
         FOREIGN KEY (usuario_id)
         REFERENCES usuarios(id)
         ON DELETE CASCADE
     )
   `);
+
+  const [colunas] = await db.query(`
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'revendas_cidades'
+      AND COLUMN_NAME = 'bairro'
+  `);
+
+  if (!colunas.length) {
+    await db.query(`
+      ALTER TABLE revendas_cidades
+      ADD COLUMN bairro VARCHAR(150) NOT NULL DEFAULT '' AFTER usuario_id
+    `);
+  }
+
+  const [indices] = await db.query(`
+    SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) AS colunas
+    FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'revendas_cidades'
+      AND INDEX_NAME = 'uniq_revenda_cidade'
+    GROUP BY INDEX_NAME
+  `);
+
+  if (indices[0]?.colunas !== 'usuario_id,bairro,cidade,estado') {
+    await db.query(`
+      ALTER TABLE revendas_cidades
+      ADD INDEX idx_revendas_cidades_usuario (usuario_id)
+    `).catch(error => {
+      if (error.code !== 'ER_DUP_KEYNAME') throw error;
+    });
+
+    if (indices.length) {
+      await db.query('ALTER TABLE revendas_cidades DROP INDEX uniq_revenda_cidade');
+    }
+    await db.query(`
+      ALTER TABLE revendas_cidades
+      ADD UNIQUE KEY uniq_revenda_cidade (usuario_id, bairro, cidade, estado)
+    `);
+  }
 }
 
 // =========================================================
@@ -47,6 +90,20 @@ const tiposValidos = { carros: 'Carro', motos: 'Moto', utilitarios: 'Utilitário
 const tipoSingular = { carros: 'carro', motos: 'moto', utilitarios: 'utilitário' };
 const tipoPlural = { carros: 'carros', motos: 'motos', utilitarios: 'utilitários' };
 const tipoPluralTitulo = { carros: 'Carros', motos: 'Motos', utilitarios: 'Utilitários' };
+
+function obterTiposConsulta(tipo) {
+  const tipoNormalizado = slugify(tipo);
+  const tiposPorSlug = {
+    carro: ['Carro'],
+    carros: ['Carro'],
+    moto: ['Moto'],
+    motos: ['Moto'],
+    utilitario: ['Utilitário', 'Utilitario'],
+    utilitarios: ['Utilitário', 'Utilitario']
+  };
+
+  return tiposPorSlug[tipoNormalizado] || (tipo ? [tipo] : []);
+}
 
 const seoBrasilPorTipo = {
   carros: {
@@ -80,6 +137,49 @@ async function getSeoBrasil(tipoSlug) {
   };
 }
 
+function montarSeoBuscaVeiculos({ tipo, marca = '', carroceria = '', bairro = '', cidade = '', uf = '', canonical }) {
+  const plural = tipoPlural[tipo] || 'veículos';
+  const pluralTitulo = tipoPluralTitulo[tipo] || 'Veículos';
+  const singular = tipoSingular[tipo] || 'veículo';
+  const marcaFormatada = capitalize(String(marca || '').replace(/-/g, ' ').trim());
+  const carroceriaFormatada = capitalize(String(carroceria || '').replace(/-/g, ' ').trim());
+  const termoFormatado = [marcaFormatada, carroceriaFormatada].filter(Boolean).join(' ');
+  const termoKeywords = termoFormatado || plural;
+  const local = bairro
+    ? `${bairro}, ${cidade} - ${uf}`
+    : cidade
+      ? `${cidade} - ${uf}`
+      : uf
+        ? uf
+        : 'Brasil';
+  const complementoTitulo = local === 'Brasil' ? 'no Brasil' : `em ${local}`;
+  const complementoDescricao = local === 'Brasil' ? 'no Brasil' : `em ${local}`;
+  const canonicalBase = canonical || `${SITE_URL}/${tipo}`;
+  const params = new URLSearchParams();
+
+  if (marcaFormatada) params.set('marca', marcaFormatada);
+  if (carroceriaFormatada) params.set('carroceria', carroceriaFormatada);
+
+  return {
+    titulo: `${pluralTitulo} ${termoFormatado} à venda ${complementoTitulo} | TEMCAR`,
+    descricao: `Encontre ${plural} ${termoFormatado} à venda ${complementoDescricao}. Compare ofertas de ${singular}s novos, seminovos e usados anunciados por revendas e particulares no TEMCAR.`,
+    keywords: `${plural} ${termoKeywords}, ${singular} ${termoKeywords} à venda, comprar ${termoKeywords}, ${termoKeywords} usado, ${termoKeywords} seminovo, ${local}`,
+    texto_h1: `${pluralTitulo} ${termoFormatado} à venda ${complementoTitulo}`,
+    link_canonico: `${canonicalBase}?${params.toString()}`
+  };
+}
+
+function obterFiltroSeoQuery(query) {
+  const marca = query.marca || query.marcas || '';
+  const carroceria = query.carroceria || '';
+
+  return {
+    marca,
+    carroceria,
+    ativo: Boolean(marca || carroceria)
+  };
+}
+
 function montarSeoLocalPorTipo(tipo, { cidade, uf, bairro = '', canonical }) {
   const plural = tipoPlural[tipo] || 'veículos';
   const pluralTitulo = tipoPluralTitulo[tipo] || 'Veículos';
@@ -101,7 +201,16 @@ function montarSeoLocalPorTipo(tipo, { cidade, uf, bairro = '', canonical }) {
 // /carros, /motos ou /utilitarios (geral)
 router.get('/:tipo(carros|motos|utilitarios)', async (req, res) => {
   const tipoSlug = req.params.tipo;
-  const seo = await getSeoBrasil(tipoSlug);
+  const filtroSeo = obterFiltroSeoQuery(req.query);
+  const uf = req.query.uf || req.query.estado;
+  const seo = filtroSeo.ativo
+    ? montarSeoBuscaVeiculos({
+      tipo: tipoSlug,
+      marca: filtroSeo.marca,
+      carroceria: filtroSeo.carroceria,
+      uf: uf ? String(uf).toUpperCase() : ''
+    })
+    : await getSeoBrasil(tipoSlug);
   const breadcrumbs = [
     { name: 'Home', url: 'https://www.temcar.com.br/' },
     { name: capitalize(tipoSlug), url: `https://www.temcar.com.br/${tipoSlug}` }
@@ -112,34 +221,35 @@ router.get('/:tipo(carros|motos|utilitarios)', async (req, res) => {
 // /carros/:cidade/:uf, /motos/:cidade/:uf ou /utilitarios/:cidade/:uf
 router.get('/:tipo(carros|motos|utilitarios)/:cidade/:uf', async (req, res) => {
   const { tipo, cidade, uf } = req.params;
+  const filtroSeo = obterFiltroSeoQuery(req.query);
   res.set('X-Temcar-Route', 'veiculos-cidade');
   const cidadeSlug = slugify(cidade);
   const ufSlug = slugify(uf);
   const cidadeEncontrada = await buscarCidadePorSlugUf(cidadeSlug, ufSlug);
-  if (!cidadeEncontrada) {
-    const seo = await getSeoBrasil(tipo);
-    const breadcrumbs = [
-      { name: 'Home', url: `${SITE_URL}/` },
-      { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` }
-    ];
-    return res.render('veiculos', { seo, breadcrumbs, filtro: { tipo } });
-  }
-
   const nomeCidade = cidadeEncontrada ? cidadeEncontrada.nome : capitalize(cidadeSlug);
   const ufUpper = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : ufSlug.toUpperCase();
 
   const canonical = `${SITE_URL}/${tipo}/${cidadeSlug}/${ufSlug}`;
-  const seo = await getSeo(tipo, {
-    cidade: nomeCidade,
-    estado: ufUpper,
-    veiculo: tiposValidos[tipo],
-    tipo: tiposValidos[tipo],
-    bairro: ''
-  }, montarSeoLocalPorTipo(tipo, {
-    cidade: nomeCidade,
-    uf: ufUpper,
-    canonical
-  }));
+  const seo = filtroSeo.ativo
+    ? montarSeoBuscaVeiculos({
+      tipo,
+      marca: filtroSeo.marca,
+      carroceria: filtroSeo.carroceria,
+      cidade: nomeCidade,
+      uf: ufUpper,
+      canonical
+    })
+    : await getSeo(tipo, {
+      cidade: nomeCidade,
+      estado: ufUpper,
+      veiculo: tiposValidos[tipo],
+      tipo: tiposValidos[tipo],
+      bairro: ''
+    }, montarSeoLocalPorTipo(tipo, {
+      cidade: nomeCidade,
+      uf: ufUpper,
+      canonical
+    }));
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
@@ -156,6 +266,7 @@ router.get('/:tipo(carros|motos|utilitarios)/:cidade/:uf', async (req, res) => {
 // /carros/:bairro/:cidade/:uf, /motos/:bairro/:cidade/:uf ou /utilitarios/:bairro/:cidade/:uf (Task 11)
 router.get('/:tipo(carros|motos|utilitarios)/:bairro/:cidade/:uf', async (req, res) => {
   const { tipo, bairro, cidade, uf } = req.params;
+  const filtroSeo = obterFiltroSeoQuery(req.query);
   const bairroSlug = slugify(bairro);
   const cidadeSlug = slugify(cidade);
   const ufSlug = slugify(uf);
@@ -165,18 +276,28 @@ router.get('/:tipo(carros|motos|utilitarios)/:bairro/:cidade/:uf', async (req, r
   const ufUpper = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : ufSlug.toUpperCase();
 
   const canonical = `${SITE_URL}/${tipo}/${bairroSlug}/${cidadeSlug}/${ufSlug}`;
-  const seo = await getSeo(tipo, {
-    bairro: nomeBairro,
-    cidade: nomeCidade,
-    estado: ufUpper,
-    veiculo: tiposValidos[tipo],
-    tipo: tiposValidos[tipo]
-  }, montarSeoLocalPorTipo(tipo, {
-    cidade: nomeCidade,
-    uf: ufUpper,
-    bairro: nomeBairro,
-    canonical
-  }));
+  const seo = filtroSeo.ativo
+    ? montarSeoBuscaVeiculos({
+      tipo,
+      marca: filtroSeo.marca,
+      carroceria: filtroSeo.carroceria,
+      bairro: nomeBairro,
+      cidade: nomeCidade,
+      uf: ufUpper,
+      canonical
+    })
+    : await getSeo(tipo, {
+      bairro: nomeBairro,
+      cidade: nomeCidade,
+      estado: ufUpper,
+      veiculo: tiposValidos[tipo],
+      tipo: tiposValidos[tipo]
+    }, montarSeoLocalPorTipo(tipo, {
+      cidade: nomeCidade,
+      uf: ufUpper,
+      bairro: nomeBairro,
+      canonical
+    }));
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
@@ -234,13 +355,14 @@ router.get('/api/veiculos', async (req, res) => {
     let where = "a.status = 'ativo' AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())";
     const params = [];
 
-    if (tipo) {
-      where += ' AND a.tipo = ?';
-      params.push(tipo);
+    const tiposConsulta = obterTiposConsulta(tipo);
+    if (tiposConsulta.length) {
+      where += ` AND LOWER(a.tipo) IN (${tiposConsulta.map(() => 'LOWER(?)').join(', ')})`;
+      params.push(...tiposConsulta);
     }
 
     if (cidade) {
-      const cidadeNorm = `%${cidade.replace(/-/g, ' ')}%`;
+      const cidadeNorm = `%${cidade.toLowerCase().replace(/-/g, ' ')}%`;
       if (uf) {
         where += ` AND (
           (LOWER(u.cidade) LIKE ? AND LOWER(u.estado) = ?)
@@ -288,13 +410,22 @@ router.get('/api/veiculos', async (req, res) => {
     }
 
     if (bairro) {
-      where += ' AND LOWER(u.bairro) LIKE ?';
-      params.push(`%${bairro.replace(/-/g, ' ')}%`);
+      const bairroNorm = `%${bairro.toLowerCase().replace(/-/g, ' ')}%`;
+      where += ` AND (
+        LOWER(u.bairro) LIKE ?
+        OR EXISTS (
+          SELECT 1 FROM revendas_cidades rc
+          WHERE rc.usuario_id = u.id
+          AND LOWER(rc.bairro) LIKE ?
+        )
+      )`;
+      params.push(bairroNorm, bairroNorm);
     }
 
     if (marca) {
-      where += ' AND LOWER(a.marca) = ?';
-      params.push(marca.toLowerCase());
+      const marcaNorm = marca.toLowerCase().replace(/-/g, ' ');
+      where += ' AND (LOWER(a.marca) = ? OR LOWER(a.versao) LIKE ?)';
+      params.push(marcaNorm, `%${marcaNorm}%`);
     }
 
     if (carroceria) {
@@ -325,6 +456,7 @@ router.get('/api/veiculos', async (req, res) => {
         a.km,
         a.cambio,
         a.motorizacao,
+        a.portas,
         a.combustivel,
         a.carroceria,
         a.cor,

@@ -235,6 +235,13 @@ async function getSeo(pagina, dadosContexto = {}, fallbackOverrides = {}) {
       texto_h1: aplicarCampo('texto_h1', fallbackSeo.texto_h1),
       texto_conteudo: aplicarCampo('texto_conteudo', fallbackSeo.texto_conteudo),
       link_canonico: linkCanonico,
+      descricao_template: seo.descricao || '',
+      dados_contexto: {
+        cidade: dados.cidade || '',
+        estado: dados.estado || '',
+        bairro: dados.bairro || '',
+        tipo: dados.veiculo || dados.tipo || ''
+      },
       og_type: 'website',
       og_image: fallbackSeo.og_image,
       robots: 'index, follow'
@@ -403,6 +410,13 @@ async function getSeoCidade(cidade, bairro = '') {
       texto_h1: aplicarCampo('texto_h1', fallbackSeo.texto_h1),
       texto_conteudo: aplicarCampo('texto_conteudo', fallbackSeo.texto_conteudo),
       link_canonico: linkCanonico,
+      descricao_template: seo.descricao || '',       // ← ADICIONADO
+      dados_contexto: {                               // ← ADICIONADO
+        cidade: cidade.nome || '',
+        estado: cidade.estado || '',
+        bairro: bairroNome || '',
+        tipo: ''
+      },
       og_type: 'website',
       og_image: fallbackSeo.og_image,
       robots: 'index, follow'
@@ -426,7 +440,7 @@ async function getSeoRevenda(id) {
 
   try {
     const [[revenda]] = await db.query(`
-      SELECT u.nome, u.cidade, u.estado
+      SELECT u.nome, u.bairro, u.cidade, u.estado
       FROM usuarios u
       WHERE u.id = ? AND u.tipo = 'revenda'
       LIMIT 1
@@ -439,7 +453,7 @@ async function getSeoRevenda(id) {
       descricao: `Veja veículos anunciados por ${revenda.nome} em ${revenda.cidade || ''}, ${revenda.estado || ''} no TEMCAR.`.replace(/\s+/g, ' ').trim(),
       keywords: `${revenda.nome}, revenda de veículos, carros à venda, motos à venda`,
       texto_h1: `${revenda.nome} no TEMCAR`,
-      link_canonico: montarUrlRevenda({ id, nome: revenda.nome })
+      link_canonico: montarUrlRevenda({ id, nome: revenda.nome, bairro: revenda.bairro, cidade: revenda.cidade, estado: revenda.estado })
     });
 
     const [[seo]] = await db.query(`

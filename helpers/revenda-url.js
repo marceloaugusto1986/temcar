@@ -5,9 +5,28 @@ function montarSlugRevenda(revenda = {}) {
   return slugify(revenda.nome) || String(revenda.id || '').trim();
 }
 
+function montarSegmentosRevenda(revenda = {}) {
+  const nome = montarSlugRevenda(revenda);
+  const bairro = slugify(revenda.bairro);
+  const cidade = slugify(revenda.cidade);
+  const estado = slugify(revenda.estado);
+
+  return [nome, bairro, cidade, estado].filter(Boolean);
+}
+
+function montarSlugRevendaLegado(revenda = {}) {
+  const partes = [
+    revenda.nome,
+    revenda.bairro,
+    revenda.cidade,
+    revenda.estado
+  ].filter(Boolean);
+
+  return slugify(partes.join(' ')) || String(revenda.id || '').trim();
+}
+
 function montarCaminhoRevenda(revenda = {}) {
-  const slug = montarSlugRevenda(revenda);
-  return `/revenda/${slug}`;
+  return `/revenda/${montarSegmentosRevenda(revenda).join('/')}`;
 }
 
 function montarUrlRevenda(revenda = {}) {
@@ -16,6 +35,8 @@ function montarUrlRevenda(revenda = {}) {
 
 module.exports = {
   montarSlugRevenda,
+  montarSegmentosRevenda,
+  montarSlugRevendaLegado,
   montarCaminhoRevenda,
   montarUrlRevenda
 };

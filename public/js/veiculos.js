@@ -6,7 +6,18 @@ let listaVeiculos = []
 let paginaAtual = 1
 const limitePorPagina = 12
 
-const tipoMap = { carros: 'Carro', motos: 'Moto', utilitarios: 'Utilitário' }
+const tipoMap = {
+    carros: 'Carro',
+    carro: 'Carro',
+    Carro: 'Carro',
+    motos: 'Moto',
+    moto: 'Moto',
+    Moto: 'Moto',
+    utilitarios: 'Utilitário',
+    utilitario: 'Utilitário',
+    Utilitário: 'Utilitário',
+    Utilitario: 'Utilitário'
+}
 
 // ===============================
 // UTIL
@@ -16,6 +27,39 @@ function formatarValor(valor) {
     const numero = Number(valor)
     if (!numero || isNaN(numero)) return "Consulte"
     return numero.toLocaleString("pt-BR")
+}
+
+function formatarKm(valor) {
+    if (valor === null || valor === undefined || valor === "") return ""
+    const numero = Number(valor)
+    if (isNaN(numero)) return ""
+    return `${numero.toLocaleString("pt-BR")} km`
+}
+
+function formatarPreco(valor) {
+    const preco = formatarValor(valor)
+    return preco === "Consulte" ? preco : `R$ ${preco}`
+}
+
+function montarDetalhesPrincipais(item) {
+    return [
+        item.motorizacao,
+        item.portas ? `${item.portas}P` : "",
+        item.cambio
+    ].filter(Boolean).join(" ")
+}
+
+function montarDetalhesSecundarios(item) {
+    return [
+        item.cambio,
+        item.combustivel,
+        formatarKm(item.km)
+    ].filter(Boolean).join(" | ")
+}
+
+function montarLocalizacao(item) {
+    const cidadeEstado = [item.cidade, item.estado].filter(Boolean).join(" - ")
+    return item.bairro ? `${item.bairro}, ${cidadeEstado}` : cidadeEstado
 }
 
 function criarSlugVenda(texto) {
@@ -40,19 +84,28 @@ function capitalize(texto) {
     return (texto || "").replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
 }
 
+function valorFiltroLocal(chaveSlug, chaveNome, queryKey) {
+    const filtro = window.FILTRO || {}
+    const query = new URLSearchParams(window.location.search)
+    return filtro[chaveNome] || filtro[chaveSlug] || query.get(queryKey) || ""
+}
+
 function obterCidadeFiltro() {
     const filtro = window.FILTRO || {}
-    return filtro.cidadeNome || capitalize(filtro.cidade)
+    const query = new URLSearchParams(window.location.search)
+    return filtro.cidadeNome || capitalize(filtro.cidade || query.get('cidade'))
 }
 
 function obterBairroFiltro() {
     const filtro = window.FILTRO || {}
-    return filtro.bairroNome || capitalize(filtro.bairro)
+    const query = new URLSearchParams(window.location.search)
+    return filtro.bairroNome || capitalize(filtro.bairro || query.get('bairro'))
 }
 
 function obterUfFiltro() {
     const filtro = window.FILTRO || {}
-    return (filtro.ufNome || filtro.uf || "").toUpperCase()
+    const query = new URLSearchParams(window.location.search)
+    return (filtro.ufNome || filtro.uf || query.get('uf') || query.get('estado') || "").toUpperCase()
 }
 
 function escaparHtml(valor) {
@@ -67,7 +120,11 @@ function escaparHtml(valor) {
 function obterLocalizacaoEmptyState() {
     const filtro = window.FILTRO || {}
 
-    if (filtro.cidade) {
+    const query = new URLSearchParams(window.location.search)
+    const cidadeFiltro = filtro.cidade || query.get('cidade')
+    const ufFiltro = filtro.uf || query.get('uf') || query.get('estado')
+
+    if (cidadeFiltro) {
         const cidade = obterCidadeFiltro()
         const uf = obterUfFiltro()
         return {
@@ -97,6 +154,48 @@ function obterTipoEmptyState() {
     }
 }
 
+function obterTextoSeoEmptyState(localizacao, tipo) {
+    const seo = window.SEO_PAGINA || {}
+    const dados = seo.dados_contexto || {}
+    const filtro = window.FILTRO || {}
+    const query = new URLSearchParams(window.location.search)
+    const temFiltroLocal = Boolean(
+        filtro.bairro ||
+        filtro.cidade ||
+        filtro.uf ||
+        query.get("bairro") ||
+        query.get("cidade") ||
+        query.get("uf") ||
+        query.get("estado")
+    )
+    const template = String(seo.descricao_template || "")
+    const marcadorCidade = "#cidade"
+    const indiceCidade = template.indexOf(marcadorCidade)
+
+    if (indiceCidade < 0) {
+        return `${tipo.chamada} ${localizacao.preposicao} <strong>${escaparHtml(localizacao.texto)}</strong>`
+    }
+
+    const trechoAntesCidade = template.slice(0, indiceCidade)
+    const cidade = temFiltroLocal ? (dados.cidade || obterCidadeFiltro() || localizacao.texto) : "Brasil"
+    const estado = temFiltroLocal ? (dados.estado || obterUfFiltro()) : ""
+    const bairro = temFiltroLocal ? (dados.bairro || obterBairroFiltro()) : ""
+    const tipoSeo = dados.tipo || tipo.nome
+
+    const textoAntes = trechoAntesCidade
+        .replaceAll("#estado", estado)
+        .replaceAll("#bairro", bairro)
+        .replaceAll("#veiculo", tipoSeo)
+        .replaceAll("#tipo", tipoSeo)
+        .replace(/\s+/g, " ")
+        .trim()
+
+    const local = estado ? `${cidade} - ${estado}` : cidade
+    const separador = textoAntes ? " " : ""
+
+    return `${escaparHtml(textoAntes)}${separador}<strong>${escaparHtml(local)}</strong>`
+}
+
 // ===============================
 // CAPTURAR FILTRO DA URL
 // Suporta:
@@ -111,13 +210,18 @@ async function carregarVeiculos() {
         const query = new URLSearchParams(window.location.search)
         const params = new URLSearchParams()
 
-        if (filtro.tipo && tipoMap[filtro.tipo]) {
-            params.set('tipo', tipoMap[filtro.tipo])
+        const tipoSelecionado = filtro.tipo || query.get('tipo') || ""
+        const cidadeSelecionada = valorFiltroLocal('cidade', 'cidadeNome', 'cidade')
+        const bairroSelecionado = valorFiltroLocal('bairro', 'bairroNome', 'bairro')
+        const ufSelecionada = filtro.ufNome || filtro.uf || query.get('uf') || query.get('estado') || ""
+
+        if (tipoSelecionado && tipoMap[tipoSelecionado]) {
+            params.set('tipo', tipoMap[tipoSelecionado])
         }
 
-        if (filtro.cidade) params.set('cidade', filtro.cidade)
-        if (filtro.uf) params.set('uf', filtro.uf)
-        if (filtro.bairro) params.set('bairro', filtro.bairro)   // ← NOVO
+        if (cidadeSelecionada) params.set('cidade', cidadeSelecionada)
+        if (ufSelecionada) params.set('uf', ufSelecionada)
+        if (bairroSelecionado) params.set('bairro', bairroSelecionado)
 
         if (query.get('marca') || query.get('marcas')) params.set('marca', query.get('marca') || query.get('marcas'))
         if (query.get('carroceria')) params.set('carroceria', query.get('carroceria'))
@@ -155,24 +259,37 @@ function atualizarTitulos() {
     const subtitulo = document.getElementById("subtitulo-pagina")
     const tituloResultados = document.getElementById("titulo-resultados")
     const totalEl = document.getElementById("total-resultados")
+    const marcaTermo = query.get('marca') || query.get('marcas')
+    const carroceriaTermo = query.get('carroceria')
+    const termo = [marcaTermo, carroceriaTermo ? capitalize(carroceriaTermo) : ""].filter(Boolean).join(" ")
+    const temCidade = filtro.cidade || query.get('cidade')
+    const temBairro = filtro.bairro || query.get('bairro')
+    const temUf = filtro.uf || query.get('uf') || query.get('estado')
 
     let titulo = `${tipoNome} à Venda`
     let sub = `Encontre os melhores ${(filtro.tipo || "veículos")} no TEMCAR`
 
-    if (filtro.bairro) {
-        // ← NOVO: título com bairro
+    if (termo && temBairro) {
+        titulo = `${tipoNome} ${termo} em ${obterBairroFiltro()}, ${obterCidadeFiltro()} - ${obterUfFiltro()}`
+        sub = `Ofertas de ${termo} no seu bairro`
+    } else if (termo && temCidade) {
+        titulo = `${tipoNome} ${termo} em ${obterCidadeFiltro()} - ${obterUfFiltro()}`
+        sub = `Ofertas de ${termo} na sua cidade`
+    } else if (termo && temUf) {
+        titulo = `${tipoNome} ${termo} em ${obterUfFiltro()}`
+        sub = `Ofertas de ${termo} no seu estado`
+    } else if (termo) {
+        titulo = `${tipoNome} ${termo} à Venda`
+        sub = `Ofertas de ${termo} no TEMCAR`
+    } else if (temBairro) {
         titulo = `${tipoNome} em ${obterBairroFiltro()}, ${obterCidadeFiltro()} - ${obterUfFiltro()}`
         sub = `Ofertas de ${(filtro.tipo || "veículos")} no seu bairro`
-    } else if (filtro.cidade) {
+    } else if (temCidade) {
         titulo = `${tipoNome} em ${obterCidadeFiltro()} - ${obterUfFiltro()}`
         sub = `Ofertas de ${(filtro.tipo || "veículos")} na sua cidade`
-    } else if (query.get('marca') || query.get('marcas')) {
-        const marcaVal = query.get('marca') || query.get('marcas')
-        titulo = `${tipoNome} ${marcaVal} à Venda`
-        sub = `Ofertas da marca ${marcaVal} no TEMCAR`
-    } else if (query.get('carroceria')) {
-        titulo = `${tipoNome} por Carroceria: ${capitalize(query.get('carroceria'))}`
-        sub = `Encontre veículos do tipo ${capitalize(query.get('carroceria'))}`
+    } else if (temUf) {
+        titulo = `${tipoNome} em ${obterUfFiltro()}`
+        sub = `Ofertas de ${(filtro.tipo || "veículos")} no seu estado`
     } else if (query.get('busca')) {
         titulo = `Resultado para ${query.get('busca')}`
         sub = `Veículos encontrados para sua busca`
@@ -203,11 +320,14 @@ function renderizarLista() {
 
     pagina.forEach(item => {
         const col = document.createElement("div")
-        col.className = "col-12 col-sm-6 col-md-4 col-lg-3"
+        col.className = "col-12 col-sm-6 col-lg-4 col-xl-3"
+        const detalhesPrincipais = montarDetalhesPrincipais(item)
+        const detalhesSecundarios = montarDetalhesSecundarios(item)
+        const localizacao = montarLocalizacao(item)
 
         col.innerHTML = `
             <div class="card shadow-sm h-100 position-relative"
-                 style="cursor: pointer"
+                 style="cursor: pointer; border-radius: 6px; overflow: hidden;"
                  onclick="window.location.href='${montarUrlVenda(item)}'">
 
                 ${item.destaque == 1 ? `
@@ -222,41 +342,44 @@ function renderizarLista() {
                 <img
                   src="${item.imagem ? '/uploads/anuncios/' + item.imagem : '/img/sem-foto.jpg'}"
                   class="card-img-top"
-                  style="height:200px;object-fit:cover;"
+                  style="height:182px;object-fit:cover;"
                   onerror="this.src='/img/sem-foto.jpg'"
                   alt="${item.marca || ''} ${item.versao || ''}"
                 >
 
-                <div class="card-body">
-                  <h5 class="fw-bold mb-1" style="font-size:0.95rem;">
-                    <span style="color:#000;">${item.marca || ''}</span>
+                <div class="card-body d-flex flex-column" style="padding:14px 16px 12px;">
+                  <h5 class="fw-bold text-uppercase mb-1" style="font-size:1rem; line-height:1.2;">
+                    <span style="color:#1f2328;">${item.marca || ''}</span>
                     <span style="color:#C90B0C;"> ${item.versao || ''}</span>
                   </h5>
 
-                  <p class="small text-secondary mb-1 descricao-card">
-                    ${item.descricao || ''}
+                  <p class="mb-2" style="color:#666; font-size:.88rem; line-height:1.25; font-weight:600;">
+                    ${detalhesPrincipais || "&nbsp;"}
                   </p>
 
-                  <p class="mb-1 small text-secondary">
-                    ${item.motorizacao || ''} ${item.combustivel || ''}
+                  <div class="d-flex align-items-baseline mb-1" style="gap:6px;">
+                    <strong style="color:#C90B0C; font-size:1.18rem; line-height:1;">
+                      ${formatarPreco(item.preco)}
+                    </strong>
+                    <strong style="color:#2b2f36; font-size:1.05rem;">
+                      ${item.ano_modelo ? `| ${item.ano_modelo}` : ""}
+                    </strong>
+                  </div>
+
+                  <p class="mb-2" style="color:#666; font-size:.84rem; line-height:1.25; font-weight:600;">
+                    ${detalhesSecundarios || "&nbsp;"}
                   </p>
 
-                  <p class="fw-bold mb-1" style="color:#C90B0C;">
-                    R$ ${formatarValor(item.preco)}
-                    <span class="text-dark"> | ${item.ano_modelo || ''}</span>
-                  </p>
-
-                  <p class="small fw-bold mb-1 d-flex align-items-center gap-1">
+                  <p class="small fw-bold mb-1 d-flex align-items-center gap-1 mt-auto" style="font-size:.83rem;">
                     ${item.tipo_anunciante === "particular"
                 ? '<i class="bi bi-person-fill"></i> Particular'
                 : '<i class="bi bi-building"></i> ' + (item.nome || "Revenda")
             }
                   </p>
 
-                  <p class="small mb-0">
+                  <p class="small mb-0 text-truncate" style="min-width:0; color:#3f4650; font-size:.88rem;">
                     <i class="bi bi-geo-alt-fill" style="color:#C90B0C;"></i>
-                    ${item.cidade || ''} - ${item.estado || ''}
-                    ${item.bairro ? ' · ' + item.bairro : ''}
+                    ${localizacao}
                   </p>
                 </div>
             </div>
@@ -270,6 +393,7 @@ function renderizarSemResultados(container) {
     const tituloResultados = document.getElementById("titulo-resultados")
     const localizacao = obterLocalizacaoEmptyState()
     const tipo = obterTipoEmptyState()
+    const textoTitulo = obterTextoSeoEmptyState(localizacao, tipo)
 
     if (tituloResultados) tituloResultados.textContent = ""
 
@@ -283,8 +407,7 @@ function renderizarSemResultados(container) {
                 </div>
 
                 <p class="veiculos-empty-title">
-                    ${tipo.chamada} ${localizacao.preposicao}
-                    <strong>${escaparHtml(localizacao.texto)}</strong>
+                    ${textoTitulo}
                 </p>
 
                 <p class="veiculos-empty-promo">

@@ -17,7 +17,35 @@ carregarAnunciosMisturados()
 function formatarPreco(valor) {
     const numero = Number(valor)
     if (!numero || isNaN(numero)) return "Consulte"
-    return numero.toLocaleString('pt-BR')
+    return `R$ ${numero.toLocaleString('pt-BR')}`
+}
+
+function formatarKm(valor) {
+    if (valor === null || valor === undefined || valor === "") return ""
+    const numero = Number(valor)
+    if (isNaN(numero)) return ""
+    return `${numero.toLocaleString("pt-BR")} km`
+}
+
+function montarDetalhesPrincipais(item) {
+    return [
+        item.motorizacao,
+        item.portas ? `${item.portas}P` : "",
+        item.cambio
+    ].filter(Boolean).join(" ")
+}
+
+function montarDetalhesSecundarios(item) {
+    return [
+        item.cambio,
+        item.combustivel,
+        formatarKm(item.km)
+    ].filter(Boolean).join(" | ")
+}
+
+function montarLocalizacao(item) {
+    const cidadeEstado = [item.cidade, item.estado].filter(Boolean).join(" - ")
+    return item.bairro ? `${item.bairro}, ${cidadeEstado}` : cidadeEstado
 }
 
 function criarSlugVenda(texto) {
@@ -77,9 +105,9 @@ async function carregarAnunciosMisturados() {
         itensOriginais = [...itensDestaque]
         itens = [...itensDestaque]
 
-        preencherSelectUnico("filtroTipo", itensOriginais.map(i => i.tipo_automovel || i.tipo))
-        preencherSelectUnico("filtroMarca", itensOriginais.map(i => i.marca))
-        preencherSelectUnico("filtroModelo", itensOriginais.map(i => i.versao || i.modelo))
+        preencherSelectUnico("filtroTipo", todosItensOriginais.map(i => i.tipo_automovel || i.tipo_carro || i.tipo))
+        preencherSelectUnico("filtroMarca", todosItensOriginais.map(i => i.marca))
+        preencherSelectUnico("filtroModelo", todosItensOriginais.map(i => i.versao || i.modelo))
 
         paginaAtual = 1
         renderizarHome()
@@ -121,20 +149,43 @@ function misturarIntercalado(arr1, arr2) {
    FILTROS
 ================================ */
 
+function obterBaseFiltro(temFiltro) {
+    return temFiltro ? todosItensOriginais : itensOriginais
+}
+
+function normalizarTipoHome(valor) {
+    return String(valor || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+}
+
+function obterTipoCategoriaAtiva() {
+    return normalizarTipoHome(document.querySelector(".categorias button.active")?.dataset.tipo || "")
+}
+
+function itemEhDaCategoriaAtiva(item) {
+    const tipoAtivo = obterTipoCategoriaAtiva()
+    if (!tipoAtivo) return true
+    return normalizarTipoHome(item.tipo_carro || item.tipo_automovel || item.tipo) === tipoAtivo
+}
+
 function aplicarFiltroBusca(texto) {
     const termo = texto.toLowerCase().trim()
+    const base = obterBaseFiltro(Boolean(termo))
 
     if (!termo) {
         itens = [...itensOriginais]
     } else {
-        itens = itensOriginais.filter(item => {
-            return (
+        itens = base.filter(item => {
+            const matchBusca =
                 (item.marca || "").toLowerCase().includes(termo) ||
                 (item.versao || "").toLowerCase().includes(termo) ||
                 (item.descricao || "").toLowerCase().includes(termo) ||
                 (item.combustivel || "").toLowerCase().includes(termo) ||
                 (item.cidade || "").toLowerCase().includes(termo)
-            )
+
+            return itemEhDaCategoriaAtiva(item) && matchBusca
         })
     }
 
@@ -145,11 +196,13 @@ function aplicarFiltroBusca(texto) {
 
 function aplicarFiltroCidade(cidadeTexto) {
     const termo = cidadeTexto.toLowerCase().trim()
+    const base = obterBaseFiltro(Boolean(termo))
 
     if (!termo) {
         itens = [...itensOriginais]
     } else {
-        itens = itensOriginais.filter(item =>
+        itens = base.filter(item =>
+            itemEhDaCategoriaAtiva(item) &&
             (item.cidade || "").toLowerCase().includes(termo)
         )
     }
@@ -172,14 +225,24 @@ function aplicarFiltroAvancado() {
     const anoMax = Number(document.getElementById("filtroAnoMax")?.value) || Infinity
     const precoMin = Number(document.getElementById("filtroPrecoMin")?.value) || 0
     const precoMax = Number(document.getElementById("filtroPrecoMax")?.value) || Infinity
+    const temFiltro =
+        Boolean(tipo || marca || modelo || buscaMarcaModelo) ||
+        anoMin > 0 ||
+        anoMax !== Infinity ||
+        precoMin > 0 ||
+        precoMax !== Infinity
+    const base = obterBaseFiltro(temFiltro)
 
-    itens = itensOriginais.filter(item => {
+    itens = base.filter(item => {
 
         const ano = Number(item.ano_modelo) || 0
         const preco = Number(item.preco) || 0
 
         const matchTipo =
-            !tipo || (item.tipo_automovel || item.tipo || "").toLowerCase() === tipo
+            !tipo || (item.tipo_automovel || item.tipo_carro || item.tipo || "").toLowerCase() === tipo
+
+        const matchCategoria =
+            itemEhDaCategoriaAtiva(item)
 
         const matchMarca =
             !marca || (item.marca || "").toLowerCase() === marca
@@ -198,7 +261,7 @@ function aplicarFiltroAvancado() {
         const matchPreco =
             preco <= precoMax && preco >= precoMin
 
-        return matchTipo && matchMarca && matchModelo && matchAno && matchPreco && matchBuscaMarcaModelo
+        return matchCategoria && matchTipo && matchMarca && matchModelo && matchAno && matchPreco && matchBuscaMarcaModelo
     })
 
     paginaAtual = 1
@@ -241,8 +304,9 @@ function aplicarFiltroRevenda() {
 
     const cidade = document.getElementById("selectCidadeFilter")?.value.toLowerCase() || ""
     const nomeRevenda = document.getElementById("selectRevendaFilter")?.value.toLowerCase() || ""
+    const base = obterBaseFiltro(Boolean(cidade || nomeRevenda))
 
-    itens = itensOriginais.filter(item => {
+    itens = base.filter(item => {
 
         const matchCidade =
             !cidade || cidadeEstaNoAnuncio(item, cidade)
@@ -251,7 +315,7 @@ function aplicarFiltroRevenda() {
             !nomeRevenda ||
             (item.nome || "").toLowerCase().includes(nomeRevenda)
 
-        return matchCidade && matchNome
+        return itemEhDaCategoriaAtiva(item) && matchCidade && matchNome
     })
 
     paginaAtual = 1
@@ -327,10 +391,13 @@ function renderizarHome() {
 
 function criarCardAnuncio(item) {
     const wrapper = document.createElement("div")
+    const detalhesPrincipais = montarDetalhesPrincipais(item)
+    const detalhesSecundarios = montarDetalhesSecundarios(item)
+    const localizacao = montarLocalizacao(item)
 
     wrapper.innerHTML = `
         <div class="card shadow-sm vehicle-card position-relative"
-             style="cursor: pointer"
+             style="cursor: pointer; border-radius: 6px; overflow: hidden;"
              onclick="window.location.href='${montarUrlVenda(item)}'">
 
             ${item.destaque == 1 ? `
@@ -353,38 +420,43 @@ function criarCardAnuncio(item) {
             <img
               src="${item.imagem ? `/uploads/anuncios/${item.imagem}` : '/img/sem-foto.jpg'}"
               class="card-img-top vehicle-img"
+              style="height:182px;object-fit:cover;"
               onerror="this.src='/img/sem-foto.jpg'"
             >
 
-            <div class="card-body">
-              <h5 class="fw-bold">
-                <span style="color:#000;">${item.marca || ''}</span>
+            <div class="card-body d-flex flex-column" style="padding:14px 16px 12px;">
+              <h5 class="fw-bold text-uppercase mb-1" style="font-size:1rem; line-height:1.2;">
+                <span style="color:#1f2328;">${item.marca || ''}</span>
                 <span style="color:#C90B0C;"> ${item.versao || ''}</span>
               </h5>
 
-              <p class="small text-secondary mb-1 descricao-card">
-                ${item.descricao || ''}
+              <p class="mb-2" style="color:#666; font-size:.88rem; line-height:1.25; font-weight:600;">
+                ${detalhesPrincipais || "&nbsp;"}
               </p>
 
-              <p class="mb-1 text-secondary">
-                ${item.motorizacao || ''} ${item.combustivel || ''}
+              <div class="d-flex align-items-baseline mb-1" style="gap:6px;">
+                <strong style="color:#C90B0C; font-size:1.18rem; line-height:1;">
+                  ${formatarPreco(item.preco)}
+                </strong>
+                <strong style="color:#2b2f36; font-size:1.05rem;">
+                  ${item.ano_modelo ? `| ${item.ano_modelo}` : ""}
+                </strong>
+              </div>
+
+              <p class="mb-2" style="color:#666; font-size:.84rem; line-height:1.25; font-weight:600;">
+                ${detalhesSecundarios || "&nbsp;"}
               </p>
 
-              <p class="fw-bold" style="color:#C90B0C;">
-                ${formatarPreco(item.preco)}
-                <span class="text-dark"> | ${item.ano_modelo || ''}</span>
-              </p>
-
-              <p class="fw-bold d-flex align-items-center gap-2">
+              <p class="small fw-bold mb-1 d-flex align-items-center gap-1 mt-auto" style="font-size:.83rem;">
                 ${item.tipo_anunciante === "particular"
             ? `<i class="bi bi-person-fill"></i> Particular`
             : `<i class="bi bi-building"></i> ${item.nome || "Revenda"}`
         }
               </p>
 
-              <p>
+              <p class="small mb-0 text-truncate" style="min-width:0; color:#3f4650; font-size:.88rem;">
                 <i class="bi bi-geo-alt-fill" style="color:#C90B0C;"></i>
-                ${item.cidade || ''} - ${item.estado || ''}
+                ${localizacao}
               </p>
             </div>
         </div>
@@ -553,7 +625,7 @@ function preencherRevendasSelectFilter() {
     const select = document.getElementById("selectRevendaFilter")
     if (!select) return
 
-    const nomeRevenda = itensOriginais
+    const nomeRevenda = todosItensOriginais
 
         .filter(item => item.tipo_anunciante === "revenda")
         .map(item => item.nome)
@@ -579,7 +651,7 @@ function preencherCidadesSelectFilter() {
 
     const unicas = [
         ...new Set(
-            itensOriginais
+            todosItensOriginais
                 .flatMap(item => [
                     { cidade: item.cidade, estado: item.estado },
                     ...obterCidadesAtendimento(item)

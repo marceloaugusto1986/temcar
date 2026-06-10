@@ -375,9 +375,117 @@ function renderizarLista() {
     })
 }
 
+function capitalize(texto) {
+    return (texto || "").replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+}
+
+function obterCidadeFiltro() {
+    const filtro = window.FILTRO || {}
+    const query = new URLSearchParams(window.location.search)
+    return filtro.cidadeNome || capitalize(filtro.cidade || obterNomeCidadeAtual())
+}
+
+function obterBairroFiltro() {
+    const filtro = window.FILTRO || {}
+    const query = new URLSearchParams(window.location.search)
+    return filtro.bairroNome || capitalize(filtro.bairro || query.get('bairro'))
+}
+
+function obterUfFiltro() {
+    const filtro = window.FILTRO || {}
+    const query = new URLSearchParams(window.location.search)
+    return (filtro.ufNome || filtro.uf || obterEstadoAtual() || "").toUpperCase()
+}
+
+function escaparHtml(valor) {
+    return String(valor || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;")
+}
+
+function obterLocalizacaoEmptyState() {
+    const filtro = window.FILTRO || {}
+
+    const query = new URLSearchParams(window.location.search)
+    const cidadeFiltro = filtro.cidade || obterNomeCidadeAtual()
+    const ufFiltro = filtro.uf || obterEstadoAtual()
+    if (cidadeFiltro) {
+        const cidade = obterCidadeFiltro()
+        const uf = obterUfFiltro()
+        return {
+            titulo: uf ? `${cidade}, ${uf}` : cidade,
+            texto: uf ? `${cidade} - ${uf}` : cidade,
+            preposicao: "em"
+        }
+    }
+
+    return {
+        titulo: "Brasil",
+        texto: "Brasil",
+        preposicao: "no"
+    }
+}
+
+function obterTextoSeoEmptyState(localizacao, tipo) {
+    const seo = window.SEO_PAGINA || {}
+    const dados = seo.dados_contexto || {}
+    const template = String(seo.descricao_template || "")
+    const marcadorCidade = "#cidade"
+    const indiceCidade = template.indexOf(marcadorCidade)
+    // Na página /cidade/:slug/:uf sempre temos contexto local
+    const nomeCidade = obterNomeCidadeAtual()
+    const ufAtual = obterEstadoAtual()
+
+    if (indiceCidade < 0) {
+        return `${tipo.chamada} ${localizacao.preposicao} <strong>${escaparHtml(localizacao.texto)}</strong>`
+    }
+
+    const trechoAntesCidade = template.slice(0, indiceCidade)
+
+    const cidade = dados.cidade || nomeCidade || localizacao.texto
+    const estado = dados.estado || ufAtual || ""
+    const bairro = dados.bairro || bairroSelecionado || ""
+    const tipoSeo = dados.tipo || tipo.nome
+
+    const textoAntes = trechoAntesCidade
+        .replaceAll("#estado", estado)
+        .replaceAll("#bairro", bairro)
+        .replaceAll("#veiculo", tipoSeo)
+        .replaceAll("#tipo", tipoSeo)
+        .replace(/\s+/g, " ")
+        .trim()
+
+    const local = estado ? `${cidade} - ${estado}` : cidade
+    const separador = textoAntes ? " " : ""
+
+    return `${escaparHtml(textoAntes)}${separador}<strong>${escaparHtml(local)}</strong>`
+}
+
+function obterTipoEmptyState() {
+    const filtro = window.FILTRO || {}
+    const isMoto = filtro.tipo === "motos"
+    const isUtilitario = filtro.tipo === "utilitarios"
+
+    return {
+        nome: isMoto ? "moto" : isUtilitario ? "utilitário" : "carro",
+        artigo: isMoto ? "sua" : "seu",
+        chamada: isMoto ? "Venda sua moto" : isUtilitario ? "Venda seu utilitário" : "Venda seu carro",
+        icon: isMoto ? "bi-bicycle" : isUtilitario ? "bi-truck" : "bi-car-front-fill"
+    }
+}
+
 function renderizarCidadeSemAnuncios(container) {
+    const tipo = obterTipoEmptyState()
+    const localizacao = obterLocalizacaoEmptyState()
+    const textoTitulo = obterTextoSeoEmptyState(localizacao, tipo)
+
+    // heading com cidade/estado
     const nomeCidade = escaparHtml(obterNomeCidadeAtual())
     const estado = escaparHtml(obterEstadoAtual())
+    const tituloHeading = estado ? `${nomeCidade}, ${estado}` : nomeCidade
 
     if (!listaCidadeAnuncios.length) {
         renderizarBannerCidadeDefault()
@@ -388,24 +496,25 @@ function renderizarCidadeSemAnuncios(container) {
 
     container.innerHTML = `
         <div class="cidade-empty-state">
+            <h2 class="veiculos-empty-heading">${tituloHeading}</h2>
+
             <div class="cidade-empty-icon">
-                <i class="bi bi-car-front-fill"></i>
+                <i class="bi ${tipo.icon}"></i>
             </div>
 
             <p class="cidade-empty-title">
-                Venda seu carro em
-                <strong>${nomeCidade}${estado ? ` - ${estado}` : ""}</strong>                
+                ${textoTitulo}
             </p>
 
             <p class="cidade-empty-promo">
                 <strong>Atenção Particulares e Revendas</strong><br>
-                Aproveite nossa promoção de lançamento e anuncie seu carro gratuitamente até agosto de 2026.
+                Aproveite nossa promoção de lançamento e anuncie ${tipo.artigo} ${tipo.nome} gratuitamente até agosto de 2026.
             </p>
 
             <div class="cidade-empty-actions">
                 <a class="btn btn-danger" href="/vender">
                     Anunciar grátis
-                </a>                
+                </a>
             </div>
         </div>
     `

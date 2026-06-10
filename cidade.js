@@ -14,7 +14,6 @@ function slugify(texto) {
 // Rota nova: /cidade/:slug/:uf (ex: /cidade/mesquita/rj)
 router.get("/cidade/:slug/:uf", async (req, res) => {
   const { slug, uf } = req.params;
-
   const [cidades] = await db.query(`SELECT * FROM cidades`);
 
   const cidade = cidades.find(c => {

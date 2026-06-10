@@ -56,11 +56,13 @@ async function start_DB() {
 CREATE TABLE IF NOT EXISTS revendas_cidades (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
+    bairro VARCHAR(150) NOT NULL DEFAULT '',
     cidade VARCHAR(150) NOT NULL,
     estado VARCHAR(2) NOT NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    UNIQUE KEY uniq_revenda_cidade (usuario_id, cidade, estado),
+    UNIQUE KEY uniq_revenda_cidade (usuario_id, bairro, cidade, estado),
+    KEY idx_revendas_cidades_usuario (usuario_id),
     CONSTRAINT fk_revenda_cidade_usuario
         FOREIGN KEY (usuario_id)
         REFERENCES usuarios(id)

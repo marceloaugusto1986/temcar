@@ -10,16 +10,59 @@ async function garantirTabelaCidadesRevendas(conn = db) {
     CREATE TABLE IF NOT EXISTS revendas_cidades (
       id INT AUTO_INCREMENT PRIMARY KEY,
       usuario_id INT NOT NULL,
+      bairro VARCHAR(150) NOT NULL DEFAULT '',
       cidade VARCHAR(150) NOT NULL,
       estado VARCHAR(2) NOT NULL,
       criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE KEY uniq_revenda_cidade (usuario_id, cidade, estado),
+      UNIQUE KEY uniq_revenda_cidade (usuario_id, bairro, cidade, estado),
+      KEY idx_revendas_cidades_usuario (usuario_id),
       CONSTRAINT fk_revenda_cidade_usuario
         FOREIGN KEY (usuario_id)
         REFERENCES usuarios(id)
         ON DELETE CASCADE
     )
   `);
+
+  const [colunas] = await conn.query(`
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'revendas_cidades'
+      AND COLUMN_NAME = 'bairro'
+  `);
+
+  if (!colunas.length) {
+    await conn.query(`
+      ALTER TABLE revendas_cidades
+      ADD COLUMN bairro VARCHAR(150) NOT NULL DEFAULT '' AFTER usuario_id
+    `);
+  }
+
+  const [indices] = await conn.query(`
+    SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) AS colunas
+    FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'revendas_cidades'
+      AND INDEX_NAME = 'uniq_revenda_cidade'
+    GROUP BY INDEX_NAME
+  `);
+
+  if (indices[0]?.colunas !== 'usuario_id,bairro,cidade,estado') {
+    await conn.query(`
+      ALTER TABLE revendas_cidades
+      ADD INDEX idx_revendas_cidades_usuario (usuario_id)
+    `).catch(error => {
+      if (error.code !== 'ER_DUP_KEYNAME') throw error;
+    });
+
+    if (indices.length) {
+      await conn.query('ALTER TABLE revendas_cidades DROP INDEX uniq_revenda_cidade');
+    }
+    await conn.query(`
+      ALTER TABLE revendas_cidades
+      ADD UNIQUE KEY uniq_revenda_cidade (usuario_id, bairro, cidade, estado)
+    `);
+  }
 }
 
 // cadastro.ejs não existe; redireciona para criar-conta
@@ -171,10 +214,12 @@ router.post('/api/usuarios', async (req, res) => {
     const cidadesAtendimentoValidas = Array.isArray(cidadesAtendimento)
       ? cidadesAtendimento
         .map(item => ({
+          bairro: String(item?.bairro || '').trim(),
           cidade: String(item?.nome || item?.cidade || '').trim(),
           estado: String(item?.estado || '').trim().toUpperCase()
         }))
         .filter(item => item.cidade && /^[A-Z]{2}$/.test(item.estado))
+        .slice(0, 3)
       : [];
 
     // 🔹 Criptografa senha
@@ -237,12 +282,13 @@ router.post('/api/usuarios', async (req, res) => {
       if (tipo === 'revenda' && cidadesAtendimentoValidas.length) {
         const valores = cidadesAtendimentoValidas.map(item => [
           resultado.insertId,
+          item.bairro,
           item.cidade,
           item.estado
         ]);
 
         await conn.query(
-          'INSERT IGNORE INTO revendas_cidades (usuario_id, cidade, estado) VALUES ?',
+          'INSERT IGNORE INTO revendas_cidades (usuario_id, bairro, cidade, estado) VALUES ?',
           [valores]
         );
       }

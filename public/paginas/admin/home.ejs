@@ -428,7 +428,7 @@
                   </div>
 
                   <div class="mt-3 text-muted">
-                    Placeholders: #marca, #modelo, #cidade, #estado, #veiculo, #bairro
+                    Placeholders: #marca, #modelo, #cidade, #estado, #veiculo, #bairro, #revenda
                   </div>
 
                 </form>
@@ -559,23 +559,23 @@
 
           <div id="box-editar" class="card p-3 mb-4 d-none">
             <h5>Editar Cidade</h5>
-	            <form id="form-editar-cidade" enctype="multipart/form-data">
-	              <input class="form-control mb-2" type="text" name="nome" placeholder="Nome" />
-	              <input class="form-control mb-2" type="text" name="estado" placeholder="Estado" />
-	              <div class="row g-3 mb-2">
-	                <div class="col-md-6">
-	                  <label class="form-label small text-muted">Imagem desktop</label>
-	                  <input class="form-control mb-2" type="file" name="imagem" accept="image/*" />
-	                  <img id="preview-imagem" class="mb-2 border rounded" style="width:180px; display:none;" />
-	                </div>
-	                <div class="col-md-6">
-	                  <label class="form-label small text-muted">Imagem mobile</label>
-	                  <input class="form-control mb-2" type="file" name="imagem_mobile" accept="image/*" />
-	                  <img id="preview-imagem-mobile" class="mb-2 border rounded" style="width:120px; display:none;" />
-	                </div>
-	              </div>
-	              <textarea class="form-control mb-2" name="descricao"></textarea>
-	              <div class="d-flex gap-2">
+            <form id="form-editar-cidade" enctype="multipart/form-data">
+              <input class="form-control mb-2" type="text" name="nome" placeholder="Nome" />
+              <input class="form-control mb-2" type="text" name="estado" placeholder="Estado" />
+              <div class="row g-3 mb-2">
+                <div class="col-md-6">
+                  <label class="form-label small text-muted">Imagem desktop</label>
+                  <input class="form-control mb-2" type="file" name="imagem" accept="image/*" />
+                  <img id="preview-imagem" class="mb-2 border rounded" style="width:180px; display:none;" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small text-muted">Imagem mobile</label>
+                  <input class="form-control mb-2" type="file" name="imagem_mobile" accept="image/*" />
+                  <img id="preview-imagem-mobile" class="mb-2 border rounded" style="width:120px; display:none;" />
+                </div>
+              </div>
+              <textarea class="form-control mb-2" name="descricao"></textarea>
+              <div class="d-flex gap-2">
                 <button class="btn btn-success" type="submit">Salvar</button>
                 <button class="btn btn-danger" type="button" id="btn-excluir">Excluir</button>
               </div>
@@ -584,20 +584,20 @@
 
           <div id="box-cadastrar" class="card p-3 d-none">
             <h5>Nova Cidade</h5>
-	            <form id="form-cadastrar-cidade" enctype="multipart/form-data">
-	              <input class="form-control mb-2" type="text" name="nome" placeholder="Nome" required />
-	              <input class="form-control mb-2" type="text" name="estado" placeholder="Estado" required />
-	              <div class="row g-3 mb-2">
-	                <div class="col-md-6">
-	                  <label class="form-label small text-muted">Imagem desktop</label>
-	                  <input class="form-control" type="file" name="imagem" accept="image/*" />
-	                </div>
-	                <div class="col-md-6">
-	                  <label class="form-label small text-muted">Imagem mobile</label>
-	                  <input class="form-control" type="file" name="imagem_mobile" accept="image/*" />
-	                </div>
-	              </div>
-	              <textarea class="form-control mb-2" name="descricao"></textarea>
+            <form id="form-cadastrar-cidade" enctype="multipart/form-data">
+              <input class="form-control mb-2" type="text" name="nome" placeholder="Nome" required />
+              <input class="form-control mb-2" type="text" name="estado" placeholder="Estado" required />
+              <div class="row g-3 mb-2">
+                <div class="col-md-6">
+                  <label class="form-label small text-muted">Imagem desktop</label>
+                  <input class="form-control" type="file" name="imagem" accept="image/*" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small text-muted">Imagem mobile</label>
+                  <input class="form-control" type="file" name="imagem_mobile" accept="image/*" />
+                </div>
+              </div>
+              <textarea class="form-control mb-2" name="descricao"></textarea>
               <button class="btn btn-primary" type="submit">Cadastrar</button>
             </form>
           </div>
@@ -605,96 +605,96 @@
         </section>
 
         <script>
-        const select = document.getElementById("select-cidades");
-        const boxEditar = document.getElementById("box-editar");
-        const boxCadastrar = document.getElementById("box-cadastrar");
-        const btnMostrarCadastro = document.getElementById("btn-mostrar-cadastro");
-        const formEditar = document.getElementById("form-editar-cidade");
-	        const formCadastrar = document.getElementById("form-cadastrar-cidade");
-	        const preview = document.getElementById("preview-imagem");
-	        const previewMobile = document.getElementById("preview-imagem-mobile");
-	        const btnExcluir = document.getElementById("btn-excluir");
+          const select = document.getElementById("select-cidades");
+          const boxEditar = document.getElementById("box-editar");
+          const boxCadastrar = document.getElementById("box-cadastrar");
+          const btnMostrarCadastro = document.getElementById("btn-mostrar-cadastro");
+          const formEditar = document.getElementById("form-editar-cidade");
+          const formCadastrar = document.getElementById("form-cadastrar-cidade");
+          const preview = document.getElementById("preview-imagem");
+          const previewMobile = document.getElementById("preview-imagem-mobile");
+          const btnExcluir = document.getElementById("btn-excluir");
 
-        let cidadeSelecionada = null;
+          let cidadeSelecionada = null;
 
-        async function carregarCidades() {
-          const res = await fetch("/api/cidades");
-          const cidades = await res.json();
-          select.innerHTML = `<option value="">Selecione uma cidade</option>`;
-          cidades.forEach(cidade => {
-            const option = document.createElement("option");
-            option.value = cidade.id;
-            option.textContent = `${cidade.nome} - ${cidade.estado}`;
-            option.dataset.cidade = JSON.stringify(cidade);
-            select.appendChild(option);
+          async function carregarCidades() {
+            const res = await fetch("/api/cidades");
+            const cidades = await res.json();
+            select.innerHTML = `<option value="">Selecione uma cidade</option>`;
+            cidades.forEach(cidade => {
+              const option = document.createElement("option");
+              option.value = cidade.id;
+              option.textContent = `${cidade.nome} - ${cidade.estado}`;
+              option.dataset.cidade = JSON.stringify(cidade);
+              select.appendChild(option);
+            });
+          }
+
+          select.addEventListener("change", () => {
+            const selected = select.options[select.selectedIndex];
+            if (!selected.value) { boxEditar.classList.add("d-none"); cidadeSelecionada = null; return; }
+            cidadeSelecionada = JSON.parse(selected.dataset.cidade);
+            boxEditar.classList.remove("d-none");
+            boxCadastrar.classList.add("d-none");
+            formEditar.nome.value = cidadeSelecionada.nome;
+            formEditar.estado.value = cidadeSelecionada.estado;
+            formEditar.descricao.value = cidadeSelecionada.descricao;
+            if (cidadeSelecionada.imagem) { preview.src = cidadeSelecionada.imagem; preview.style.display = "block"; }
+            else { preview.style.display = "none"; }
+            if (cidadeSelecionada.imagem_mobile) { previewMobile.src = cidadeSelecionada.imagem_mobile; previewMobile.style.display = "block"; }
+            else { previewMobile.style.display = "none"; }
           });
-        }
 
-        select.addEventListener("change", () => {
-          const selected = select.options[select.selectedIndex];
-          if (!selected.value) { boxEditar.classList.add("d-none"); cidadeSelecionada = null; return; }
-          cidadeSelecionada = JSON.parse(selected.dataset.cidade);
-          boxEditar.classList.remove("d-none");
-          boxCadastrar.classList.add("d-none");
-          formEditar.nome.value = cidadeSelecionada.nome;
-	          formEditar.estado.value = cidadeSelecionada.estado;
-	          formEditar.descricao.value = cidadeSelecionada.descricao;
-	          if (cidadeSelecionada.imagem) { preview.src = cidadeSelecionada.imagem; preview.style.display = "block"; }
-	          else { preview.style.display = "none"; }
-	          if (cidadeSelecionada.imagem_mobile) { previewMobile.src = cidadeSelecionada.imagem_mobile; previewMobile.style.display = "block"; }
-	          else { previewMobile.style.display = "none"; }
-	        });
+          btnMostrarCadastro.addEventListener("click", () => {
+            boxCadastrar.classList.remove("d-none");
+            boxEditar.classList.add("d-none");
+            select.value = "";
+            cidadeSelecionada = null;
+          });
 
-        btnMostrarCadastro.addEventListener("click", () => {
-          boxCadastrar.classList.remove("d-none");
-          boxEditar.classList.add("d-none");
-	          select.value = "";
-	          cidadeSelecionada = null;
-	        });
+          formEditar.imagem.addEventListener("change", () => {
+            const file = formEditar.imagem.files[0];
+            if (!file) return;
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = "block";
+          });
 
-	        formEditar.imagem.addEventListener("change", () => {
-	          const file = formEditar.imagem.files[0];
-	          if (!file) return;
-	          preview.src = URL.createObjectURL(file);
-	          preview.style.display = "block";
-	        });
+          formEditar.imagem_mobile.addEventListener("change", () => {
+            const file = formEditar.imagem_mobile.files[0];
+            if (!file) return;
+            previewMobile.src = URL.createObjectURL(file);
+            previewMobile.style.display = "block";
+          });
 
-	        formEditar.imagem_mobile.addEventListener("change", () => {
-	          const file = formEditar.imagem_mobile.files[0];
-	          if (!file) return;
-	          previewMobile.src = URL.createObjectURL(file);
-	          previewMobile.style.display = "block";
-	        });
+          formEditar.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (!cidadeSelecionada) return;
+            const formData = new FormData(formEditar);
+            await fetch(`/api/cidades/${cidadeSelecionada.id}`, { method: "PUT", body: formData });
+            alert("Atualizado!");
+            carregarCidades();
+          });
 
-        formEditar.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          if (!cidadeSelecionada) return;
-          const formData = new FormData(formEditar);
-          await fetch(`/api/cidades/${cidadeSelecionada.id}`, { method: "PUT", body: formData });
-          alert("Atualizado!");
+          btnExcluir.addEventListener("click", async () => {
+            if (!cidadeSelecionada) return;
+            if (!confirm("Excluir cidade?")) return;
+            await fetch(`/api/cidades/${cidadeSelecionada.id}`, { method: "DELETE" });
+            boxEditar.classList.add("d-none");
+            cidadeSelecionada = null;
+            carregarCidades();
+          });
+
+          formCadastrar.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(formCadastrar);
+            await fetch("/api/cidades", { method: "POST", body: formData });
+            alert("Cadastrado!");
+            formCadastrar.reset();
+            boxCadastrar.classList.add("d-none");
+            carregarCidades();
+          });
+
           carregarCidades();
-        });
-
-        btnExcluir.addEventListener("click", async () => {
-          if (!cidadeSelecionada) return;
-          if (!confirm("Excluir cidade?")) return;
-          await fetch(`/api/cidades/${cidadeSelecionada.id}`, { method: "DELETE" });
-          boxEditar.classList.add("d-none");
-          cidadeSelecionada = null;
-          carregarCidades();
-        });
-
-        formCadastrar.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const formData = new FormData(formCadastrar);
-          await fetch("/api/cidades", { method: "POST", body: formData });
-          alert("Cadastrado!");
-          formCadastrar.reset();
-          boxCadastrar.classList.add("d-none");
-          carregarCidades();
-        });
-
-        carregarCidades();
         </script>
       </div>
 
@@ -738,13 +738,15 @@
               </div>
               <div class="mb-2">
                 <label class="form-label">Cidade (atrelar)</label>
-                <select class="form-select s2-cidade-editar" name="cidade_id" id="select-cidade-editar-bairro" style="width:100%" required>
+                <select class="form-select s2-cidade-editar" name="cidade_id" id="select-cidade-editar-bairro"
+                  style="width:100%" required>
                   <option value="">Selecione uma cidade</option>
                 </select>
               </div>
               <div class="mb-2">
                 <label class="form-label">URL canônica gerada</label>
-                <textarea class="form-control bg-light" id="preview-url-bairro" rows="5" readonly placeholder="Gerada automaticamente"></textarea>
+                <textarea class="form-control bg-light" id="preview-url-bairro" rows="6" readonly
+                  placeholder="Gerada automaticamente"></textarea>
                 <small class="text-muted">Formato: /categoria/bairro/cidade/estado</small>
               </div>
               <div class="d-flex gap-2 mt-3">
@@ -760,17 +762,20 @@
             <form id="form-cadastrar-bairro">
               <div class="mb-2">
                 <label class="form-label">Nome do bairro</label>
-                <input class="form-control" type="text" name="nome" placeholder="Ex: Centro, Jardim América..." required />
+                <input class="form-control" type="text" name="nome" placeholder="Ex: Centro, Jardim América..."
+                  required />
               </div>
               <div class="mb-2">
                 <label class="form-label">Atrelar à cidade</label>
-                <select class="form-select s2-cidade-novo" name="cidade_id" id="select-cidade-novo-bairro" style="width:100%" required>
+                <select class="form-select s2-cidade-novo" name="cidade_id" id="select-cidade-novo-bairro"
+                  style="width:100%" required>
                   <option value="">Selecione uma cidade</option>
                 </select>
               </div>
               <div class="mb-2">
                 <label class="form-label">URL canônica que será gerada</label>
-                <textarea class="form-control bg-light" id="preview-url-novo-bairro" rows="5" readonly placeholder="Gerada automaticamente ao escolher cidade e nome"></textarea>
+                <textarea class="form-control bg-light" id="preview-url-novo-bairro" rows="5" readonly
+                  placeholder="Gerada automaticamente ao escolher cidade e nome"></textarea>
                 <small class="text-muted">Formato: /categoria/bairro/cidade/estado</small>
               </div>
               <button class="btn btn-primary mt-2" type="submit">Cadastrar</button>
@@ -780,133 +785,241 @@
         </section>
 
         <script>
-        // ── Estado global da aba Bairros ──
-        let bairroSelecionado = null;
-        let cidadesCache = [];
-        let abaBairrosIniciada = false;
+          // ── Estado global da aba Bairros ──
+          let bairroSelecionado = null;
+          let cidadesCache = [];
+          let abaBairrosIniciada = false;
 
-        // ── Helpers ──
-        function slugifyBairro(texto) {
-          return (texto || "")
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-+|-+$/g, "");
-        }
+          // ── Helpers ──
+          function slugifyBairro(texto) {
+            return (texto || "")
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "");
+          }
 
-        function montarUrlBairro(cidade, estado, bairro) {
-          if (!cidade || !estado || !bairro) return "";
-          const slugCidade = slugifyBairro(cidade);
-          const slugEstado = slugifyBairro(estado);
-          const slugBairro = slugifyBairro(bairro);
-          return [
-            `Carros: /carros/${slugBairro}/${slugCidade}/${slugEstado}`,
-            `Motos: /motos/${slugBairro}/${slugCidade}/${slugEstado}`,
-            `Utilitários: /utilitarios/${slugBairro}/${slugCidade}/${slugEstado}`,
-            `Revendas: /buscar-revendas/${slugBairro}/${slugCidade}/${slugEstado}`,
-            `Particular: /particular/${slugBairro}/${slugCidade}/${slugEstado}`
-          ].join("\n");
-        }
+          function montarUrlBairro(cidade, estado, bairro) {
+            if (!cidade || !estado || !bairro) return "";
+            const slugCidade = slugifyBairro(cidade);
+            const slugEstado = slugifyBairro(estado);
+            const slugBairro = slugifyBairro(bairro);
+            return [
+              `Carros: /carros/${slugBairro}/${slugCidade}/${slugEstado}`,
+              `Motos: /motos/${slugBairro}/${slugCidade}/${slugEstado}`,
+              `Utilitários: /utilitarios/${slugBairro}/${slugCidade}/${slugEstado}`,
+              `Revendas: /buscar-revendas/${slugBairro}/${slugCidade}/${slugEstado}`,
+              `Particular: /particular/${slugBairro}/${slugCidade}/${slugEstado}`,
+              `Cidade: /cidade/${slugBairro}/${slugCidade}/${slugEstado}`
+            ].join("\n");
+          }
 
-        // ── Carregar cidades nos selects da aba Bairros ──
-        async function carregarCidadesParaBairros() {
-          if (cidadesCache.length) return cidadesCache;
-          const res = await fetch("/api/cidades");
-          cidadesCache = await res.json();
-          return cidadesCache;
-        }
+          // ── Carregar cidades nos selects da aba Bairros ──
+          async function carregarCidadesParaBairros() {
+            if (cidadesCache.length) return cidadesCache;
+            const res = await fetch("/api/cidades");
+            cidadesCache = await res.json();
+            return cidadesCache;
+          }
 
-        function preencherSelectCidades(selectEl, selecionadoId) {
-          selectEl.innerHTML = `<option value="">Selecione uma cidade</option>`;
-          cidadesCache.forEach(cidade => {
-            const opt = document.createElement("option");
-            opt.value = cidade.id;
-            opt.textContent = `${cidade.nome} - ${cidade.estado}`;
-            opt.dataset.nome = cidade.nome;
-            opt.dataset.estado = cidade.estado;
-            if (selecionadoId && String(cidade.id) === String(selecionadoId)) opt.selected = true;
-            selectEl.appendChild(opt);
-          });
-        }
+          function preencherSelectCidades(selectEl, selecionadoId) {
+            selectEl.innerHTML = `<option value="">Selecione uma cidade</option>`;
+            cidadesCache.forEach(cidade => {
+              const opt = document.createElement("option");
+              opt.value = cidade.id;
+              opt.textContent = `${cidade.nome} - ${cidade.estado}`;
+              opt.dataset.nome = cidade.nome;
+              opt.dataset.estado = cidade.estado;
+              if (selecionadoId && String(cidade.id) === String(selecionadoId)) opt.selected = true;
+              selectEl.appendChild(opt);
+            });
+          }
 
-        // ── Carregar bairros no select principal ──
-        async function carregarBairros(filtroNomeCidade) {
-          let url = "/api/bairros";
-          if (filtroNomeCidade) url += `?cidade=${encodeURIComponent(filtroNomeCidade)}`;
-          const res = await fetch(url);
-          const bairros = await res.json();
+          // ── Carregar bairros no select principal ──
+          async function carregarBairros(filtroNomeCidade) {
+            let url = "/api/bairros";
+            if (filtroNomeCidade) url += `?cidade=${encodeURIComponent(filtroNomeCidade)}`;
+            const res = await fetch(url);
+            const bairros = await res.json();
 
-          const selectBairros = document.getElementById("select-bairros");
-          selectBairros.innerHTML = `<option value="">Selecione um bairro</option>`;
-          bairros.forEach(b => {
-            const opt = document.createElement("option");
-            opt.value = b.id;
-            opt.textContent = `${b.nome} — ${b.cidade_nome} (${b.estado})`;
-            opt.dataset.bairro = JSON.stringify(b);
-            selectBairros.appendChild(opt);
-          });
-        }
+            const selectBairros = document.getElementById("select-bairros");
+            selectBairros.innerHTML = `<option value="">Selecione um bairro</option>`;
+            bairros.forEach(b => {
+              const opt = document.createElement("option");
+              opt.value = b.id;
+              opt.textContent = `${b.nome} — ${b.cidade_nome} (${b.estado})`;
+              opt.dataset.bairro = JSON.stringify(b);
+              selectBairros.appendChild(opt);
+            });
+          }
 
-        // ── Init Select2 (chamado uma vez após DOM estar pronto) ──
-        function initSelect2() {
-          // Filtro de cidade
-          $(".s2-cidade-filtro").select2({
-            placeholder: "Todas as cidades",
-            allowClear: true,
-            language: { noResults: () => "Nenhuma cidade encontrada" }
-          }).on("change", function() {
-            carregarBairros($(this).val());
+          // ── Init Select2 (chamado uma vez após DOM estar pronto) ──
+          function initSelect2() {
+            // Filtro de cidade
+            $(".s2-cidade-filtro").select2({
+              placeholder: "Todas as cidades",
+              allowClear: true,
+              language: { noResults: () => "Nenhuma cidade encontrada" }
+            }).on("change", function () {
+              carregarBairros($(this).val());
+              document.getElementById("select-bairros").value = "";
+              $(".s2-bairro").val(null).trigger("change");
+              document.getElementById("box-editar-bairro").classList.add("d-none");
+              bairroSelecionado = null;
+            });
+
+            // Select de bairro
+            $(".s2-bairro").select2({
+              placeholder: "Selecione um bairro",
+              allowClear: true,
+              language: { noResults: () => "Nenhum bairro encontrado" }
+            }).on("change", function () {
+              const id = $(this).val();
+              if (!id) {
+                document.getElementById("box-editar-bairro").classList.add("d-none");
+                bairroSelecionado = null;
+                return;
+              }
+              const opt = document.getElementById("select-bairros").options[document.getElementById("select-bairros").selectedIndex];
+              if (!opt || !opt.dataset.bairro) return;
+              bairroSelecionado = JSON.parse(opt.dataset.bairro);
+              document.getElementById("box-editar-bairro").classList.remove("d-none");
+              document.getElementById("box-cadastrar-bairro").classList.add("d-none");
+              carregarCidadesParaBairros().then(() => {
+                preencherSelectCidades(document.getElementById("select-cidade-editar-bairro"), bairroSelecionado.cidade_id);
+                reinitS2CidadeEditar();
+              });
+              document.getElementById("form-editar-bairro").nome.value = bairroSelecionado.nome;
+              document.getElementById("preview-url-bairro").value =
+                montarUrlBairro(bairroSelecionado.cidade_nome || bairroSelecionado.cidade, bairroSelecionado.estado, bairroSelecionado.nome);
+            });
+
+            // Select cidade no painel Cidades
+            $(".s2-cidades").select2({
+              placeholder: "Selecione uma cidade",
+              allowClear: true,
+              language: { noResults: () => "Nenhuma cidade encontrada" }
+            }).on("change", function () {
+              // dispara o evento change original
+              const event = new Event("change");
+              document.getElementById("select-cidades").dispatchEvent(event);
+            });
+          }
+
+          function reinitS2CidadeNovo() {
+            $(".s2-cidade-novo").select2({
+              placeholder: "Selecione uma cidade",
+              allowClear: true,
+              language: { noResults: () => "Nenhuma cidade encontrada" }
+            }).off("change").on("change", function () {
+              const opt = this.options[this.selectedIndex];
+              const nome = document.getElementById("form-cadastrar-bairro").nome.value;
+              if (opt && opt.dataset.nome) {
+                document.getElementById("preview-url-novo-bairro").value =
+                  montarUrlBairro(opt.dataset.nome, opt.dataset.estado, nome);
+              }
+            });
+          }
+
+          function reinitS2CidadeEditar() {
+            $(".s2-cidade-editar").select2({
+              placeholder: "Selecione uma cidade",
+              allowClear: true,
+              language: { noResults: () => "Nenhuma cidade encontrada" }
+            }).off("change").on("change", function () {
+              const opt = this.options[this.selectedIndex];
+              const nome = document.getElementById("form-editar-bairro").nome.value;
+              if (opt && opt.dataset.nome) {
+                document.getElementById("preview-url-bairro").value =
+                  montarUrlBairro(opt.dataset.nome, opt.dataset.estado, nome);
+              }
+            });
+          }
+
+          // ── Init da aba (roda apenas uma vez) ──
+          async function initAbaBairros() {
+            if (abaBairrosIniciada) return;
+            abaBairrosIniciada = true;
+            await carregarCidadesParaBairros();
+
+            // Preenche filtro de cidades
+            const selectFiltroCidade = document.getElementById("select-cidade-filtro-bairro");
+            selectFiltroCidade.innerHTML = `<option value="">Todas as cidades</option>`;
+            cidadesCache.forEach(c => {
+              const opt = document.createElement("option");
+              opt.value = c.nome;
+              opt.textContent = `${c.nome} - ${c.estado}`;
+              selectFiltroCidade.appendChild(opt);
+            });
+
+            // Re-init Select2 após preencher as opções
+            $(".s2-cidade-filtro").val(null).trigger("change.select2");
+
+            await carregarBairros();
+          }
+
+          // ── Eventos ──
+
+          // Filtro por cidade
+          document.getElementById("select-cidade-filtro-bairro").addEventListener("change", function () {
+            carregarBairros(this.value);
             document.getElementById("select-bairros").value = "";
-            $(".s2-bairro").val(null).trigger("change");
             document.getElementById("box-editar-bairro").classList.add("d-none");
             bairroSelecionado = null;
           });
 
-          // Select de bairro
-          $(".s2-bairro").select2({
-            placeholder: "Selecione um bairro",
-            allowClear: true,
-            language: { noResults: () => "Nenhum bairro encontrado" }
-          }).on("change", function() {
-            const id = $(this).val();
-            if (!id) {
+          // Selecionar bairro para editar
+          document.getElementById("select-bairros").addEventListener("change", async function () {
+            const selected = this.options[this.selectedIndex];
+            if (!selected.value) {
               document.getElementById("box-editar-bairro").classList.add("d-none");
               bairroSelecionado = null;
               return;
             }
-            const opt = document.getElementById("select-bairros").options[document.getElementById("select-bairros").selectedIndex];
-            if (!opt || !opt.dataset.bairro) return;
-            bairroSelecionado = JSON.parse(opt.dataset.bairro);
+
+            bairroSelecionado = JSON.parse(selected.dataset.bairro);
             document.getElementById("box-editar-bairro").classList.remove("d-none");
             document.getElementById("box-cadastrar-bairro").classList.add("d-none");
-            carregarCidadesParaBairros().then(() => {
-              preencherSelectCidades(document.getElementById("select-cidade-editar-bairro"), bairroSelecionado.cidade_id);
-              reinitS2CidadeEditar();
-            });
+
+            await carregarCidadesParaBairros();
+            const selectEditarCidade = document.getElementById("select-cidade-editar-bairro");
+            preencherSelectCidades(selectEditarCidade, bairroSelecionado.cidade_id);
+
             document.getElementById("form-editar-bairro").nome.value = bairroSelecionado.nome;
+
+            // Gera preview da URL
             document.getElementById("preview-url-bairro").value =
-              montarUrlBairro(bairroSelecionado.cidade_nome || bairroSelecionado.cidade, bairroSelecionado.estado, bairroSelecionado.nome);
+              montarUrlBairro(bairroSelecionado.cidade_nome, bairroSelecionado.estado, bairroSelecionado.nome);
           });
 
-          // Select cidade no painel Cidades
-          $(".s2-cidades").select2({
-            placeholder: "Selecione uma cidade",
-            allowClear: true,
-            language: { noResults: () => "Nenhuma cidade encontrada" }
-          }).on("change", function() {
-            // dispara o evento change original
-            const event = new Event("change");
-            document.getElementById("select-cidades").dispatchEvent(event);
-          });
-        }
+          // Botão "+ Novo Bairro"
+          // CORREÇÃO: await carregarCidadesParaBairros() ANTES de abrir o form,
+          // independente de a aba ter sido clicada antes.
+          document.getElementById("btn-mostrar-cadastro-bairro").addEventListener("click", async () => {
+            await carregarCidadesParaBairros(); // ← garante que o cache existe
 
-        function reinitS2CidadeNovo() {
-          $(".s2-cidade-novo").select2({
-            placeholder: "Selecione uma cidade",
-            allowClear: true,
-            language: { noResults: () => "Nenhuma cidade encontrada" }
-          }).off("change").on("change", function() {
+            document.getElementById("box-cadastrar-bairro").classList.remove("d-none");
+            document.getElementById("box-editar-bairro").classList.add("d-none");
+            document.getElementById("select-bairros").value = "";
+            bairroSelecionado = null;
+
+            preencherSelectCidades(document.getElementById("select-cidade-novo-bairro"));
+            document.getElementById("form-cadastrar-bairro").reset();
+            document.getElementById("preview-url-novo-bairro").value = "";
+          });
+
+          // Preview URL ao digitar nome (novo bairro)
+          document.getElementById("form-cadastrar-bairro").nome.addEventListener("input", function () {
+            const selectCidade = document.getElementById("select-cidade-novo-bairro");
+            const opt = selectCidade.options[selectCidade.selectedIndex];
+            if (opt && opt.dataset.nome) {
+              document.getElementById("preview-url-novo-bairro").value =
+                montarUrlBairro(opt.dataset.nome, opt.dataset.estado, this.value);
+            }
+          });
+
+          document.getElementById("select-cidade-novo-bairro").addEventListener("change", function () {
             const opt = this.options[this.selectedIndex];
             const nome = document.getElementById("form-cadastrar-bairro").nome.value;
             if (opt && opt.dataset.nome) {
@@ -914,14 +1027,18 @@
                 montarUrlBairro(opt.dataset.nome, opt.dataset.estado, nome);
             }
           });
-        }
 
-        function reinitS2CidadeEditar() {
-          $(".s2-cidade-editar").select2({
-            placeholder: "Selecione uma cidade",
-            allowClear: true,
-            language: { noResults: () => "Nenhuma cidade encontrada" }
-          }).off("change").on("change", function() {
+          // Preview URL ao editar
+          document.getElementById("form-editar-bairro").nome.addEventListener("input", function () {
+            const selectCidade = document.getElementById("select-cidade-editar-bairro");
+            const opt = selectCidade.options[selectCidade.selectedIndex];
+            if (opt && opt.dataset.nome) {
+              document.getElementById("preview-url-bairro").value =
+                montarUrlBairro(opt.dataset.nome, opt.dataset.estado, this.value);
+            }
+          });
+
+          document.getElementById("select-cidade-editar-bairro").addEventListener("change", function () {
             const opt = this.options[this.selectedIndex];
             const nome = document.getElementById("form-editar-bairro").nome.value;
             if (opt && opt.dataset.nome) {
@@ -929,230 +1046,119 @@
                 montarUrlBairro(opt.dataset.nome, opt.dataset.estado, nome);
             }
           });
-        }
 
-        // ── Init da aba (roda apenas uma vez) ──
-        async function initAbaBairros() {
-          if (abaBairrosIniciada) return;
-          abaBairrosIniciada = true;
-          await carregarCidadesParaBairros();
+          // ✅ CADASTRAR bairro
+          document.getElementById("form-cadastrar-bairro").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const nome = form.nome.value.trim();
+            const selectCidade = document.getElementById("select-cidade-novo-bairro");
+            const opt = selectCidade.options[selectCidade.selectedIndex];
 
-          // Preenche filtro de cidades
-          const selectFiltroCidade = document.getElementById("select-cidade-filtro-bairro");
-          selectFiltroCidade.innerHTML = `<option value="">Todas as cidades</option>`;
-          cidadesCache.forEach(c => {
-            const opt = document.createElement("option");
-            opt.value = c.nome;
-            opt.textContent = `${c.nome} - ${c.estado}`;
-            selectFiltroCidade.appendChild(opt);
+            if (!nome) { alert("Informe o nome do bairro."); return; }
+            if (!opt || !opt.value) { alert("Selecione uma cidade para atrelar o bairro."); return; }
+
+            const payload = {
+              nome,
+              cidade: opt.dataset.nome,
+              estado: opt.dataset.estado,
+              slug: slugifyBairro(nome)
+            };
+
+            try {
+              const res = await fetch("/api/bairros", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+              });
+              const json = await res.json();
+              if (res.ok) {
+                alert("Bairro cadastrado com sucesso!");
+                form.reset();
+                document.getElementById("preview-url-novo-bairro").value = "";
+                document.getElementById("box-cadastrar-bairro").classList.add("d-none");
+                await carregarBairros();
+              } else {
+                alert("Erro: " + (json.message || "Não foi possível cadastrar."));
+              }
+            } catch (err) {
+              console.error("Erro ao cadastrar bairro:", err);
+              alert("Erro de conexão com o servidor.");
+            }
           });
 
-          // Re-init Select2 após preencher as opções
-          $(".s2-cidade-filtro").val(null).trigger("change.select2");
+          // ✅ EDITAR bairro
+          document.getElementById("form-editar-bairro").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (!bairroSelecionado) return;
 
-          await carregarBairros();
-        }
+            const form = e.target;
+            const nome = form.nome.value.trim();
+            const selectCidade = document.getElementById("select-cidade-editar-bairro");
+            const opt = selectCidade.options[selectCidade.selectedIndex];
 
-        // ── Eventos ──
+            if (!nome) { alert("Informe o nome do bairro."); return; }
+            if (!opt || !opt.value) { alert("Selecione uma cidade."); return; }
 
-        // Filtro por cidade
-        document.getElementById("select-cidade-filtro-bairro").addEventListener("change", function () {
-          carregarBairros(this.value);
-          document.getElementById("select-bairros").value = "";
-          document.getElementById("box-editar-bairro").classList.add("d-none");
-          bairroSelecionado = null;
-        });
+            const payload = {
+              nome,
+              cidade: opt.dataset.nome,
+              estado: opt.dataset.estado,
+              slug: slugifyBairro(nome)
+            };
 
-        // Selecionar bairro para editar
-        document.getElementById("select-bairros").addEventListener("change", async function () {
-          const selected = this.options[this.selectedIndex];
-          if (!selected.value) {
-            document.getElementById("box-editar-bairro").classList.add("d-none");
-            bairroSelecionado = null;
-            return;
-          }
-
-          bairroSelecionado = JSON.parse(selected.dataset.bairro);
-          document.getElementById("box-editar-bairro").classList.remove("d-none");
-          document.getElementById("box-cadastrar-bairro").classList.add("d-none");
-
-          await carregarCidadesParaBairros();
-          const selectEditarCidade = document.getElementById("select-cidade-editar-bairro");
-          preencherSelectCidades(selectEditarCidade, bairroSelecionado.cidade_id);
-
-          document.getElementById("form-editar-bairro").nome.value = bairroSelecionado.nome;
-
-          // Gera preview da URL
-          document.getElementById("preview-url-bairro").value =
-            montarUrlBairro(bairroSelecionado.cidade_nome, bairroSelecionado.estado, bairroSelecionado.nome);
-        });
-
-        // Botão "+ Novo Bairro"
-        // CORREÇÃO: await carregarCidadesParaBairros() ANTES de abrir o form,
-        // independente de a aba ter sido clicada antes.
-        document.getElementById("btn-mostrar-cadastro-bairro").addEventListener("click", async () => {
-          await carregarCidadesParaBairros(); // ← garante que o cache existe
-
-          document.getElementById("box-cadastrar-bairro").classList.remove("d-none");
-          document.getElementById("box-editar-bairro").classList.add("d-none");
-          document.getElementById("select-bairros").value = "";
-          bairroSelecionado = null;
-
-          preencherSelectCidades(document.getElementById("select-cidade-novo-bairro"));
-          document.getElementById("form-cadastrar-bairro").reset();
-          document.getElementById("preview-url-novo-bairro").value = "";
-        });
-
-        // Preview URL ao digitar nome (novo bairro)
-        document.getElementById("form-cadastrar-bairro").nome.addEventListener("input", function () {
-          const selectCidade = document.getElementById("select-cidade-novo-bairro");
-          const opt = selectCidade.options[selectCidade.selectedIndex];
-          if (opt && opt.dataset.nome) {
-            document.getElementById("preview-url-novo-bairro").value =
-              montarUrlBairro(opt.dataset.nome, opt.dataset.estado, this.value);
-          }
-        });
-
-        document.getElementById("select-cidade-novo-bairro").addEventListener("change", function () {
-          const opt = this.options[this.selectedIndex];
-          const nome = document.getElementById("form-cadastrar-bairro").nome.value;
-          if (opt && opt.dataset.nome) {
-            document.getElementById("preview-url-novo-bairro").value =
-              montarUrlBairro(opt.dataset.nome, opt.dataset.estado, nome);
-          }
-        });
-
-        // Preview URL ao editar
-        document.getElementById("form-editar-bairro").nome.addEventListener("input", function () {
-          const selectCidade = document.getElementById("select-cidade-editar-bairro");
-          const opt = selectCidade.options[selectCidade.selectedIndex];
-          if (opt && opt.dataset.nome) {
-            document.getElementById("preview-url-bairro").value =
-              montarUrlBairro(opt.dataset.nome, opt.dataset.estado, this.value);
-          }
-        });
-
-        document.getElementById("select-cidade-editar-bairro").addEventListener("change", function () {
-          const opt = this.options[this.selectedIndex];
-          const nome = document.getElementById("form-editar-bairro").nome.value;
-          if (opt && opt.dataset.nome) {
-            document.getElementById("preview-url-bairro").value =
-              montarUrlBairro(opt.dataset.nome, opt.dataset.estado, nome);
-          }
-        });
-
-        // ✅ CADASTRAR bairro
-        document.getElementById("form-cadastrar-bairro").addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const form = e.target;
-          const nome = form.nome.value.trim();
-          const selectCidade = document.getElementById("select-cidade-novo-bairro");
-          const opt = selectCidade.options[selectCidade.selectedIndex];
-
-          if (!nome) { alert("Informe o nome do bairro."); return; }
-          if (!opt || !opt.value) { alert("Selecione uma cidade para atrelar o bairro."); return; }
-
-          const payload = {
-            nome,
-            cidade:    opt.dataset.nome,
-            estado:    opt.dataset.estado,
-            slug:      slugifyBairro(nome)
-          };
-
-          try {
-            const res = await fetch("/api/bairros", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
-            });
-            const json = await res.json();
-            if (res.ok) {
-              alert("Bairro cadastrado com sucesso!");
-              form.reset();
-              document.getElementById("preview-url-novo-bairro").value = "";
-              document.getElementById("box-cadastrar-bairro").classList.add("d-none");
-              await carregarBairros();
-            } else {
-              alert("Erro: " + (json.message || "Não foi possível cadastrar."));
+            try {
+              const res = await fetch(`/api/bairros/${bairroSelecionado.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+              });
+              const json = await res.json();
+              if (res.ok) {
+                alert("Bairro atualizado!");
+                document.getElementById("box-editar-bairro").classList.add("d-none");
+                bairroSelecionado = null;
+                await carregarBairros();
+              } else {
+                alert("Erro: " + (json.message || "Não foi possível atualizar."));
+              }
+            } catch (err) {
+              console.error("Erro ao atualizar bairro:", err);
+              alert("Erro de conexão com o servidor.");
             }
-          } catch (err) {
-            console.error("Erro ao cadastrar bairro:", err);
-            alert("Erro de conexão com o servidor.");
-          }
-        });
+          });
 
-        // ✅ EDITAR bairro
-        document.getElementById("form-editar-bairro").addEventListener("submit", async (e) => {
-          e.preventDefault();
-          if (!bairroSelecionado) return;
+          // ✅ EXCLUIR bairro
+          document.getElementById("btn-excluir-bairro").addEventListener("click", async () => {
+            if (!bairroSelecionado) return;
+            if (!confirm(`Excluir o bairro "${bairroSelecionado.nome}"?`)) return;
 
-          const form = e.target;
-          const nome = form.nome.value.trim();
-          const selectCidade = document.getElementById("select-cidade-editar-bairro");
-          const opt = selectCidade.options[selectCidade.selectedIndex];
-
-          if (!nome) { alert("Informe o nome do bairro."); return; }
-          if (!opt || !opt.value) { alert("Selecione uma cidade."); return; }
-
-          const payload = {
-            nome,
-            cidade:    opt.dataset.nome,
-            estado:    opt.dataset.estado,
-            slug:      slugifyBairro(nome)
-          };
-
-          try {
-            const res = await fetch(`/api/bairros/${bairroSelecionado.id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
-            });
-            const json = await res.json();
-            if (res.ok) {
-              alert("Bairro atualizado!");
-              document.getElementById("box-editar-bairro").classList.add("d-none");
-              bairroSelecionado = null;
-              await carregarBairros();
-            } else {
-              alert("Erro: " + (json.message || "Não foi possível atualizar."));
+            try {
+              const res = await fetch(`/api/bairros/${bairroSelecionado.id}`, { method: "DELETE" });
+              if (res.ok) {
+                alert("Bairro excluído!");
+                document.getElementById("box-editar-bairro").classList.add("d-none");
+                bairroSelecionado = null;
+                document.getElementById("select-bairros").value = "";
+                await carregarBairros();
+              } else {
+                alert("Erro ao excluir.");
+              }
+            } catch (err) {
+              console.error("Erro ao excluir bairro:", err);
+              alert("Erro de conexão com o servidor.");
             }
-          } catch (err) {
-            console.error("Erro ao atualizar bairro:", err);
-            alert("Erro de conexão com o servidor.");
-          }
-        });
+          });
 
-        // ✅ EXCLUIR bairro
-        document.getElementById("btn-excluir-bairro").addEventListener("click", async () => {
-          if (!bairroSelecionado) return;
-          if (!confirm(`Excluir o bairro "${bairroSelecionado.nome}"?`)) return;
+          // Inicia a aba quando for clicada
+          document.querySelector('[data-target="bairros"]').addEventListener("click", () => {
+            initAbaBairros();
+          });
 
-          try {
-            const res = await fetch(`/api/bairros/${bairroSelecionado.id}`, { method: "DELETE" });
-            if (res.ok) {
-              alert("Bairro excluído!");
-              document.getElementById("box-editar-bairro").classList.add("d-none");
-              bairroSelecionado = null;
-              document.getElementById("select-bairros").value = "";
-              await carregarBairros();
-            } else {
-              alert("Erro ao excluir.");
-            }
-          } catch (err) {
-            console.error("Erro ao excluir bairro:", err);
-            alert("Erro de conexão com o servidor.");
-          }
-        });
-
-        // Inicia a aba quando for clicada
-        document.querySelector('[data-target="bairros"]').addEventListener("click", () => {
-          initAbaBairros();
-        });
-
-        // Inicia Select2 assim que o jQuery estiver pronto
-        $(document).ready(function () {
-          initSelect2();
-        });
+          // Inicia Select2 assim que o jQuery estiver pronto
+          $(document).ready(function () {
+            initSelect2();
+          });
         </script>
       </div>
 
@@ -1213,17 +1219,17 @@
         </div>
 
         <script>
-async function carregarBannersAdmin() {
-  const resp = await fetch('/api/admin/banners');
-  const banners = await resp.json();
-  const tbody = document.getElementById('tabelaBanners');
-  tbody.innerHTML = '';
-  if (!banners.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Nenhum banner cadastrado</td></tr>';
-    return;
-  }
-  banners.forEach(b => {
-    tbody.innerHTML += `
+          async function carregarBannersAdmin() {
+            const resp = await fetch('/api/admin/banners');
+            const banners = await resp.json();
+            const tbody = document.getElementById('tabelaBanners');
+            tbody.innerHTML = '';
+            if (!banners.length) {
+              tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Nenhum banner cadastrado</td></tr>';
+              return;
+            }
+            banners.forEach(b => {
+              tbody.innerHTML += `
       <tr>
         <td><img src="/uploads/banners/${b.imagem}" style="height:60px;border-radius:4px;"></td>
         <td>${b.titulo || '-'}</td>
@@ -1242,38 +1248,38 @@ async function carregarBannersAdmin() {
         </td>
       </tr>
     `;
-  });
-}
+            });
+          }
 
-async function toggleBanner(id, ativo, titulo, link, ordem) {
-  await fetch('/api/admin/banners/' + id, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ titulo, link, ordem, ativo })
-  });
-  carregarBannersAdmin();
-}
+          async function toggleBanner(id, ativo, titulo, link, ordem) {
+            await fetch('/api/admin/banners/' + id, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ titulo, link, ordem, ativo })
+            });
+            carregarBannersAdmin();
+          }
 
-async function excluirBanner(id) {
-  if (!confirm('Excluir este banner?')) return;
-  await fetch('/api/admin/banners/' + id, { method: 'DELETE' });
-  carregarBannersAdmin();
-}
+          async function excluirBanner(id) {
+            if (!confirm('Excluir este banner?')) return;
+            await fetch('/api/admin/banners/' + id, { method: 'DELETE' });
+            carregarBannersAdmin();
+          }
 
-document.getElementById('formBanner').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const formData = new FormData(this);
-  const resp = await fetch('/api/admin/banners', { method: 'POST', body: formData });
-  if (resp.ok) {
-    this.reset();
-    carregarBannersAdmin();
-    alert('Banner adicionado!');
-  } else {
-    alert('Erro ao adicionar banner');
-  }
-});
+          document.getElementById('formBanner').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const resp = await fetch('/api/admin/banners', { method: 'POST', body: formData });
+            if (resp.ok) {
+              this.reset();
+              carregarBannersAdmin();
+              alert('Banner adicionado!');
+            } else {
+              alert('Erro ao adicionar banner');
+            }
+          });
 
-carregarBannersAdmin();
+          carregarBannersAdmin();
         </script>
       </div>
 
@@ -1316,7 +1322,13 @@ carregarBannersAdmin();
               <div class="card-body">
                 <table class="table table-striped align-middle">
                   <thead>
-                    <tr><th>Ordem</th><th>Nome</th><th>URL</th><th>Status</th><th style="width:150px">Ações</th></tr>
+                    <tr>
+                      <th>Ordem</th>
+                      <th>Nome</th>
+                      <th>URL</th>
+                      <th>Status</th>
+                      <th style="width:150px">Ações</th>
+                    </tr>
                   </thead>
                   <tbody id="tabelaOpcoes"></tbody>
                 </table>
@@ -1394,7 +1406,8 @@ carregarBannersAdmin();
                 <h5 class="mb-3">Logo do Header</h5>
                 <div class="d-flex align-items-center gap-3 flex-wrap">
                   <div class="text-center">
-                    <img id="previewLogo" class="border rounded" style="max-height:80px; min-height:80px; object-fit:contain; padding:6px;">
+                    <img id="previewLogo" class="border rounded"
+                      style="max-height:80px; min-height:80px; object-fit:contain; padding:6px;">
                   </div>
                   <div class="flex-grow-1">
                     <input type="hidden" id="logoAtual">
@@ -1413,13 +1426,15 @@ carregarBannersAdmin();
                 <h5 class="mb-3">Ícone da Página (Favicon)</h5>
                 <div class="d-flex align-items-center gap-3 flex-wrap">
                   <div class="text-center">
-                    <img id="previewFavicon" class="border rounded" style="max-height:50px; min-height:50px; object-fit:contain; padding:6px;">
+                    <img id="previewFavicon" class="border rounded"
+                      style="max-height:50px; min-height:50px; object-fit:contain; padding:6px;">
                   </div>
                   <div class="flex-grow-1">
                     <input type="hidden" id="faviconAtual">
                     <input type="file" id="inputFavicon" class="form-control mb-2" accept="image/*">
                     <div class="d-flex gap-2">
-                      <button class="btn btn-outline-danger" id="btnRemoverFavicon" type="button">Remover imagem</button>
+                      <button class="btn btn-outline-danger" id="btnRemoverFavicon" type="button">Remover
+                        imagem</button>
                       <small class="text-muted align-self-center">Preferência: PNG 32x32</small>
                     </div>
                   </div>
@@ -1443,7 +1458,8 @@ carregarBannersAdmin();
                 </select>
               </div>
               <div id="listaRegiao" class="d-flex flex-column gap-3"></div>
-              <div id="emptyRegiao" class="text-center text-muted d-none">Nenhum banner cadastrado para esta cidade</div>
+              <div id="emptyRegiao" class="text-center text-muted d-none">Nenhum banner cadastrado para esta cidade
+              </div>
               <div class="d-grid mt-4">
                 <button class="btn btn-primary" onclick="salvarImagensRegiao()">Salvar alterações</button>
               </div>
@@ -1452,21 +1468,24 @@ carregarBannersAdmin();
             <template id="templateRegiao">
               <div class="slide-item border p-3 rounded">
                 <input type="hidden" class="input-id">
-	                <div class="row g-3">
-	                  <div class="col-md-3">
-	                    <label class="form-label small text-muted">Desktop</label>
-	                    <img class="preview preview-desktop img-fluid rounded border mb-2" src="/uploads/anuncios/regioes/1774637770227-851750240.png" />
-	                    <input type="file" class="form-control input-imagem mb-2" accept="image/*">
-	                  </div>
-	                  <div class="col-md-3">
-	                    <label class="form-label small text-muted">Mobile</label>
-	                    <img class="preview preview-mobile img-fluid rounded border mb-2" src="/uploads/anuncios/regioes/1774637770227-851750240.png" />
-	                    <input type="file" class="form-control input-imagem-mobile mb-2" accept="image/*">
-	                  </div>
-	                  <div class="col-md-6">
-	                    <input type="url" class="form-control input-link mb-2" placeholder="URL de direcionamento (opcional)">
-	                    <button type="button" class="btn btn-danger btn-remover">Remover</button>
-	                  </div>
+                <div class="row g-3">
+                  <div class="col-md-3">
+                    <label class="form-label small text-muted">Desktop</label>
+                    <img class="preview preview-desktop img-fluid rounded border mb-2"
+                      src="/uploads/anuncios/regioes/1774637770227-851750240.png" />
+                    <input type="file" class="form-control input-imagem mb-2" accept="image/*">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small text-muted">Mobile</label>
+                    <img class="preview preview-mobile img-fluid rounded border mb-2"
+                      src="/uploads/anuncios/regioes/1774637770227-851750240.png" />
+                    <input type="file" class="form-control input-imagem-mobile mb-2" accept="image/*">
+                  </div>
+                  <div class="col-md-6">
+                    <input type="url" class="form-control input-link mb-2"
+                      placeholder="URL de direcionamento (opcional)">
+                    <button type="button" class="btn btn-danger btn-remover">Remover</button>
+                  </div>
                 </div>
               </div>
             </template>
@@ -1504,26 +1523,26 @@ carregarBannersAdmin();
               const template = document.getElementById("templateRegiao");
               const clone = template.content.cloneNode(true);
               const item = clone.querySelector(".slide-item");
-	              const inputId = item.querySelector(".input-id");
-	              const inputImagem = item.querySelector(".input-imagem");
-	              const inputImagemMobile = item.querySelector(".input-imagem-mobile");
-	              const inputLink = item.querySelector(".input-link");
-	              const preview = item.querySelector(".preview-desktop");
-	              const previewMobile = item.querySelector(".preview-mobile");
-	              const btnRemover = item.querySelector(".btn-remover");
-	              if (dados.id) inputId.value = dados.id;
-	              if (dados.imagem) preview.src = dados.imagem;
-	              if (dados.imagemMobile) previewMobile.src = dados.imagemMobile;
-	              else if (dados.imagem) previewMobile.src = dados.imagem;
-	              if (dados.link) inputLink.value = dados.link;
-	              inputImagem.addEventListener("change", () => {
-	                const file = inputImagem.files[0];
-	                if (file) preview.src = URL.createObjectURL(file);
-	              });
-	              inputImagemMobile.addEventListener("change", () => {
-	                const file = inputImagemMobile.files[0];
-	                if (file) previewMobile.src = URL.createObjectURL(file);
-	              });
+              const inputId = item.querySelector(".input-id");
+              const inputImagem = item.querySelector(".input-imagem");
+              const inputImagemMobile = item.querySelector(".input-imagem-mobile");
+              const inputLink = item.querySelector(".input-link");
+              const preview = item.querySelector(".preview-desktop");
+              const previewMobile = item.querySelector(".preview-mobile");
+              const btnRemover = item.querySelector(".btn-remover");
+              if (dados.id) inputId.value = dados.id;
+              if (dados.imagem) preview.src = dados.imagem;
+              if (dados.imagemMobile) previewMobile.src = dados.imagemMobile;
+              else if (dados.imagem) previewMobile.src = dados.imagem;
+              if (dados.link) inputLink.value = dados.link;
+              inputImagem.addEventListener("change", () => {
+                const file = inputImagem.files[0];
+                if (file) preview.src = URL.createObjectURL(file);
+              });
+              inputImagemMobile.addEventListener("change", () => {
+                const file = inputImagemMobile.files[0];
+                if (file) previewMobile.src = URL.createObjectURL(file);
+              });
               btnRemover.addEventListener("click", async () => {
                 const id = inputId.value;
                 if (!id) { item.remove(); verificarEmptyState(); return; }
@@ -1552,11 +1571,11 @@ carregarBannersAdmin();
                 empty.classList.add("d-none");
                 imagens.forEach(img => {
                   adicionarImagemRegiao({
-	                    id: img.id,
-	                    imagem: `/uploads/anuncios/${img.imagem}`,
-	                    imagemMobile: img.imagem_mobile ? `/uploads/anuncios/${img.imagem_mobile}` : "",
-	                    link: img.link || ""
-	                  });
+                    id: img.id,
+                    imagem: `/uploads/anuncios/${img.imagem}`,
+                    imagemMobile: img.imagem_mobile ? `/uploads/anuncios/${img.imagem_mobile}` : "",
+                    link: img.link || ""
+                  });
                 });
               } catch (err) { console.error("Erro ao carregar imagens:", err); }
             }
@@ -1576,18 +1595,18 @@ carregarBannersAdmin();
               formData.append("estado", estado);
               itens.forEach(item => {
                 const id = item.querySelector(".input-id").value;
-	                const fileInput = item.querySelector(".input-imagem");
-	                const fileInputMobile = item.querySelector(".input-imagem-mobile");
-	                const linkInput = item.querySelector(".input-link");
-	                const file = fileInput.files[0];
-	                const fileMobile = fileInputMobile.files[0];
-	                formData.append("ids[]", id || "");
-	                formData.append("temImagem[]", file ? "true" : "false");
-	                formData.append("temImagemMobile[]", fileMobile ? "true" : "false");
-	                formData.append("links[]", linkInput.value.trim());
-	                if (file) formData.append("imagens", file);
-	                if (fileMobile) formData.append("imagensMobile", fileMobile);
-	              });
+                const fileInput = item.querySelector(".input-imagem");
+                const fileInputMobile = item.querySelector(".input-imagem-mobile");
+                const linkInput = item.querySelector(".input-link");
+                const file = fileInput.files[0];
+                const fileMobile = fileInputMobile.files[0];
+                formData.append("ids[]", id || "");
+                formData.append("temImagem[]", file ? "true" : "false");
+                formData.append("temImagemMobile[]", fileMobile ? "true" : "false");
+                formData.append("links[]", linkInput.value.trim());
+                if (file) formData.append("imagens", file);
+                if (fileMobile) formData.append("imagensMobile", fileMobile);
+              });
               try {
                 const res = await fetch(API_SALVAR_CIDADES, { method: "POST", body: formData });
                 const json = await res.json();
@@ -1668,44 +1687,47 @@ carregarBannersAdmin();
           </div>
 
           <template id="templateSlide">
-	            <div class="card slide-item home-carousel-card border">
-	              <input type="hidden" class="input-id">
-	              <div class="card-body">
-	                <div class="home-carousel-grid">
-		              <div class="home-carousel-media-grid">
-		                  <div class="home-carousel-media">
-		                    <label class="form-label small text-muted">Desktop</label>
-		                    <img class="preview preview-desktop img-fluid rounded mb-2 border" style="max-height:120px; object-fit:cover;">
-		                    <input type="file" class="form-control input-imagem" accept="image/*">
-		                    <small class="text-muted">Nova imagem desktop</small>
-		                  </div>
-		                  <div class="home-carousel-media">
-		                    <label class="form-label small text-muted">Mobile</label>
-		                    <img class="preview preview-mobile img-fluid rounded mb-2 border" style="max-height:120px; object-fit:cover;">
-		                    <input type="file" class="form-control input-imagem-mobile" accept="image/*">
-		                    <small class="text-muted">Nova imagem mobile</small>
-		                  </div>
-		              </div>
-		                  <div class="home-carousel-fields">
-	                    <input type="text" class="form-control mb-2 input-titulo" placeholder="Título exibido sobre a imagem">
-	                    <input type="text" class="form-control mb-2 input-descricao" placeholder="Descrição">
-	                    <input type="text" class="form-control mb-3 input-link" placeholder="Link ao clicar">
-	                    <div class="home-carousel-options">
-	                      <div class="form-check">
-	                        <input class="form-check-input input-ativo" type="checkbox" checked>
-	                        <label class="form-check-label">Visível no site</label>
+            <div class="card slide-item home-carousel-card border">
+              <input type="hidden" class="input-id">
+              <div class="card-body">
+                <div class="home-carousel-grid">
+                  <div class="home-carousel-media-grid">
+                    <div class="home-carousel-media">
+                      <label class="form-label small text-muted">Desktop</label>
+                      <img class="preview preview-desktop img-fluid rounded mb-2 border"
+                        style="max-height:120px; object-fit:cover;">
+                      <input type="file" class="form-control input-imagem" accept="image/*">
+                      <small class="text-muted">Nova imagem desktop</small>
+                    </div>
+                    <div class="home-carousel-media">
+                      <label class="form-label small text-muted">Mobile</label>
+                      <img class="preview preview-mobile img-fluid rounded mb-2 border"
+                        style="max-height:120px; object-fit:cover;">
+                      <input type="file" class="form-control input-imagem-mobile" accept="image/*">
+                      <small class="text-muted">Nova imagem mobile</small>
+                    </div>
+                  </div>
+                  <div class="home-carousel-fields">
+                    <input type="text" class="form-control mb-2 input-titulo"
+                      placeholder="Título exibido sobre a imagem">
+                    <input type="text" class="form-control mb-2 input-descricao" placeholder="Descrição">
+                    <input type="text" class="form-control mb-3 input-link" placeholder="Link ao clicar">
+                    <div class="home-carousel-options">
+                      <div class="form-check">
+                        <input class="form-check-input input-ativo" type="checkbox" checked>
+                        <label class="form-check-label">Visível no site</label>
                       </div>
                       <div>
                         <label class="form-label mb-0">Ordem</label>
                         <input type="number" class="form-control input-ordem" value="0" style="width:90px;">
-	                      </div>
-	                    </div>
-	                  </div>
-		                  <div class="home-carousel-actions">
-	                      <button type="button" class="btn btn-outline-danger btn-remover">Excluir</button>
-	                      <small class="text-muted text-center">Marcar para remover</small>
-	                  </div>
-	                </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="home-carousel-actions">
+                    <button type="button" class="btn btn-outline-danger btn-remover">Excluir</button>
+                    <small class="text-muted text-center">Marcar para remover</small>
+                  </div>
+                </div>
               </div>
             </div>
           </template>
@@ -1786,7 +1808,7 @@ carregarBannersAdmin();
 
   <%- include('../reutilizavel/js-dependencias-sessao') %>
 
-    <script src="./../../js/admin/gerenciamento-de-usuarios.js"></script>
+    <script src="/js/admin/gerenciamento-de-usuarios.js?v=2"></script>
     <script src="./../../js/admin/anuncios-em-analise.js"></script>
     <script src="./../../js/admin/anuncios-publicados.js"></script>
     <script src="./../../js/admin/adicionar-imagens-carrossel.js" defer></script>

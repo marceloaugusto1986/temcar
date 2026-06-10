@@ -41,8 +41,15 @@ async function buscarAnuncioResumoPorSlug(marcaModeloSlug, cidadeSlug, estadoSlu
 
   return anuncios.find((anuncio) => {
     const slugMarcaModelo = slugify([anuncio.marca, anuncio.versao].filter(Boolean).join(' '));
+    const slugMarca = slugify(anuncio.marca);
+    const slugVersao = slugify(anuncio.versao);
+    const marcaModeloCompativel =
+      slugMarcaModelo === marcaModeloSlug ||
+      slugMarcaModelo.startsWith(`${marcaModeloSlug}-`) ||
+      marcaModeloSlug.startsWith(`${slugMarcaModelo}-`) ||
+      (slugMarca && slugVersao && marcaModeloSlug.startsWith(`${slugMarca}-`) && slugVersao.startsWith(marcaModeloSlug.replace(`${slugMarca}-`, '')));
 
-    return slugMarcaModelo === marcaModeloSlug
+    return marcaModeloCompativel
       && slugify(anuncio.cidade) === cidadeSlug
       && slugify(anuncio.estado) === estadoSlug;
   });

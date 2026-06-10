@@ -53,15 +53,31 @@ function obterCidadesAtendimento(usuario) {
 }
 
 function chaveCidadeAtendimento(cidade) {
-  return `${cidade.nome || cidade.cidade}|${cidade.estado}`.toLowerCase();
+  return `${cidade.bairro || ''}|${cidade.nome || cidade.cidade}|${cidade.estado}`.toLowerCase();
+}
+
+function formatarLocalAtendimento(cidade) {
+  const nomeCidade = cidade.cidade || cidade.nome || '';
+  const estado = cidade.estado || '';
+  return cidade.bairro
+    ? `${cidade.bairro}, ${nomeCidade} - ${estado}`
+    : `${nomeCidade} - ${estado}`;
 }
 
 function renderizarPillsCidades(cidades) {
   if (!cidades || !cidades.length) return '<span class="text-muted">Nenhuma cidade adicional cadastrada.</span>';
 
   return cidades
-    .map(cidade => `<span class="badge bg-light text-dark border me-1 mb-1">${cidade.cidade || cidade.nome} / ${cidade.estado}</span>`)
+    .map(cidade => `<span class="badge bg-light text-dark border me-1 mb-1">${formatarLocalAtendimento(cidade)}</span>`)
     .join('');
+}
+
+function escaparAtributo(valor) {
+  return String(valor || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 function renderizarCidadesAtendimentoAdmin() {
@@ -78,7 +94,7 @@ function renderizarCidadesAtendimentoAdmin() {
   usuarioAtualCidadesAtendimento.forEach((cidade, index) => {
     const item = document.createElement('span');
     item.className = 'badge bg-light text-dark border me-1 mb-1';
-    item.textContent = `${cidade.nome || cidade.cidade} / ${cidade.estado}`;
+    item.textContent = formatarLocalAtendimento(cidade);
 
     const remover = document.createElement('button');
     remover.type = 'button';
@@ -99,16 +115,37 @@ async function carregarSelectCidadesAtendimentoAdmin() {
   if (!select) return;
 
   try {
-    const response = await fetch('/api/cidades');
-    if (!response.ok) throw new Error('Erro ao carregar cidades');
-    const cidades = await response.json();
+    const [responseCidades, responseBairros] = await Promise.all([
+      fetch('/api/cidades'),
+      fetch('/api/bairros')
+    ]);
+    if (!responseCidades.ok) throw new Error('Erro ao carregar cidades');
+    const cidades = await responseCidades.json();
+    const bairros = responseBairros.ok ? await responseBairros.json() : [];
+    const locais = [
+      ...cidades.map(cidade => ({
+        tipo: 'cidade',
+        nome: cidade.nome,
+        cidade: cidade.nome,
+        estado: cidade.estado,
+        bairro: ''
+      })),
+      ...bairros.map(bairro => ({
+        tipo: 'bairro',
+        nome: bairro.cidade || bairro.cidade_nome,
+        cidade: bairro.cidade || bairro.cidade_nome,
+        estado: bairro.estado,
+        bairro: bairro.nome
+      }))
+    ];
 
-    cidades
-      .sort((a, b) => `${a.nome} ${a.estado}`.localeCompare(`${b.nome} ${b.estado}`, 'pt-BR'))
-      .forEach(cidade => {
+    locais
+      .filter(local => local.cidade && local.estado)
+      .sort((a, b) => formatarLocalAtendimento(a).localeCompare(formatarLocalAtendimento(b), 'pt-BR'))
+      .forEach(local => {
         const option = document.createElement('option');
-        option.value = JSON.stringify({ nome: cidade.nome, estado: cidade.estado });
-        option.textContent = `${cidade.nome} / ${cidade.estado}`;
+        option.value = JSON.stringify(local);
+        option.textContent = formatarLocalAtendimento(local);
         select.appendChild(option);
       });
   } catch (error) {
@@ -123,11 +160,13 @@ async function verUsuario(id) {
   const { usuario } = await response.json();
   usuarioAtualCidadesAtendimento = obterCidadesAtendimento(usuario)
     .map(item => ({
+      bairro: item.bairro || '',
       nome: item.nome || item.cidade,
       cidade: item.cidade || item.nome,
       estado: item.estado
     }))
-    .filter(item => (item.nome || item.cidade) && item.estado);
+    .filter(item => (item.nome || item.cidade) && item.estado)
+    .slice(0, 3);
 
   document.querySelector('.tabela-usuarios').classList.add('d-none');
   document.querySelector('.visualizar-usuario').classList.remove('d-none');
@@ -174,6 +213,87 @@ async function verUsuario(id) {
           </div>
         </div>
       </div>
+	    </div>
+	  </div>
+
+	  <!-- 🔹 EDITAR ANUNCIANTE -->
+	  <div class="col-12">
+	    <div class="border rounded-3 p-4 bg-white shadow-sm">
+	      <h6 class="text-uppercase text-muted mb-3">Editar anunciante</h6>
+
+	      <div class="row g-3">
+	        <div class="col-md-6">
+	          <label class="form-label small text-muted">Nome</label>
+	          <input id="editUsuarioNome" class="form-control" value="${escaparAtributo(usuario.nome)}">
+	        </div>
+
+	        <div class="col-md-6">
+	          <label class="form-label small text-muted">E-mail</label>
+	          <input id="editUsuarioEmail" type="email" class="form-control" value="${escaparAtributo(usuario.email)}">
+	        </div>
+
+	        <div class="col-md-4">
+	          <label class="form-label small text-muted">WhatsApp</label>
+	          <input id="editUsuarioWhatsapp" class="form-control" value="${escaparAtributo(usuario.whatsapp)}">
+	        </div>
+
+	        <div class="col-md-4">
+	          <label class="form-label small text-muted">Telefone</label>
+	          <input id="editUsuarioTelefone" class="form-control" value="${escaparAtributo(usuario.telefone)}">
+	        </div>
+
+	        <div class="col-md-4">
+	          <label class="form-label small text-muted">Plano</label>
+	          <input id="editUsuarioPlano" class="form-control" value="${escaparAtributo(usuario.plano_desejado || usuario.plano)}">
+	        </div>
+
+	        <div class="col-md-6">
+	          <label class="form-label small text-muted">CPF</label>
+	          <input id="editUsuarioCpf" class="form-control" value="${escaparAtributo(usuario.cpf)}">
+	        </div>
+
+	        <div class="col-md-6">
+	          <label class="form-label small text-muted">CNPJ</label>
+	          <input id="editUsuarioCnpj" class="form-control" value="${escaparAtributo(usuario.cnpj)}">
+	        </div>
+
+	        <div class="col-md-3">
+	          <label class="form-label small text-muted">CEP</label>
+	          <input id="editUsuarioCep" class="form-control" value="${escaparAtributo(usuario.cep)}">
+	        </div>
+
+	        <div class="col-md-5">
+	          <label class="form-label small text-muted">Rua</label>
+	          <input id="editUsuarioRua" class="form-control" value="${escaparAtributo(usuario.rua)}">
+	        </div>
+
+	        <div class="col-md-2">
+	          <label class="form-label small text-muted">Número</label>
+	          <input id="editUsuarioNumero" class="form-control" value="${escaparAtributo(usuario.numero)}">
+	        </div>
+
+	        <div class="col-md-4">
+	          <label class="form-label small text-muted">Bairro</label>
+	          <input id="editUsuarioBairro" class="form-control" value="${escaparAtributo(usuario.bairro)}">
+	        </div>
+
+	        <div class="col-md-4">
+	          <label class="form-label small text-muted">Cidade</label>
+	          <input id="editUsuarioCidade" class="form-control" value="${escaparAtributo(usuario.cidade)}">
+	        </div>
+
+	        <div class="col-md-2">
+	          <label class="form-label small text-muted">Estado</label>
+	          <input id="editUsuarioEstado" class="form-control" maxlength="2" value="${escaparAtributo(usuario.estado)}">
+	        </div>
+
+	        <div class="col-12 d-flex align-items-center gap-3 flex-wrap">
+	          <button type="button" class="btn btn-danger" onclick="salvarDadosUsuarioAdmin()">
+	            Salvar alterações
+	          </button>
+	          <span id="editUsuarioFeedback" class="small"></span>
+	        </div>
+	      </div>
 	    </div>
 	  </div>
 
@@ -305,17 +425,18 @@ async function verUsuario(id) {
 
       <div class="row g-3 align-items-end">
         <div class="col-md-8">
-          <label class="form-label small text-muted">Cidade de atuação</label>
+          <label class="form-label small text-muted">Local de atuação</label>
           <select id="adminCidadeAtendimento" class="form-control">
-            <option value="">Selecione uma cidade</option>
+            <option value="">Selecione uma cidade ou bairro</option>
           </select>
         </div>
         <div class="col-md-4">
           <button type="button" class="btn btn-outline-danger w-100" onclick="adicionarCidadeAtendimentoAdmin()">
-            Adicionar cidade
+            Adicionar local
           </button>
         </div>
       </div>
+      <small class="text-muted d-block mt-2">Escolha até 3 locais.</small>
 
       <div id="adminCidadesAtendimentoLista" class="mt-3"></div>
 
@@ -363,6 +484,64 @@ async function verUsuario(id) {
 	  }
 	  carregarAnunciosDoUsuario(id);
 	}
+
+function obterValorCampo(id) {
+  return document.getElementById(id)?.value?.trim() || '';
+}
+
+async function salvarDadosUsuarioAdmin() {
+  if (!usuarioAtualId) return;
+
+  const feedback = document.getElementById('editUsuarioFeedback');
+  if (feedback) {
+    feedback.textContent = 'Salvando...';
+    feedback.className = 'small text-muted';
+  }
+
+  const payload = {
+    nome: obterValorCampo('editUsuarioNome'),
+    email: obterValorCampo('editUsuarioEmail'),
+    whatsapp: obterValorCampo('editUsuarioWhatsapp'),
+    telefone: obterValorCampo('editUsuarioTelefone'),
+    plano: obterValorCampo('editUsuarioPlano'),
+    cpf: obterValorCampo('editUsuarioCpf'),
+    cnpj: obterValorCampo('editUsuarioCnpj'),
+    cep: obterValorCampo('editUsuarioCep'),
+    rua: obterValorCampo('editUsuarioRua'),
+    numero: obterValorCampo('editUsuarioNumero'),
+    bairro: obterValorCampo('editUsuarioBairro'),
+    cidade: obterValorCampo('editUsuarioCidade'),
+    estado: obterValorCampo('editUsuarioEstado').toUpperCase()
+  };
+
+  try {
+    const response = await fetch(`/api/admin/usuarios/${usuarioAtualId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Erro ao atualizar anunciante.');
+    }
+
+    if (feedback) {
+      feedback.textContent = data.message || 'Anunciante atualizado com sucesso.';
+      feedback.className = 'small text-success';
+    }
+
+    await carregarUsuarios();
+    await verUsuario(usuarioAtualId);
+  } catch (error) {
+    if (feedback) {
+      feedback.textContent = error.message;
+      feedback.className = 'small text-danger';
+    }
+  }
+}
 
 async function carregarCapaUsuario(usuarioId) {
   const img = document.getElementById('imagemCapaUsuario');
@@ -455,14 +634,24 @@ function adicionarCidadeAtendimentoAdmin() {
   if (!select || !select.value) return;
 
   const cidade = JSON.parse(select.value);
+  if (usuarioAtualCidadesAtendimento.length >= 3) {
+    const feedback = document.getElementById('adminCidadesFeedback');
+    if (feedback) {
+      feedback.textContent = 'Escolha no máximo 3 locais de atuação.';
+      feedback.className = 'small text-danger';
+    }
+    return;
+  }
+
   const jaExiste = usuarioAtualCidadesAtendimento.some(item =>
     chaveCidadeAtendimento(item) === chaveCidadeAtendimento(cidade)
   );
 
   if (!jaExiste) {
     usuarioAtualCidadesAtendimento.push({
+      bairro: cidade.bairro || '',
       nome: cidade.nome,
-      cidade: cidade.nome,
+      cidade: cidade.cidade || cidade.nome,
       estado: cidade.estado
     });
     renderizarCidadesAtendimentoAdmin();

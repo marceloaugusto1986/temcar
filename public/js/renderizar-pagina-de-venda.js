@@ -137,8 +137,15 @@ function verRevenda(usuarioId, anunciante) {
 
     if (anunciante.tipo === "revenda") {
         link.style.display = "inline-block"
+        const endereco = anunciante.endereco || {}
         const nome = anunciante.nome || anunciante.nome_anunciante || anunciante.razao_social || usuarioId
-        link.href = `/revenda/${criarSlugVenda(nome) || usuarioId}`
+        const segmentos = [
+            nome,
+            endereco.bairro,
+            endereco.cidade,
+            endereco.estado
+        ].filter(Boolean).map(criarSlugVenda)
+        link.href = `/revenda/${segmentos.join("/") || usuarioId}`
     } else {
         link.style.display = "none"
     }

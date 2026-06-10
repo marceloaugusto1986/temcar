@@ -100,7 +100,7 @@ router.get('/sitemap.xml', async (req, res) => {
     // Revendas dinâmicas
     let revendasUrls = [];
     try {
-      const [revendas] = await db.query(`SELECT id, nome FROM usuarios WHERE tipo = 'revenda'`);
+      const [revendas] = await db.query(`SELECT id, nome, bairro, cidade, estado FROM usuarios WHERE tipo = 'revenda'`);
       revendasUrls = revendas.map(r => ({
         loc: montarCaminhoRevenda(r),
         priority: '0.6',

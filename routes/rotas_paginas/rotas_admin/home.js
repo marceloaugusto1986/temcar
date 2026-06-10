@@ -86,16 +86,59 @@ async function garantirTabelaCidadesRevendas() {
     CREATE TABLE IF NOT EXISTS revendas_cidades (
       id INT AUTO_INCREMENT PRIMARY KEY,
       usuario_id INT NOT NULL,
+      bairro VARCHAR(150) NOT NULL DEFAULT '',
       cidade VARCHAR(150) NOT NULL,
       estado VARCHAR(2) NOT NULL,
       criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE KEY uniq_revenda_cidade (usuario_id, cidade, estado),
+      UNIQUE KEY uniq_revenda_cidade (usuario_id, bairro, cidade, estado),
+      KEY idx_revendas_cidades_usuario (usuario_id),
       CONSTRAINT fk_revenda_cidade_usuario
         FOREIGN KEY (usuario_id)
         REFERENCES usuarios(id)
         ON DELETE CASCADE
     )
   `);
+
+  const [colunas] = await db.query(`
+    SELECT COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'revendas_cidades'
+      AND COLUMN_NAME = 'bairro'
+  `);
+
+  if (!colunas.length) {
+    await db.query(`
+      ALTER TABLE revendas_cidades
+      ADD COLUMN bairro VARCHAR(150) NOT NULL DEFAULT '' AFTER usuario_id
+    `);
+  }
+
+  const [indices] = await db.query(`
+    SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) AS colunas
+    FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'revendas_cidades'
+      AND INDEX_NAME = 'uniq_revenda_cidade'
+    GROUP BY INDEX_NAME
+  `);
+
+  if (indices[0]?.colunas !== 'usuario_id,bairro,cidade,estado') {
+    await db.query(`
+      ALTER TABLE revendas_cidades
+      ADD INDEX idx_revendas_cidades_usuario (usuario_id)
+    `).catch(error => {
+      if (error.code !== 'ER_DUP_KEYNAME') throw error;
+    });
+
+    if (indices.length) {
+      await db.query('ALTER TABLE revendas_cidades DROP INDEX uniq_revenda_cidade');
+    }
+    await db.query(`
+      ALTER TABLE revendas_cidades
+      ADD UNIQUE KEY uniq_revenda_cidade (usuario_id, bairro, cidade, estado)
+    `);
+  }
 }
 
 function obterListaCampo(body, nome) {
@@ -158,10 +201,10 @@ router.get('/api/admin/usuarios/:id', checkAuth('private'), async (req, res) => 
 
     const [cidadesAtendimento] = await db.query(
       `
-      SELECT cidade, estado
+      SELECT bairro, cidade, estado
       FROM revendas_cidades
       WHERE usuario_id = ?
-      ORDER BY cidade ASC, estado ASC
+      ORDER BY cidade ASC, bairro ASC, estado ASC
       `,
       [id]
     );
@@ -206,10 +249,12 @@ router.put('/api/admin/usuarios/:id/cidades-atendimento', checkAuth('private'), 
 
     const cidadesValidas = cidadesAtendimento
       .map(item => ({
+        bairro: String(item?.bairro || '').trim(),
         cidade: String(item?.nome || item?.cidade || '').trim(),
         estado: String(item?.estado || '').trim().toUpperCase()
       }))
-      .filter(item => item.cidade && /^[A-Z]{2}$/.test(item.estado));
+      .filter(item => item.cidade && /^[A-Z]{2}$/.test(item.estado))
+      .slice(0, 3);
 
     const conn = await db.getConnection();
 
@@ -218,9 +263,9 @@ router.put('/api/admin/usuarios/:id/cidades-atendimento', checkAuth('private'), 
       await conn.query('DELETE FROM revendas_cidades WHERE usuario_id = ?', [id]);
 
       if (cidadesValidas.length) {
-        const valores = cidadesValidas.map(item => [id, item.cidade, item.estado]);
+        const valores = cidadesValidas.map(item => [id, item.bairro, item.cidade, item.estado]);
         await conn.query(
-          'INSERT IGNORE INTO revendas_cidades (usuario_id, cidade, estado) VALUES ?',
+          'INSERT IGNORE INTO revendas_cidades (usuario_id, bairro, cidade, estado) VALUES ?',
           [valores]
         );
       }
@@ -279,6 +324,90 @@ router.put('/api/admin/usuarios/:id/senha', checkAuth('private'), async (req, re
     return res.status(500).json({
       message: 'Erro interno do servidor.'
     });
+  }
+});
+
+router.put('/api/admin/usuarios/:id', checkAuth('private'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      nome,
+      email,
+      whatsapp,
+      telefone,
+      cpf,
+      cnpj,
+      cep,
+      rua,
+      numero,
+      bairro,
+      cidade,
+      estado,
+      plano
+    } = req.body;
+
+    if (Number(id) === 1) {
+      return res.status(403).json({ message: 'Não é permitido editar o administrador principal por esta tela.' });
+    }
+
+    if (!nome || !email) {
+      return res.status(400).json({ message: 'Nome e e-mail são obrigatórios.' });
+    }
+
+    const [[emailExistente]] = await db.query(
+      'SELECT id FROM usuarios WHERE email = ? AND id <> ? LIMIT 1',
+      [String(email).trim(), id]
+    );
+
+    if (emailExistente) {
+      return res.status(400).json({ message: 'Este e-mail já está em uso por outro anunciante.' });
+    }
+
+    const [resultado] = await db.query(
+      `
+      UPDATE usuarios
+      SET
+        nome = ?,
+        email = ?,
+        whatsapp = ?,
+        telefone = ?,
+        cpf = ?,
+        cnpj = ?,
+        cep = ?,
+        rua = ?,
+        numero = ?,
+        bairro = ?,
+        cidade = ?,
+        estado = ?,
+        plano_desejado = ?
+      WHERE id = ? AND id > 1
+      `,
+      [
+        String(nome || '').trim(),
+        String(email || '').trim(),
+        String(whatsapp || '').trim(),
+        String(telefone || '').trim(),
+        String(cpf || '').trim(),
+        String(cnpj || '').trim(),
+        String(cep || '').trim(),
+        String(rua || '').trim(),
+        String(numero || '').trim(),
+        String(bairro || '').trim(),
+        String(cidade || '').trim(),
+        String(estado || '').trim().toUpperCase(),
+        String(plano || '').trim(),
+        id
+      ]
+    );
+
+    if (!resultado.affectedRows) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    return res.json({ message: 'Anunciante atualizado com sucesso.' });
+  } catch (err) {
+    console.error('Erro ao atualizar usuário pelo admin:', err);
+    return res.status(500).json({ message: 'Erro interno ao atualizar anunciante.' });
   }
 });
 
