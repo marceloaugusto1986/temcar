@@ -12,33 +12,19 @@ const ITENS_POR_PAGINA = 9;
 ========================== */
 const cardsContainer = document.getElementById("cards-container");
 const filtroForm = document.getElementById("filtro-form");
-
-const selectRevenda =
-    document.getElementById("select-revenda");
-
-const selectCidadeRevenda =
-    document.getElementById("select-cidadeRevenda");
-
-const prevBtn =
-    document.getElementById("prev-btn");
-
-const nextBtn =
-    document.getElementById("next-btn");
-
-const pageInfo =
-    document.getElementById("page-info");
+const selectRevenda = document.getElementById("select-revenda");
+const selectCidadeRevenda = document.getElementById("select-cidadeRevenda");
 
 /* =========================
    HELPERS
 ========================== */
 function normalizar(texto) {
-
     return (texto || "")
         .toString()
         .toLowerCase()
         .trim()
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
+        .replace(/[̀-ͯ]/g, "");
 }
 
 function slugify(texto) {
@@ -48,7 +34,18 @@ function slugify(texto) {
 }
 
 function capitalize(texto) {
-    return (texto || "").replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+    const minusculas = new Set(["da", "de", "do", "das", "dos", "e", "a", "o", "em", "no", "na"]);
+    return (texto || "")
+        .replace(/-/g, " ")
+        .split(" ")
+        .map((word, i) => {
+            if (!word) return word;
+            const lower = word.toLowerCase();
+            return (i === 0 || !minusculas.has(lower))
+                ? lower.charAt(0).toUpperCase() + lower.slice(1)
+                : lower;
+        })
+        .join(" ");
 }
 
 function obterCidadeFiltro() {
@@ -69,36 +66,30 @@ function obterUfFiltro() {
 function obterCidadesAtendimento(revenda) {
     if (!revenda.cidades_atendimento) return [];
     if (Array.isArray(revenda.cidades_atendimento)) return revenda.cidades_atendimento;
-
     try {
         const parsed = JSON.parse(revenda.cidades_atendimento);
         return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
+    } catch {
         return [];
     }
 }
 
 function revendaAtendeCidade(revenda, cidadeSlug, ufSlug) {
-    const cidadePrincipalOk =
+    const principal =
         slugify(revenda.cidade) === cidadeSlug &&
         normalizar(revenda.estado) === ufSlug;
-
-    if (cidadePrincipalOk) return true;
-
+    if (principal) return true;
     return obterCidadesAtendimento(revenda).some(item =>
-        slugify(item.cidade) === cidadeSlug &&
-        normalizar(item.estado) === ufSlug
+        slugify(item.cidade) === cidadeSlug && normalizar(item.estado) === ufSlug
     );
 }
 
 function revendaAtendeBairro(revenda, bairroSlug, cidadeSlug, ufSlug) {
-    const enderecoPrincipalOk =
+    const principal =
         slugify(revenda.bairro) === bairroSlug &&
         slugify(revenda.cidade) === cidadeSlug &&
         normalizar(revenda.estado) === ufSlug;
-
-    if (enderecoPrincipalOk) return true;
-
+    if (principal) return true;
     return obterCidadesAtendimento(revenda).some(item =>
         slugify(item.bairro) === bairroSlug &&
         slugify(item.cidade) === cidadeSlug &&
@@ -113,10 +104,7 @@ function filtrarPorContexto(lista) {
     const bairroSlug = filtro.bairro || "";
 
     return lista.filter(revenda => {
-        if (bairroSlug) {
-            return revendaAtendeBairro(revenda, bairroSlug, cidadeSlug, ufSlug);
-        }
-
+        if (bairroSlug) return revendaAtendeBairro(revenda, bairroSlug, cidadeSlug, ufSlug);
         if (cidadeSlug && !revendaAtendeCidade(revenda, cidadeSlug, ufSlug)) return false;
         return true;
     });
@@ -128,7 +116,6 @@ function atualizarTitulos() {
     const hero = document.getElementById("titulo-revendas-hero");
 
     let texto = "Revendas Parceiras";
-
     if (filtro.bairro) {
         texto = `Revendas em ${obterBairroFiltro()}, ${obterCidadeFiltro()} - ${obterUfFiltro()}`;
     } else if (filtro.cidade) {
@@ -136,38 +123,26 @@ function atualizarTitulos() {
     }
 
     if (titulo) titulo.textContent = texto;
-    if (hero) hero.textContent = texto;
+    if (hero) hero.innerHTML = texto;
 }
 
 /* =========================
    API
 ========================== */
 async function carregarRevendas() {
-
     try {
+        const response = await fetch("/api/revendas-ativas");
+        if (!response.ok) throw new Error("Erro ao carregar");
 
-        const response =
-            await fetch("/api/revendas-ativas");
-
-        if (!response.ok) {
-            throw new Error("Erro ao carregar");
-        }
-
-        todasRevendas =
-            filtrarPorContexto(await response.json());
+        todasRevendas = await response.json();
 
         preencherSelectRevenda();
         preencherSelectCidadeRevenda();
         atualizarTitulos();
-
         aplicarFiltros();
-
     } catch (error) {
-
         console.error(error);
-
-        cardsContainer.innerHTML =
-            "<p>Erro ao carregar revendas.</p>";
+        cardsContainer.innerHTML = "<p class='text-center text-danger'>Erro ao carregar revendas.</p>";
     }
 }
 
@@ -175,250 +150,178 @@ async function carregarRevendas() {
    FILTROS
 ========================== */
 function preencherSelectRevenda() {
-
-    selectRevenda.innerHTML =
-        `<option value="">Busque pelo nome</option>`;
-
-    const nomes = [
-        ...new Set(
-            todasRevendas.map(r => r.nome)
-        )
-    ].sort();
-
-    nomes.forEach(nome => {
-
-        const option =
-            document.createElement("option");
-
-        option.value = nome;
-        option.textContent = nome;
-
-        selectRevenda.appendChild(option);
+    selectRevenda.innerHTML = `<option value="">Busque pelo nome</option>`;
+    [...new Set(todasRevendas.map(r => r.nome))].sort().forEach(nome => {
+        const opt = document.createElement("option");
+        opt.value = nome;
+        opt.textContent = nome;
+        selectRevenda.appendChild(opt);
     });
 }
 
 function preencherSelectCidadeRevenda() {
-
-    selectCidadeRevenda.innerHTML =
-        `<option value="">Filtre por cidade</option>`;
-
+    selectCidadeRevenda.innerHTML = `<option value="">Filtre por cidade</option>`;
     const cidades = [
         ...new Set(
             todasRevendas.flatMap(r => [
                 `${r.cidade} - ${r.estado}`,
                 ...obterCidadesAtendimento(r).map(item => `${item.cidade} - ${item.estado}`)
-            ])
-            .filter(item => item && !item.startsWith(" - "))
+            ]).filter(item => item && !item.startsWith(" - "))
         )
     ].sort();
 
     cidades.forEach(item => {
-
-        const [cidadeNome] =
-            item.split(" - ");
-
-        const option =
-            document.createElement("option");
-
-        option.value = cidadeNome;
-        option.textContent = item;
-
-        selectCidadeRevenda.appendChild(option);
+        const [cidadeNome] = item.split(" - ");
+        const opt = document.createElement("option");
+        opt.value = cidadeNome;
+        opt.textContent = item;
+        selectCidadeRevenda.appendChild(opt);
     });
 }
 
 function aplicarFiltros() {
+    const nome = normalizar(selectRevenda.value);
+    const cidade = normalizar(selectCidadeRevenda.value);
 
-    const nome =
-        normalizar(selectRevenda.value);
+    // Quando nenhuma cidade está selecionada no dropdown, aplica o filtro da URL (contexto)
+    const base = cidade ? todasRevendas : filtrarPorContexto(todasRevendas);
 
-    const cidade =
-        normalizar(selectCidadeRevenda.value);
-
-    revendasFiltradas =
-        todasRevendas.filter(r => {
-
-            const matchNome =
-                !nome ||
-                normalizar(r.nome)
-                    .includes(nome);
-
-            const matchCidade =
-                !cidade ||
-                normalizar(r.cidade)
-                    .includes(cidade) ||
-                obterCidadesAtendimento(r).some(item =>
-                    normalizar(item.cidade).includes(cidade)
-                );
-
-            return (
-                matchNome &&
-                matchCidade
-            );
-        });
+    revendasFiltradas = base.filter(r => {
+        const matchNome = !nome || normalizar(r.nome).includes(nome);
+        const matchCidade = !cidade ||
+            normalizar(r.cidade).includes(cidade) ||
+            obterCidadesAtendimento(r).some(item => normalizar(item.cidade).includes(cidade));
+        return matchNome && matchCidade;
+    });
 
     paginaAtual = 1;
-
     renderizarPagina();
 }
 
 /* =========================
    PAGINAÇÃO
 ========================== */
-function obterPaginaAtual() {
+function renderizarPaginacao() {
+    const totalPaginas = Math.ceil(revendasFiltradas.length / ITENS_POR_PAGINA);
+    const ul = document.getElementById("paginacao");
+    if (!ul) return;
+    ul.innerHTML = "";
+    if (totalPaginas === 0) return;
 
-    const inicio =
-        (paginaAtual - 1)
-        *
-        ITENS_POR_PAGINA;
+    ul.innerHTML += `<li class="page-item ${paginaAtual === 1 ? 'disabled' : ''}">
+        <button class="page-link" onclick="mudarPagina(${paginaAtual - 1})">Anterior</button>
+    </li>`;
 
-    const fim =
-        inicio + ITENS_POR_PAGINA;
+    const inicio = Math.max(1, paginaAtual - 2);
+    const fim = Math.min(totalPaginas, paginaAtual + 2);
 
-    return revendasFiltradas.slice(inicio, fim);
+    if (inicio > 1) {
+        ul.innerHTML += `<li class="page-item"><button class="page-link" onclick="mudarPagina(1)">1</button></li>`;
+        if (inicio > 2) ul.innerHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+    }
+
+    for (let i = inicio; i <= fim; i++) {
+        ul.innerHTML += `<li class="page-item ${i === paginaAtual ? 'active' : ''}">
+            <button class="page-link" onclick="mudarPagina(${i})">${i}</button>
+        </li>`;
+    }
+
+    if (fim < totalPaginas) {
+        if (fim < totalPaginas - 1) ul.innerHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+        ul.innerHTML += `<li class="page-item"><button class="page-link" onclick="mudarPagina(${totalPaginas})">${totalPaginas}</button></li>`;
+    }
+
+    ul.innerHTML += `<li class="page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}">
+        <button class="page-link" onclick="mudarPagina(${paginaAtual + 1})">Próximo</button>
+    </li>`;
 }
 
-function renderizarPagina() {
+function mudarPagina(pagina) {
+    const totalPaginas = Math.ceil(revendasFiltradas.length / ITENS_POR_PAGINA);
+    if (pagina < 1 || pagina > totalPaginas) return;
+    paginaAtual = pagina;
+    renderizarPagina();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
+/* =========================
+   RENDERIZAÇÃO
+========================== */
+function renderizarPagina() {
     cardsContainer.innerHTML = "";
 
-    const pagina =
-        obterPaginaAtual();
+    const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+    const pagina = revendasFiltradas.slice(inicio, inicio + ITENS_POR_PAGINA);
 
     if (!pagina.length) {
-        const cidade = obterCidadeFiltro()
-        const uf = obterUfFiltro()
-        const bairro = obterBairroFiltro()
+        const cidade = obterCidadeFiltro();
+        const uf = obterUfFiltro();
+        const bairro = obterBairroFiltro();
 
-        let textoTitulo = "Revendas Parceiras"
-        if (bairro && cidade) textoTitulo = `Revendas em <strong>${bairro}, ${cidade} - ${uf}</strong>`
-        else if (cidade) textoTitulo = `Revendas em <strong>${cidade} - ${uf}</strong>`
+        let textoTitulo = "Revendas Parceiras";
+        if (bairro && cidade) textoTitulo = `Revendas em <strong>${bairro}, ${cidade} - ${uf}</strong>`;
+        else if (cidade) textoTitulo = `Revendas em <strong>${cidade} - ${uf}</strong>`;
 
-        document.getElementById("titulo-revendas")?.classList.add("d-none")
+        document.getElementById("titulo-revendas")?.classList.add("d-none");
 
         cardsContainer.innerHTML = `
-            <div style="grid-column: 1 / -1;">
-                <div class="cidade-empty-state">
-                    <div class="cidade-empty-icon">
-                        <i class="bi bi-buildings"></i>
-                    </div>
-                    <p class="cidade-empty-title">${textoTitulo}</p>
-                    <p class="cidade-empty-promo">
-                        <strong>Atenção Revendas</strong><br>
-                        Aproveite nossa promoção de lançamento e anuncie seus veículos gratuitamente até agosto de 2026.
-                    </p>
-                    <div class="cidade-empty-actions">
-                        <a class="btn btn-danger" href="/vender">Anunciar grátis</a>
-                    </div>
+            <div class="cidade-empty-state">
+                <div class="cidade-empty-icon"><i class="bi bi-buildings"></i></div>
+                <p class="cidade-empty-title">${textoTitulo}</p>
+                <p class="cidade-empty-promo">
+                    <strong>Atenção Revendas</strong><br>
+                    Aproveite nossa promoção de lançamento e anuncie seus veículos gratuitamente até agosto de 2026.
+                </p>
+                <div class="cidade-empty-actions">
+                    <a class="btn btn-danger" href="/vender">Anunciar grátis</a>
                 </div>
-            </div>
-        `
+            </div>`;
 
-        atualizarPaginacao();
+        renderizarPaginacao();
         return;
     }
 
-    pagina.forEach(r => {
-
-        cardsContainer.appendChild(
-            criarCard(r)
-        );
-    });
-
-    atualizarPaginacao();
+    pagina.forEach(r => cardsContainer.appendChild(criarCard(r)));
+    renderizarPaginacao();
 }
-
-function atualizarPaginacao() {
-
-    const totalPaginas =
-        Math.ceil(
-            revendasFiltradas.length
-            /
-            ITENS_POR_PAGINA
-        ) || 1;
-
-    pageInfo.textContent =
-        `Página ${paginaAtual} de ${totalPaginas}`;
-
-    prevBtn.disabled =
-        paginaAtual === 1;
-
-    nextBtn.disabled =
-        paginaAtual === totalPaginas;
-}
-
-prevBtn.addEventListener("click", () => {
-
-    if (paginaAtual > 1) {
-        paginaAtual--;
-        renderizarPagina();
-    }
-});
-
-nextBtn.addEventListener("click", () => {
-
-    const totalPaginas =
-        Math.ceil(
-            revendasFiltradas.length
-            /
-            ITENS_POR_PAGINA
-        );
-
-    if (paginaAtual < totalPaginas) {
-        paginaAtual++;
-        renderizarPagina();
-    }
-});
 
 /* =========================
    CARD
 ========================== */
 function criarCard(r) {
-
-    const card =
-        document.createElement("div");
-
-    card.className =
-        "revenda-card";
+    const card = document.createElement("div");
+    card.className = "revenda-card";
+    card.onclick = () => { window.location.href = r.url || `/revenda/${r.id}`; };
 
     const logoHtml = r.logo
-        ? `<img class="revenda-logo" src="${r.logo}" alt="${r.nome}">`
+        ? `<img class="revenda-logo" src="${r.logo}" alt="${r.nome}" onerror="this.style.display='none'">`
         : "";
 
     card.innerHTML = `
         ${logoHtml}
-
         <div class="revenda-info">
-
             <h3>${r.nome}</h3>
-
-            <div class="local">
+            <p class="local">
+                <i class="bi bi-geo-alt-fill" style="color:#C90B0C;"></i>
                 ${r.bairro ? `${r.bairro}, ` : ""}${r.cidade} - ${r.estado}
-            </div>
+            </p>
+            <button class="ver-estoque" type="button">Ver Estoque</button>
+        </div>`;
 
-            <button class="ver-estoque" type="button">
-                Ver Estoque
-            </button>
-
-        </div>
-    `;
-
-    card.querySelector(".ver-estoque")
-        .addEventListener("click", () => {
-            window.location.href = r.url || `/revenda/${r.id}`;
-        });
+    card.querySelector(".ver-estoque").addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = r.url || `/revenda/${r.id}`;
+    });
 
     return card;
 }
 
 /* =========================
-   SUBMIT DO FORM (AQUI ESTÁ A CORREÇÃO)
+   SUBMIT DO FORM
 ========================== */
 filtroForm.addEventListener("submit", (e) => {
-
-    e.preventDefault(); // impede reload
-
-    aplicarFiltros();   // dispara filtro igual "change"
+    e.preventDefault();
+    aplicarFiltros();
 });
 
 /* =========================

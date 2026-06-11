@@ -24,6 +24,14 @@ const tipoMap = {
 // UTIL
 // ===============================
 
+function ordenarComDestaque(lista) {
+    const shuffle = arr => arr.sort(() => Math.random() - 0.5)
+    return [
+        ...shuffle(lista.filter(v => v.destaque == 1)),
+        ...shuffle(lista.filter(v => v.destaque != 1))
+    ]
+}
+
 function formatarValor(valor) {
     const numero = Number(valor)
     if (!numero || isNaN(numero)) return "Consulte"
@@ -81,7 +89,18 @@ function montarUrlVenda(item) {
 }
 
 function capitalize(texto) {
-    return (texto || "").replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+    const minusculas = new Set(["da", "de", "do", "das", "dos", "e", "a", "o", "em", "no", "na"])
+    return (texto || "")
+        .replace(/-/g, " ")
+        .split(" ")
+        .map((word, i) => {
+            if (!word) return word
+            const lower = word.toLowerCase()
+            return (i === 0 || !minusculas.has(lower))
+                ? lower.charAt(0).toUpperCase() + lower.slice(1)
+                : lower
+        })
+        .join(" ")
 }
 
 function valorFiltroLocal(chaveSlug, chaveNome, queryKey) {
@@ -231,7 +250,8 @@ async function carregarVeiculos() {
         if (!resp.ok) throw new Error("Erro ao buscar veículos")
 
         listaVeiculos = await resp.json()
-        listaVeiculosOriginal = [...listaVeiculos]
+        listaVeiculosOriginal = ordenarComDestaque([...listaVeiculos])
+        listaVeiculos = [...listaVeiculosOriginal]
 
         controlarVisibilidadeSidebar(listaVeiculosOriginal.length)
         montarFiltrosDinamicos()
@@ -438,7 +458,7 @@ function renderizarPaginacao() {
 
     if (!paginacao) return
     paginacao.innerHTML = ""
-    if (totalPaginas <= 1) return
+    if (totalPaginas === 0) return
 
     paginacao.innerHTML += `
         <li class="page-item ${paginaAtual === 1 ? "disabled" : ""}">
@@ -449,12 +469,22 @@ function renderizarPaginacao() {
     const inicio = Math.max(1, paginaAtual - 2)
     const fim = Math.min(totalPaginas, paginaAtual + 2)
 
+    if (inicio > 1) {
+        paginacao.innerHTML += `<li class="page-item"><button class="page-link" onclick="mudarPagina(1)">1</button></li>`
+        if (inicio > 2) paginacao.innerHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`
+    }
+
     for (let i = inicio; i <= fim; i++) {
         paginacao.innerHTML += `
             <li class="page-item ${i === paginaAtual ? "active" : ""}">
                 <button class="page-link" onclick="mudarPagina(${i})">${i}</button>
             </li>
         `
+    }
+
+    if (fim < totalPaginas) {
+        if (fim < totalPaginas - 1) paginacao.innerHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`
+        paginacao.innerHTML += `<li class="page-item"><button class="page-link" onclick="mudarPagina(${totalPaginas})">${totalPaginas}</button></li>`
     }
 
     paginacao.innerHTML += `

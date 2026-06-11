@@ -23,28 +23,6 @@
         }
     </style>
     <style>
-        .vehicle-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            width: 280px;
-        }
-
-        .vehicle-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-        }
-
-        .badge-status {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 10;
-        }
-
-        .vehicle-img {
-            height: 180px;
-            object-fit: cover;
-        }
-
         .revenda-page .btn-abrir-filtro,
         .revenda-page .barra_lateral,
         .revenda-page .overlay {
@@ -55,15 +33,11 @@
             width: 100%;
         }
 
-
-        @media(max-width: 576px) {
-            .vehicle-card {
-                max-width: 100%;
-            }
-
-            .vehicle-img {
-                height: 200px;
-            }
+        .revenda-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 260px);
+            gap: 20px;
+            justify-content: start;
         }
     </style>
 </head>
@@ -228,76 +202,37 @@
             <!-- CONTEÚDO -->
             <main class="conteudo">
 
-                <!-- BANNER ORIGINAL -->
-                <section class="banner">
-                    <!-- id="revendaLogo" -->
-                    <img id="logoRevendaPagina" width="200" style="border-radius:10px;border:2px solid white;display:none"
-                        alt="Logo da revenda">
+                <!-- BANNER REVENDA -->
+                <section class="banner d-flex align-items-start gap-3 flex-wrap">
 
-                    <script>
-                        (async () => {
-                            try {
-                                // 1. Captura o ID do revendedor da URL
-                                const revendaId = window.__REVENDA_ID__ || window.location.pathname.split('/').pop();
+                    <img id="logoRevendaPagina"
+                         style="width:110px;height:110px;object-fit:cover;border-radius:10px;border:2px solid rgba(255,255,255,.4);display:none;flex-shrink:0;"
+                         alt="Logo da revenda">
 
-                                if (!revendaId) return; // se não tiver ID, não faz nada
+                    <div class="d-flex flex-column gap-2 flex-grow-1" style="min-width:0;">
 
-                                // 2. Faz requisição para pegar a logo
-                                const response = await fetch(`/api/revenda/logo/${revendaId}`);
-                                if (!response.ok) throw new Error('Erro ao buscar logo do revendedor');
-
-                                const data = await response.json();
-
-                                // 3. Atualiza a imagem se existir logo cadastrada
-                                const imgElement = document.getElementById('logoRevendaPagina');
-                                if (data.logo) {
-                                    imgElement.src = data.logo;
-                                    imgElement.style.display = '';
-                                } else {
-                                    imgElement.removeAttribute('src');
-                                    imgElement.style.display = 'none';
-                                }
-                            } catch (error) {
-                                console.error('Erro ao carregar logo da revenda:', error);
-                            }
-                        })();
-                    </script>
-
-                    <div class="d-flex flex-column gap-3">
-
-                        <div style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-                            <i class="bi bi-buildings"></i>
-                            <h2 id="revendaNome">007 Veículos</h2>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-buildings fs-5"></i>
+                            <h2 id="revendaNome" class="mb-0 fw-bold fs-4">Carregando...</h2>
                         </div>
 
-                        <div class="d-flex gap-3 flex-wrap">
+                        <p id="revendaEndereco" class="mb-0 small" style="opacity:.9;"></p>
 
-                            <div>
-                                <strong id="revendaEndereco">
-                                    Ana Peixoto, 665 - Jacutinga/Mesquita
-                                </strong>
+                        <div class="d-flex align-items-center gap-1 small flex-wrap">
+                            <i class="bi bi-telephone"></i>
+                            <span id="revendaTelefone1"></span>
+                            <span style="opacity:.5;">|</span>
+                            <span id="revendaTelefone2"></span>
+                        </div>
 
-                                <div style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-                                    <i class="bi bi-telephone"></i>
-                                    <div id="revendaTelefone1">21982671559</div>
-                                    <span>/</span>
-                                    <div id="revendaTelefone2">21982671559</div>
-                                </div>
-                            </div>
-
-                            <div style="display: flex; flex-direction: column; align-items: center;">
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                                    <button id="btnMapa" class="btn btn-light btn-sm"><i class="bi bi-geo-alt"></i>
-                                        Mapa</button>
-                                    <button id="btnContato" class="btn btn-light btn-sm"><i class="bi bi-whatsapp"></i>
-                                        Whatsapp</button>
-                                </div>
-
-                                <div id="revendaDesde" class="mt-2">
-                                    Parceiro desde 11/2020
-                                </div>
-                            </div>
-
+                        <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+                            <button id="btnMapa" class="btn btn-light btn-sm fw-semibold">
+                                <i class="bi bi-geo-alt"></i> Mapa
+                            </button>
+                            <button id="btnContato" class="btn btn-light btn-sm fw-semibold">
+                                <i class="bi bi-whatsapp"></i> WhatsApp
+                            </button>
+                            <span id="revendaDesde" class="small" style="opacity:.75;"></span>
                         </div>
 
                     </div>
@@ -305,7 +240,7 @@
                 </section>
 
                 <!-- CARDS -->
-                <section class="cards" id="listaCards"></section>
+                <div id="listaCards" class="revenda-cards"></div>
 
                 <!-- PAGINAÇÃO -->
                 <nav class="mt-4">
@@ -316,7 +251,7 @@
         </div>
 
         <%- include('./reutilizavel/footer-public') %>
-            <script src="/js/revenda.js?v=6"></script>
+            <script src="/js/revenda.js?v=8"></script>
 
 </body>
 

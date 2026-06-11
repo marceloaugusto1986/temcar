@@ -13,7 +13,18 @@ function slugify(texto) {
 }
 
 function capitalize(texto) {
-  return (texto || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const minusculas = new Set(['da', 'de', 'do', 'das', 'dos', 'e', 'a', 'o', 'em', 'no', 'na']);
+  return (texto || '')
+    .replace(/-/g, ' ')
+    .split(' ')
+    .map((word, i) => {
+      if (!word) return word;
+      const lower = word.toLowerCase();
+      return (i === 0 || !minusculas.has(lower))
+        ? lower.charAt(0).toUpperCase() + lower.slice(1)
+        : lower;
+    })
+    .join(' ');
 }
 
 async function buscarCidadePorSlugUf(slug, uf) {
@@ -26,19 +37,30 @@ async function buscarBairroPorSlugCidadeUf(bairroSlug, cidade, uf) {
 
   try {
     [bairros] = await db.query(
-      `
-      SELECT nome
-      FROM bairros
-      WHERE cidade COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci
-        AND LOWER(estado) = ?
-      `,
+      `SELECT nome FROM bairros
+       WHERE cidade COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci
+         AND LOWER(estado) = ?`,
       [cidade.nome, uf.toLowerCase()]
     );
   } catch (error) {
     if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
   }
 
-  return bairros.find(bairro => slugify(bairro.nome) === bairroSlug) || null;
+  const doBairros = bairros.find(b => slugify(b.nome) === bairroSlug);
+  if (doBairros) return doBairros;
+
+  try {
+    const [usuarios] = await db.query(
+      `SELECT DISTINCT bairro AS nome FROM usuarios
+       WHERE cidade COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci
+         AND LOWER(estado) = ?
+         AND bairro IS NOT NULL AND bairro != ''`,
+      [cidade.nome, uf.toLowerCase()]
+    );
+    return usuarios.find(u => slugify(u.nome) === bairroSlug) || null;
+  } catch {
+    return null;
+  }
 }
 
 function obterUrlUpload(imagem) {
@@ -169,9 +191,16 @@ router.get("/cidade/:bairro/:cidade/:uf", async (req, res) => {
 // ── /veiculos/:estado/:cidade/:bairro ──
 router.get("/veiculos/:estado/:cidade/:bairro", async (req, res) => {
   const { estado, cidade, bairro } = req.params;
-  const nomeBairro  = capitalize(bairro);
-  const nomeCidade  = capitalize(cidade);
-  const ufUpper     = estado.toUpperCase();
+  const cidadeSlug = slugify(cidade);
+  const ufSlug = slugify(estado);
+  const bairroSlug = slugify(bairro);
+  const cidadeEncontrada = await buscarCidadePorSlugUf(cidadeSlug, ufSlug);
+  const bairroEncontrado = cidadeEncontrada
+    ? await buscarBairroPorSlugCidadeUf(bairroSlug, cidadeEncontrada, ufSlug)
+    : null;
+  const nomeBairro = bairroEncontrado?.nome || capitalize(bairro);
+  const nomeCidade = cidadeEncontrada ? cidadeEncontrada.nome : capitalize(cidade);
+  const ufUpper    = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : estado.toUpperCase();
 
   const seo = await getSeoCidade({ nome: nomeCidade, estado: ufUpper }, nomeBairro);
   const breadcrumbs = [
@@ -198,8 +227,9 @@ router.get("/veiculos/:estado/:cidade/:bairro", async (req, res) => {
 // ── /veiculos/:estado/:cidade ──
 router.get("/veiculos/:estado/:cidade", async (req, res) => {
   const { estado, cidade } = req.params;
-  const nomeCidade = capitalize(cidade);
-  const ufUpper    = estado.toUpperCase();
+  const cidadeEncontrada = await buscarCidadePorSlugUf(slugify(cidade), slugify(estado));
+  const nomeCidade = cidadeEncontrada ? cidadeEncontrada.nome : capitalize(cidade);
+  const ufUpper    = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : estado.toUpperCase();
 
   const seo = {
     titulo: `Veículos em ${nomeCidade} - ${ufUpper} | TEMCAR`,

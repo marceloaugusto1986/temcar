@@ -6,12 +6,20 @@ let anunciosOriginais = []
 let anunciosFiltrados = []
 let itens = []
 
-const itensPorPagina = 7
+const itensPorPagina = 12
 let paginaAtual = 1
 
 /* ================================
    UTIL
 ================================ */
+
+function ordenarComDestaque(lista) {
+    const shuffle = arr => arr.sort(() => Math.random() - 0.5)
+    return [
+        ...shuffle(lista.filter(v => v.destaque == 1)),
+        ...shuffle(lista.filter(v => v.destaque != 1))
+    ]
+}
 
 function obterIdRevenda() {
     const id = window.__REVENDA_ID__ || window.location.pathname.split('/').pop()
@@ -79,21 +87,17 @@ function montarLocalizacao(item) {
 ================================ */
 
 async function carregarAnuncios() {
-    console.log("🔄 Carregando anúncios...")
     try {
         const revendaId = obterIdRevenda()
         const response = await fetch(`/api/revenda/${revendaId}/anuncios`)
         if (!response.ok) throw new Error("Erro ao carregar anúncios")
         const data = await response.json()
-        console.log("📦 Dados recebidos:", data)
 
-        anunciosOriginais = data
+        anunciosOriginais = ordenarComDestaque(data)
         anunciosFiltrados = [...anunciosOriginais]
 
         montarFiltrosDinamicos()
         atualizarLista()
-
-        console.log("✅ Anúncios armazenados:", anunciosFiltrados.length)
     } catch (erro) {
         console.error("Erro ao carregar anúncios:", erro)
         const container = document.getElementById("listaCards")
@@ -105,7 +109,6 @@ async function carregarAnuncios() {
    MONTAR FILTROS DINÂMICOS
 ================================ */
 function montarFiltrosDinamicos() {
-    console.log("⚙️ Montando filtros dinâmicos");
 
     // Função segura para JSON
     function parseAcessorios(valor) {
@@ -194,12 +197,8 @@ function preencherSelect(id, valores) {
 }
 
 function preencherListaMarcas(marcas) {
-    console.log("Preenchendo marcas:", marcas);
     const container = document.getElementById("filtroMarcas");
-    if (!container) {
-        console.warn("Container de marcas não encontrado!");
-        return;
-    }
+    if (!container) return;
     container.innerHTML = "";
     marcas.forEach(marca => {
         container.innerHTML += `<label><input type="checkbox" value="${marca}"> ${marca}</label><br>`;
@@ -212,8 +211,6 @@ function preencherListaMarcas(marcas) {
 ================================ */
 
 function aplicarFiltros() {
-    console.log("🧪 Aplicando filtros...");
-
     const filtros = {
         busca: document.getElementById("filtroBusca")?.value.toLowerCase().trim() || "",
         local: document.getElementById("filtroLocal")?.value.toLowerCase().trim() || "",
@@ -236,8 +233,6 @@ function aplicarFiltros() {
         estadoNovo: document.getElementById("filtroNovo")?.checked || false,
         estadoUsado: document.getElementById("filtroUsado")?.checked || false
     }
-
-    console.log("📝 Filtros capturados:", filtros);
 
     anunciosFiltrados = anunciosOriginais.filter(item => {
         const acessorios = item.acessorios ? JSON.parse(item.acessorios) : []
@@ -267,8 +262,6 @@ function aplicarFiltros() {
 
         return true
     })
-
-    console.log("✅ Resultado após filtro:", anunciosFiltrados.length);
 
     paginaAtual = 1
     atualizarLista()
@@ -318,8 +311,6 @@ function atualizarLista() {
         destaque: a.destaque,
         nome: a.nome
     }))
-    console.log("🎨 Renderizando tela")
-    console.log("Lista atual tamanho:", itens.length)
     renderizarCards()
     renderizarPaginacao()
 }
@@ -358,16 +349,15 @@ function renderizarCards() {
     const inicio = (paginaAtual - 1) * itensPorPagina
     const fim = inicio + itensPorPagina
     const paginaItens = itens.slice(inicio, fim)
-    console.log("Itens exibidos:", paginaItens.length)
     paginaItens.forEach(item => {
         const detalhesPrincipais = montarDetalhesPrincipais(item)
         const detalhesSecundarios = montarDetalhesSecundarios(item)
         const localizacao = montarLocalizacao(item)
 
-        container.innerHTML += `
-<div>
-  <div class="card shadow-sm vehicle-card position-relative"
-       style="width: 280px; cursor: pointer; border-radius: 6px; overflow: hidden;"
+        const col = document.createElement("div")
+        col.innerHTML = `
+  <div class="card shadow-sm h-100 position-relative"
+       style="cursor:pointer;border-radius:6px;overflow:hidden;"
        onclick="window.location.href='${montarUrlVenda(item)}'">
 
     ${item.destaque == 1 ? `
@@ -379,34 +369,35 @@ function renderizarCards() {
         ⭐ Destaque
       </span>` : ''}
 
-    <img 
+    <img
       src="${item.imagem ? `/uploads/anuncios/${item.imagem}` : '/img/sem-foto.jpg'}"
-      class="card-img-top vehicle-img"
+      class="card-img-top"
       style="height:182px;object-fit:cover;"
       onerror="this.src='/img/sem-foto.jpg'"
+      alt="${item.marca || ''} ${item.versao || ''}"
     >
 
     <div class="card-body d-flex flex-column" style="padding:14px 16px 12px;">
 
-      <h5 class="fw-bold text-uppercase mb-1" style="font-size:1rem; line-height:1.2;">
+      <h5 class="fw-bold text-uppercase mb-1" style="font-size:1rem;line-height:1.2;">
         <span style="color:#1f2328;">${item.marca || ''}</span>
         <span style="color:#C90B0C;"> ${item.versao || ''}</span>
       </h5>
 
-      <p class="mb-2" style="color:#666; font-size:.88rem; line-height:1.25; font-weight:600;">
+      <p class="mb-2" style="color:#666;font-size:.88rem;line-height:1.25;font-weight:600;">
         ${detalhesPrincipais || "&nbsp;"}
       </p>
 
       <div class="d-flex align-items-baseline mb-1" style="gap:6px;">
-        <strong style="color:#C90B0C; font-size:1.18rem; line-height:1;">
+        <strong style="color:#C90B0C;font-size:1.18rem;line-height:1;">
           ${formatarPreco(item.preco)}
         </strong>
-        <strong style="color:#2b2f36; font-size:1.05rem;">
+        <strong style="color:#2b2f36;font-size:1.05rem;">
           ${item.ano ? `| ${item.ano}` : ""}
         </strong>
       </div>
 
-      <p class="mb-2" style="color:#666; font-size:.84rem; line-height:1.25; font-weight:600;">
+      <p class="mb-2" style="color:#666;font-size:.84rem;line-height:1.25;font-weight:600;">
         ${detalhesSecundarios || "&nbsp;"}
       </p>
 
@@ -414,15 +405,14 @@ function renderizarCards() {
         <i class="bi bi-building"></i> ${item.nome || "Revenda"}
       </p>
 
-      <p class="small mb-0 text-truncate" style="min-width:0; color:#3f4650; font-size:.88rem;">
+      <p class="small mb-0 text-truncate" style="min-width:0;color:#3f4650;font-size:.88rem;">
         <i class="bi bi-geo-alt-fill" style="color:#C90B0C;"></i>
         ${localizacao}
       </p>
 
     </div>
-  </div>
-</div>
-`
+  </div>`
+        container.appendChild(col)
     })
 }
 
@@ -435,16 +425,31 @@ function renderizarPaginacao() {
     const ul = document.getElementById("paginacao")
     if (!ul) return
     ul.innerHTML = ""
-    if (totalPaginas <= 1) return
+    if (totalPaginas === 0) return
 
     ul.innerHTML += `<li class="page-item ${paginaAtual === 1 ? 'disabled' : ''}">
         <button class="page-link" onclick="mudarPagina(${paginaAtual - 1})">Anterior</button>
     </li>`
-    for (let i = 1; i <= totalPaginas; i++) {
+
+    const inicio = Math.max(1, paginaAtual - 2)
+    const fim = Math.min(totalPaginas, paginaAtual + 2)
+
+    if (inicio > 1) {
+        ul.innerHTML += `<li class="page-item"><button class="page-link" onclick="mudarPagina(1)">1</button></li>`
+        if (inicio > 2) ul.innerHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`
+    }
+
+    for (let i = inicio; i <= fim; i++) {
         ul.innerHTML += `<li class="page-item ${i === paginaAtual ? 'active' : ''}">
             <button class="page-link" onclick="mudarPagina(${i})">${i}</button>
         </li>`
     }
+
+    if (fim < totalPaginas) {
+        if (fim < totalPaginas - 1) ul.innerHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`
+        ul.innerHTML += `<li class="page-item"><button class="page-link" onclick="mudarPagina(${totalPaginas})">${totalPaginas}</button></li>`
+    }
+
     ul.innerHTML += `<li class="page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}">
         <button class="page-link" onclick="mudarPagina(${paginaAtual + 1})">Próximo</button>
     </li>`
@@ -455,6 +460,7 @@ function mudarPagina(pagina) {
     if (pagina < 1 || pagina > totalPaginas) return
     paginaAtual = pagina
     renderizarCards()
+    renderizarPaginacao()
     window.scrollTo({ top: 0, behavior: "smooth" })
 }
 
@@ -513,8 +519,7 @@ function formatarTelefone(numero) {
 }
 
 function preencherBannerRevenda(revenda) {
-    // LOGO
-    const logo = document.getElementById("revendaLogo");
+    const logo = document.getElementById("logoRevendaPagina");
     if (logo) {
         if (revenda.logo) {
             logo.src = revenda.logo;

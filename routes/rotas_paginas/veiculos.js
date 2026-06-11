@@ -14,12 +14,53 @@ function slugify(texto) {
 }
 
 function capitalize(texto) {
-  return (texto || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const minusculas = new Set(['da', 'de', 'do', 'das', 'dos', 'e', 'a', 'o', 'em', 'no', 'na']);
+  return (texto || '')
+    .replace(/-/g, ' ')
+    .split(' ')
+    .map((word, i) => {
+      if (!word) return word;
+      const lower = word.toLowerCase();
+      return (i === 0 || !minusculas.has(lower))
+        ? lower.charAt(0).toUpperCase() + lower.slice(1)
+        : lower;
+    })
+    .join(' ');
 }
 
 async function buscarCidadePorSlugUf(cidadeSlug, ufSlug) {
   const [cidades] = await db.query('SELECT nome, estado FROM cidades WHERE LOWER(estado) = ?', [ufSlug]);
   return cidades.find(cidade => slugify(cidade.nome) === cidadeSlug) || null;
+}
+
+async function buscarBairroPorSlugCidadeUf(bairroSlug, cidade, uf) {
+  let bairros = [];
+  try {
+    [bairros] = await db.query(
+      `SELECT nome FROM bairros
+       WHERE cidade COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci
+         AND LOWER(estado) = ?`,
+      [cidade.nome, uf.toLowerCase()]
+    );
+  } catch (error) {
+    if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
+  }
+
+  const doBairros = bairros.find(b => slugify(b.nome) === bairroSlug);
+  if (doBairros) return doBairros;
+
+  try {
+    const [usuarios] = await db.query(
+      `SELECT DISTINCT bairro AS nome FROM usuarios
+       WHERE cidade COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci
+         AND LOWER(estado) = ?
+         AND bairro IS NOT NULL AND bairro != ''`,
+      [cidade.nome, uf.toLowerCase()]
+    );
+    return usuarios.find(u => slugify(u.nome) === bairroSlug) || null;
+  } catch {
+    return null;
+  }
 }
 
 async function garantirTabelaCidadesRevendas() {
@@ -271,7 +312,10 @@ router.get('/:tipo(carros|motos|utilitarios)/:bairro/:cidade/:uf', async (req, r
   const cidadeSlug = slugify(cidade);
   const ufSlug = slugify(uf);
   const cidadeEncontrada = await buscarCidadePorSlugUf(cidadeSlug, ufSlug);
-  const nomeBairro = capitalize(bairroSlug);
+  const bairroEncontrado = cidadeEncontrada
+    ? await buscarBairroPorSlugCidadeUf(bairroSlug, cidadeEncontrada, ufSlug)
+    : null;
+  const nomeBairro = bairroEncontrado?.nome || capitalize(bairroSlug);
   const nomeCidade = cidadeEncontrada ? cidadeEncontrada.nome : capitalize(cidadeSlug);
   const ufUpper = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : ufSlug.toUpperCase();
 

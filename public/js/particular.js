@@ -13,6 +13,14 @@ let paginaAtual = 1
    UTIL
 ================================ */
 
+function ordenarComDestaque(lista) {
+    const shuffle = arr => arr.sort(() => Math.random() - 0.5)
+    return [
+        ...shuffle(lista.filter(v => v.destaque == 1)),
+        ...shuffle(lista.filter(v => v.destaque != 1))
+    ]
+}
+
 function obterListaAtual() {
     return anunciosFiltrados
 }
@@ -47,7 +55,18 @@ function obterAcessorios(acessorios) {
 }
 
 function capitalize(texto) {
-    return (texto || "").replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+    const minusculas = new Set(["da", "de", "do", "das", "dos", "e", "a", "o", "em", "no", "na"])
+    return (texto || "")
+        .replace(/-/g, " ")
+        .split(" ")
+        .map((word, i) => {
+            if (!word) return word
+            const lower = word.toLowerCase()
+            return (i === 0 || !minusculas.has(lower))
+                ? lower.charAt(0).toUpperCase() + lower.slice(1)
+                : lower
+        })
+        .join(" ")
 }
 
 function obterCidadeFiltro() {
@@ -90,10 +109,10 @@ function atualizarTituloParticular() {
     let sub = "Encontre veículos de particulares no TEMCAR"
 
     if (filtro.bairro) {
-        texto = `Particulares em ${obterBairroFiltro()}, ${obterCidadeFiltro()} - ${obterUfFiltro()}`
+        texto = `Veículos de Particulares em ${obterBairroFiltro()}, ${obterCidadeFiltro()} - ${obterUfFiltro()}`
         sub = "Veículos de particulares no seu bairro"
     } else if (filtro.cidade) {
-        texto = `Particulares em ${obterCidadeFiltro()} - ${obterUfFiltro()}`
+        texto = `Veículos de Particulares em ${obterCidadeFiltro()} - ${obterUfFiltro()}`
         sub = "Veículos de particulares na sua cidade"
     }
 
@@ -156,7 +175,7 @@ async function carregarAnuncios() {
         const data = await response.json()
         console.log("📦 Dados recebidos:", data)
 
-        anunciosOriginais = filtrarPorContexto(data)
+        anunciosOriginais = ordenarComDestaque(filtrarPorContexto(data))
         anunciosFiltrados = [...anunciosOriginais]
 
         montarFiltrosDinamicos()
@@ -386,9 +405,9 @@ function renderizarSemResultados(container) {
     const uf = obterUfFiltro()
     const bairro = obterBairroFiltro()
 
-    let textoTitulo = "Particulares à Venda"
-    if (bairro && cidade) textoTitulo = `Particulares à venda em <strong>${bairro}, ${cidade} - ${uf}</strong>`
-    else if (cidade) textoTitulo = `Particulares à venda em <strong>${cidade} - ${uf}</strong>`
+    let textoTitulo = "Veículos de Particulares à Venda"
+    if (bairro && cidade) textoTitulo = `Veículos de Particulares à venda em <strong>${bairro}, ${cidade} - ${uf}</strong>`
+    else if (cidade) textoTitulo = `Veículos de Particulares à venda em <strong>${cidade} - ${uf}</strong>`
 
     document.getElementById("titulo-particular")?.closest("div")?.classList.add("d-none")
 
@@ -499,16 +518,31 @@ function renderizarPaginacao() {
     const ul = document.getElementById("paginacao")
     if (!ul) return
     ul.innerHTML = ""
-    if (totalPaginas <= 1) return
+    if (totalPaginas === 0) return
 
     ul.innerHTML += `<li class="page-item ${paginaAtual === 1 ? 'disabled' : ''}">
         <button class="page-link" onclick="mudarPagina(${paginaAtual - 1})">Anterior</button>
     </li>`
-    for (let i = 1; i <= totalPaginas; i++) {
+
+    const inicio = Math.max(1, paginaAtual - 2)
+    const fim = Math.min(totalPaginas, paginaAtual + 2)
+
+    if (inicio > 1) {
+        ul.innerHTML += `<li class="page-item"><button class="page-link" onclick="mudarPagina(1)">1</button></li>`
+        if (inicio > 2) ul.innerHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`
+    }
+
+    for (let i = inicio; i <= fim; i++) {
         ul.innerHTML += `<li class="page-item ${i === paginaAtual ? 'active' : ''}">
             <button class="page-link" onclick="mudarPagina(${i})">${i}</button>
         </li>`
     }
+
+    if (fim < totalPaginas) {
+        if (fim < totalPaginas - 1) ul.innerHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`
+        ul.innerHTML += `<li class="page-item"><button class="page-link" onclick="mudarPagina(${totalPaginas})">${totalPaginas}</button></li>`
+    }
+
     ul.innerHTML += `<li class="page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}">
         <button class="page-link" onclick="mudarPagina(${paginaAtual + 1})">Próximo</button>
     </li>`
@@ -519,6 +553,7 @@ function mudarPagina(pagina) {
     if (pagina < 1 || pagina > totalPaginas) return
     paginaAtual = pagina
     renderizarCards()
+    renderizarPaginacao()
     window.scrollTo({ top: 0, behavior: "smooth" })
 }
 

@@ -15,6 +15,14 @@ let bairroSelecionado = ""
 // UTIL
 // ===============================
 
+function ordenarComDestaque(lista) {
+    const shuffle = arr => arr.sort(() => Math.random() - 0.5)
+    return [
+        ...shuffle(lista.filter(v => v.destaque == 1)),
+        ...shuffle(lista.filter(v => v.destaque != 1))
+    ]
+}
+
 function criarSlug(texto) {
     return (texto || "")
         .toString()
@@ -208,7 +216,7 @@ async function carregarAnunciosDaCidade() {
 
         // filtrar pela cidade do slug E pelo estado (UF)
         const uf = obterUfAtual()
-        listaCidadeAnuncios = listaAnuncios.filter(item => anuncioAtendeCidade(item, slug, uf))
+        listaCidadeAnuncios = ordenarComDestaque(listaAnuncios.filter(item => anuncioAtendeCidade(item, slug, uf)))
         aplicarFiltroBairro(false)
 
         controlarVisibilidadeSidebar(listaCidadeAnuncios.length)
@@ -494,7 +502,18 @@ function renderizarLista() {
 }
 
 function capitalize(texto) {
-    return (texto || "").replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+    const minusculas = new Set(["da", "de", "do", "das", "dos", "e", "a", "o", "em", "no", "na"])
+    return (texto || "")
+        .replace(/-/g, " ")
+        .split(" ")
+        .map((word, i) => {
+            if (!word) return word
+            const lower = word.toLowerCase()
+            return (i === 0 || !minusculas.has(lower))
+                ? lower.charAt(0).toUpperCase() + lower.slice(1)
+                : lower
+        })
+        .join(" ")
 }
 
 function obterCidadeFiltro() {
@@ -643,22 +662,24 @@ function renderizarPaginacaoCidade() {
     const paginacao = document.getElementById("paginacao")
 
     if (!paginacao) return
-
     paginacao.innerHTML = ""
+    if (totalPaginas === 0) return
 
-    if (totalPaginas <= 1) return
-
-    // anterior
     paginacao.innerHTML += `
         <li class="page-item ${paginaAtualCidade === 1 ? "disabled" : ""}">
-            <button class="page-link" onclick="mudarPaginaCidade(${paginaAtualCidade - 1})">
-                Anterior
-            </button>
+            <button class="page-link" onclick="mudarPaginaCidade(${paginaAtualCidade - 1})">Anterior</button>
         </li>
     `
 
-    // números
-    for (let i = 1; i <= totalPaginas; i++) {
+    const inicio = Math.max(1, paginaAtualCidade - 2)
+    const fim = Math.min(totalPaginas, paginaAtualCidade + 2)
+
+    if (inicio > 1) {
+        paginacao.innerHTML += `<li class="page-item"><button class="page-link" onclick="mudarPaginaCidade(1)">1</button></li>`
+        if (inicio > 2) paginacao.innerHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`
+    }
+
+    for (let i = inicio; i <= fim; i++) {
         paginacao.innerHTML += `
             <li class="page-item ${i === paginaAtualCidade ? "active" : ""}">
                 <button class="page-link" onclick="mudarPaginaCidade(${i})">${i}</button>
@@ -666,12 +687,14 @@ function renderizarPaginacaoCidade() {
         `
     }
 
-    // próximo
+    if (fim < totalPaginas) {
+        if (fim < totalPaginas - 1) paginacao.innerHTML += `<li class="page-item disabled"><span class="page-link">…</span></li>`
+        paginacao.innerHTML += `<li class="page-item"><button class="page-link" onclick="mudarPaginaCidade(${totalPaginas})">${totalPaginas}</button></li>`
+    }
+
     paginacao.innerHTML += `
         <li class="page-item ${paginaAtualCidade === totalPaginas ? "disabled" : ""}">
-            <button class="page-link" onclick="mudarPaginaCidade(${paginaAtualCidade + 1})">
-                Próximo
-            </button>
+            <button class="page-link" onclick="mudarPaginaCidade(${paginaAtualCidade + 1})">Próximo</button>
         </li>
     `
 }
@@ -683,6 +706,7 @@ function mudarPaginaCidade(pagina) {
 
     paginaAtualCidade = pagina
     renderizarLista()
+    renderizarPaginacaoCidade()
 
     window.scrollTo({ top: 0, behavior: "smooth" })
 }
