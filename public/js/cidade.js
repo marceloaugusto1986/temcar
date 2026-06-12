@@ -629,8 +629,6 @@ function renderizarCidadeSemAnuncios(container) {
 
     container.innerHTML = `
         <div class="cidade-empty-state">
-            <h2 class="veiculos-empty-heading">${tituloHeading}</h2>
-
             <div class="cidade-empty-icon">
                 <i class="bi ${tipo.icon}"></i>
             </div>

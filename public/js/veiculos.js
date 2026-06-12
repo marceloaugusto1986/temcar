@@ -242,9 +242,12 @@ async function carregarVeiculos() {
         if (ufSelecionada) params.set('uf', ufSelecionada)
         if (bairroSelecionado) params.set('bairro', bairroSelecionado)
 
-        if (query.get('marca') || query.get('marcas')) params.set('marca', query.get('marca') || query.get('marcas'))
-        if (query.get('carroceria')) params.set('carroceria', query.get('carroceria'))
-        if (query.get('busca')) params.set('busca', query.get('busca'))
+        const marcaParam = filtro.marcaNome || filtro.marca || query.get('marca') || query.get('marcas')
+        if (marcaParam) params.set('marca', marcaParam)
+        const carroceriaParam = filtro.carroceriaNome || filtro.carroceria || query.get('carroceria')
+        if (carroceriaParam) params.set('carroceria', carroceriaParam)
+        const buscaParam = filtro.modeloNome || filtro.modelo || query.get('busca')
+        if (buscaParam) params.set('busca', buscaParam)
 
         const resp = await fetch(`/api/veiculos?${params.toString()}`)
         if (!resp.ok) throw new Error("Erro ao buscar veículos")
@@ -554,9 +557,12 @@ function montarFiltrosDinamicos() {
 
     const container = document.getElementById("filtroMarcas")
     if (container) {
+        const filtro = window.FILTRO || {}
+        const marcaAtiva = (filtro.marcaNome || "").toLowerCase()
         container.innerHTML = ""
         marcas.forEach(marca => {
-            container.innerHTML += `<label><input type="checkbox" value="${marca}"> ${marca}</label><br>`
+            const checado = marcaAtiva && marca.toLowerCase() === marcaAtiva ? " checked" : ""
+            container.innerHTML += `<label><input type="checkbox" value="${marca}"${checado}> ${marca}</label><br>`
         })
     }
 }

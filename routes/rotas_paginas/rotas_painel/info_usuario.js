@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
 const multer = require("multer");
-//const uploadOriginal = require('../middlewares/upload'); // seu multer existente
+const converterWebp = require("../../../middlewares/converterWebp");
 
 router.get('/api/get/usuario/sessao', (req, res) => {
   if (!req.session.usuario) {
@@ -389,7 +389,7 @@ router.get("/api/revenda/logo/:usuarioId", async (req, res) => {
 // -----------------------
 // POST: Criar logo (primeira vez)
 // -----------------------
-router.post("/api/revenda/logo/:usuarioId", upload.single("logo"), async (req, res) => {
+router.post("/api/revenda/logo/:usuarioId", upload.single("logo"), converterWebp, async (req, res) => {
   try {
     const { usuarioId } = req.params;
     const file = req.file;
@@ -420,7 +420,7 @@ router.post("/api/revenda/logo/:usuarioId", upload.single("logo"), async (req, r
 // -----------------------
 // PUT: Atualizar logo
 // -----------------------
-router.put("/api/revenda/logo/:usuarioId", upload.single("logo"), async (req, res) => {
+router.put("/api/revenda/logo/:usuarioId", upload.single("logo"), converterWebp, async (req, res) => {
   try {
     const { usuarioId } = req.params;
     const file = req.file;

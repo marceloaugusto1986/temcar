@@ -41,6 +41,52 @@
     .venda-aviso--mobile {
         padding: 0 12px;
     }
+
+    .venda-seguranca {
+        max-width: 1200px;
+        margin: 16px auto 0;
+        background: #fff8e1;
+        border: 1px solid #ffe082;
+        border-radius: 8px;
+        padding: 16px 20px;
+        font-size: 0.875rem;
+        color: #2d3035;
+    }
+
+    .venda-seguranca--mobile {
+        margin: 12px 12px 0;
+    }
+
+    .venda-seguranca__titulo {
+        font-weight: 700;
+        color: #b45309;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .venda-seguranca__lista {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .venda-seguranca__lista li {
+        display: flex;
+        gap: 8px;
+        line-height: 1.5;
+    }
+
+    .venda-seguranca__lista li::before {
+        content: "•";
+        color: #b45309;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
 </style>
 
 <body class="bg-light">
@@ -501,13 +547,27 @@
                                         </div>
                                     </div>
 
-                                    <div class="venda-aviso venda-aviso--desktop d-none d-lg-block">
-                                        <span>
-                                            <strong>ATENÇÃO:</strong> O site <a href="https://www.temcar.com.br"
-                                                target="_blank" rel="noopener noreferrer">www.temcar.com.br</a> não se
-                                            responsabiliza pelos anúncios divulgados no site, que são de
-                                            responsabilidade exclusiva de cada anunciante.
-                                        </span>
+
+                                    <div class="venda-seguranca d-none d-lg-block">
+                                        <div class="venda-seguranca__titulo">
+                                            🔒 Recomendações de Segurança
+                                        </div>
+                                        <ul class="venda-seguranca__lista">
+                                            <li><span><strong>Evite adiantamentos:</strong> Nunca pague valores de
+                                                    "sinal", reserva ou transporte antes de ver o veículo
+                                                    pessoalmente.</span></li>
+                                            <li><span><strong>Faça Vistoria Cautelar:</strong> Contrate uma empresa
+                                                    especializada para verificar o histórico estrutural e de sinistros
+                                                    do automóvel antes de fechar o negócio.</span></li>
+                                            <li><span><strong>Marque em locais públicos:</strong> Se for ver o carro ou
+                                                    mostrá-lo a um comprador, escolha locais movimentados e seguros,
+                                                    como estacionamentos de shoppings ou em frente a esquadras.</span>
+                                            </li>
+                                            <li><span><strong>Valide a documentação:</strong> Verifique se o veículo
+                                                    possui multas, restrições financeiras (alienação fiduciária) ou
+                                                    pendências administrativas antes de realizar a transferência de
+                                                    valores.</span></li>
+                                        </ul>
                                     </div>
 
                                 </div>
@@ -515,16 +575,25 @@
                             </div>
 
                         </div>
-
                     </div>
 
-                    <div class="venda-aviso venda-aviso--mobile d-lg-none">
-                        <span>
-                            <strong>ATENÇÃO:</strong> O site <a href="https://www.temcar.com.br" target="_blank"
-                                rel="noopener noreferrer">www.temcar.com.br</a> não se responsabiliza pelos anúncios
-                            divulgados no site, que são de
-                            responsabilidade exclusiva de cada anunciante.
-                        </span>
+                    <div class="venda-seguranca venda-seguranca--mobile d-lg-none">
+                        <div class="venda-seguranca__titulo">
+                            🔒 Recomendações de Segurança
+                        </div>
+                        <ul class="venda-seguranca__lista">
+                            <li><span><strong>Evite adiantamentos:</strong> Nunca pague valores de "sinal", reserva ou
+                                    transporte antes de ver o veículo pessoalmente.</span></li>
+                            <li><span><strong>Faça Vistoria Cautelar:</strong> Contrate uma empresa especializada para
+                                    verificar o histórico estrutural e de sinistros do automóvel antes de fechar o
+                                    negócio.</span></li>
+                            <li><span><strong>Marque em locais públicos:</strong> Se for ver o carro ou mostrá-lo a um
+                                    comprador, escolha locais movimentados e seguros, como estacionamentos de shoppings
+                                    ou em frente a esquadras.</span></li>
+                            <li><span><strong>Valide a documentação:</strong> Verifique se o veículo possui multas,
+                                    restrições financeiras (alienação fiduciária) ou pendências administrativas antes de
+                                    realizar a transferência de valores.</span></li>
+                        </ul>
                     </div>
 
                     <script>

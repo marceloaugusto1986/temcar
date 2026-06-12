@@ -258,9 +258,9 @@ function renderizarPagina() {
         const uf = obterUfFiltro();
         const bairro = obterBairroFiltro();
 
-        let textoTitulo = "Revendas Parceiras";
-        if (bairro && cidade) textoTitulo = `Revendas em <strong>${bairro}, ${cidade} - ${uf}</strong>`;
-        else if (cidade) textoTitulo = `Revendas em <strong>${cidade} - ${uf}</strong>`;
+        let textoTitulo = "Revendas de Carros";
+        if (bairro && cidade) textoTitulo = `Revendas de Carros em <strong>${bairro}, ${cidade} - ${uf}</strong>`;
+        else if (cidade) textoTitulo = `Revendas de Carros em <strong>${cidade} - ${uf}</strong>`;
 
         document.getElementById("titulo-revendas")?.classList.add("d-none");
 

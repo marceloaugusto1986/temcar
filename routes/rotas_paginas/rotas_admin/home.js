@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const fs = require("fs");
 const path = require("path");
 const upload = require("../../../middlewares/uploadImagens");
+const converterWebp = require("../../../middlewares/converterWebp");
 const { buscarPlanoDoUsuario, calcularDatasPublicacao } = require("../../../database/planos");
 
 async function garantirColunasRegioesImagens() {
@@ -581,7 +582,7 @@ router.get('/api/admin/anuncios/:id', checkAuth('private'), async (req, res) => 
   }
 });
 
-router.put('/api/admin/anuncios/:id', checkAuth('private'), upload.array("imagens", 10), async (req, res) => {
+router.put('/api/admin/anuncios/:id', checkAuth('private'), upload.array("imagens", 10), converterWebp, async (req, res) => {
   try {
     const anuncioId = req.params.id;
 
@@ -923,6 +924,7 @@ router.get("/api/admin/home/carrossel", async (req, res) => {
 router.post(
   "/api/admin/home/carrossel",
   upload.any(),
+  converterWebp,
   async (req, res) => {
     try {
       const {
@@ -1122,6 +1124,7 @@ router.post(
     { name: "logo", maxCount: 1 },
     { name: "favicon", maxCount: 1 }
   ]),
+  converterWebp,
   async (req, res) => {
     try {
       const removerLogo = req.body.removerLogo === "true";
@@ -2029,6 +2032,7 @@ router.post(
     { name: "imagens", maxCount: 10 },
     { name: "imagensMobile", maxCount: 10 }
   ]),
+  converterWebp,
   async (req, res) => {
     try {
       const { cidade, estado, cidade_id: cidadeId } = req.body;
@@ -2232,6 +2236,7 @@ router.post(
     { name: "imagem", maxCount: 1 },
     { name: "imagem_mobile", maxCount: 1 }
   ]),
+  converterWebp,
   async (req, res) => {
     try {
       const { nome, estado, descricao } = req.body;
@@ -2268,6 +2273,7 @@ router.put(
     { name: "imagem", maxCount: 1 },
     { name: "imagem_mobile", maxCount: 1 }
   ]),
+  converterWebp,
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -2469,7 +2475,7 @@ router.get("/api/admin/usuarios/:id/capa", checkAuth('private'), async (req, res
   }
 });
 
-router.put("/api/admin/usuarios/:id/capa", checkAuth('private'), uploadCapaUsuario.single("capa"), async (req, res) => {
+router.put("/api/admin/usuarios/:id/capa", checkAuth('private'), uploadCapaUsuario.single("capa"), converterWebp, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "Envie uma imagem." });
@@ -2531,7 +2537,7 @@ router.get("/api/admin/banners", checkAuth('private'), async (req, res) => {
   }
 });
 
-router.post("/api/admin/banners", checkAuth('private'), uploadBanner.single("imagem"), async (req, res) => {
+router.post("/api/admin/banners", checkAuth('private'), uploadBanner.single("imagem"), converterWebp, async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "Envie uma imagem" });
 

@@ -631,7 +631,7 @@ function preencherRevendasSelectFilter() {
             if (!revendasUnicas.has(item.nome)) revendasUnicas.set(item.nome, item)
         })
 
-    select.innerHTML = `<option value="">Filtre por Revendas</option>`
+    select.innerHTML = `<option value="">Revendas e Concessionárias</option>`
 
     ;[...revendasUnicas.values()]
         .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''))
@@ -665,7 +665,7 @@ function preencherCidadesSelectFilter() {
         )
     ].sort()
 
-    select.innerHTML = `<option value="">Filtre por cidades</option>`
+    select.innerHTML = `<option value="">Carros por Cidade</option>`
 
     unicas.forEach(item => {
         const [cidade, uf] = item.split(" - ")
@@ -678,12 +678,14 @@ function preencherCidadesSelectFilter() {
 
 function filtrarPorCarroceria(tipoCarroceria) {
     if (!tipoCarroceria) return
-    window.location.href = `/carros?carroceria=${encodeURIComponent(tipoCarroceria)}`
+    const slug = tipoCarroceria.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    window.location.href = `/carros/carroceria/${slug}`
 }
 
 function filtrarPorMarca(marca) {
     if (!marca) return
-    window.location.href = `/carros?marca=${encodeURIComponent(marca)}`
+    const slug = marca.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    window.location.href = `/carros/${slug}`
 }
 
 

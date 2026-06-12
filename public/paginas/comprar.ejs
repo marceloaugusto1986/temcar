@@ -15,6 +15,28 @@
 </head>
 
 <style>
+    .pagination .page-link {
+        color: #C90B0C;
+        border-color: #e0e0e0;
+        font-weight: 500;
+        transition: background-color .15s, color .15s, border-color .15s;
+    }
+    .pagination .page-link:hover {
+        color: #a30909;
+        background-color: rgba(201, 11, 12, .08);
+        border-color: #C90B0C;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #C90B0C;
+        border-color: #C90B0C;
+        color: #fff;
+    }
+    .pagination .page-item.disabled .page-link {
+        color: #adb5bd;
+        border-color: #e0e0e0;
+        background-color: transparent;
+    }
+
     .descricao-card {
         display: -webkit-box;
         -webkit-line-clamp: 2;

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../database/pool_connection');
-const { getSeo } = require('../../helpers/seo');
+const { getSeo, getSeoMarca, getSeoMarcaModelo, getSeoCarroceria } = require('../../helpers/seo');
 const SITE_URL = (process.env.SITE_URL || 'https://www.temcar.com.br').replace(/\/$/, '');
 
 function slugify(texto) {
@@ -178,13 +178,16 @@ async function getSeoBrasil(tipoSlug) {
   };
 }
 
-function montarSeoBuscaVeiculos({ tipo, marca = '', carroceria = '', bairro = '', cidade = '', uf = '', canonical }) {
+const UFS_VALIDAS = new Set(['ac','al','ap','am','ba','ce','df','es','go','ma','mt','ms','mg','pa','pb','pr','pe','pi','rj','rn','rs','ro','rr','sc','sp','se','to']);
+
+function montarSeoBuscaVeiculos({ tipo, marca = '', modelo = '', carroceria = '', bairro = '', cidade = '', uf = '', canonical }) {
   const plural = tipoPlural[tipo] || 'veículos';
   const pluralTitulo = tipoPluralTitulo[tipo] || 'Veículos';
   const singular = tipoSingular[tipo] || 'veículo';
   const marcaFormatada = capitalize(String(marca || '').replace(/-/g, ' ').trim());
+  const modeloFormatado = capitalize(String(modelo || '').replace(/-/g, ' ').trim());
   const carroceriaFormatada = capitalize(String(carroceria || '').replace(/-/g, ' ').trim());
-  const termoFormatado = [marcaFormatada, carroceriaFormatada].filter(Boolean).join(' ');
+  const termoFormatado = [marcaFormatada, modeloFormatado, carroceriaFormatada].filter(Boolean).join(' ');
   const termoKeywords = termoFormatado || plural;
   const local = bairro
     ? `${bairro}, ${cidade} - ${uf}`
@@ -239,6 +242,36 @@ function montarSeoLocalPorTipo(tipo, { cidade, uf, bairro = '', canonical }) {
   };
 }
 
+// /carros/carroceria/suv, /motos/carroceria/naked etc.
+router.get('/:tipo(carros|motos|utilitarios)/carroceria/:carroceria', async (req, res) => {
+  const { tipo, carroceria } = req.params;
+  const carroceriaNome = capitalize(carroceria.replace(/-/g, ' '));
+  const carroceriaSlug = slugify(carroceriaNome);
+  const seo = await getSeoCarroceria(tipo, carroceriaNome, `${SITE_URL}/${tipo}/carroceria/${carroceriaSlug}`);
+  const breadcrumbs = [
+    { name: 'Home', url: `${SITE_URL}/` },
+    { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
+    { name: carroceriaNome, url: `${SITE_URL}/${tipo}/carroceria/${carroceriaSlug}` }
+  ];
+  res.render('veiculos', { seo, breadcrumbs, filtro: { tipo, carroceria: carroceriaSlug, carroceriaNome } });
+});
+
+// /carros/:marca, /motos/:marca ou /utilitarios/:marca
+router.get('/:tipo(carros|motos|utilitarios)/:marca', async (req, res, next) => {
+  const { tipo, marca } = req.params;
+  // Segmentos de 2 letras são UFs (es, rj, sp...) — passa para a rota de cidade
+  if (/^[a-z]{2}$/i.test(marca)) return next();
+  const marcaNome = capitalize(marca.replace(/-/g, ' '));
+  const marcaSlug = slugify(marcaNome);
+  const seo = await getSeoMarca(tipo, marcaNome, `${SITE_URL}/${tipo}/${marcaSlug}`);
+  const breadcrumbs = [
+    { name: 'Home', url: `${SITE_URL}/` },
+    { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
+    { name: marcaNome, url: `${SITE_URL}/${tipo}/${marcaSlug}` }
+  ];
+  res.render('veiculos', { seo, breadcrumbs, filtro: { tipo, marca: marcaSlug, marcaNome } });
+});
+
 // /carros, /motos ou /utilitarios (geral)
 router.get('/:tipo(carros|motos|utilitarios)', async (req, res) => {
   const tipoSlug = req.params.tipo;
@@ -257,6 +290,25 @@ router.get('/:tipo(carros|motos|utilitarios)', async (req, res) => {
     { name: capitalize(tipoSlug), url: `https://www.temcar.com.br/${tipoSlug}` }
   ];
   res.render('veiculos', { seo, breadcrumbs, filtro: { tipo: tipoSlug } });
+});
+
+// /carros/:marca/:modelo (ex: /carros/volkswagen/gol)
+router.get('/:tipo(carros|motos|utilitarios)/:marca/:modelo', async (req, res, next) => {
+  const { tipo, marca, modelo } = req.params;
+  // Segmentos de 2 letras que são UFs passam para a rota de cidade
+  if (UFS_VALIDAS.has(modelo.toLowerCase())) return next();
+  const marcaNome = capitalize(marca.replace(/-/g, ' '));
+  const marcaSlug = slugify(marcaNome);
+  const modeloNome = capitalize(modelo.replace(/-/g, ' '));
+  const modeloSlug = slugify(modeloNome);
+  const seo = await getSeoMarcaModelo(tipo, marcaNome, modeloNome, `${SITE_URL}/${tipo}/${marcaSlug}/${modeloSlug}`);
+  const breadcrumbs = [
+    { name: 'Home', url: `${SITE_URL}/` },
+    { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
+    { name: marcaNome, url: `${SITE_URL}/${tipo}/${marcaSlug}` },
+    { name: modeloNome, url: `${SITE_URL}/${tipo}/${marcaSlug}/${modeloSlug}` }
+  ];
+  res.render('veiculos', { seo, breadcrumbs, filtro: { tipo, marca: marcaSlug, marcaNome, modelo: modeloSlug, modeloNome } });
 });
 
 // /carros/:cidade/:uf, /motos/:cidade/:uf ou /utilitarios/:cidade/:uf

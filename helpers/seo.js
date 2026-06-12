@@ -109,6 +109,30 @@ const SEO_DEFAULTS = {
     texto_h1: 'Detalhes do Veículo à Venda',
     texto_conteudo: '',
     link_canonico: `${SITE_URL}/venda`
+  },
+  marca: {
+    titulo: '#tipo #marca à venda no Brasil | TEMCAR',
+    descricao: 'Encontre #tipo #marca à venda no Brasil no TEMCAR. Compare ofertas de #marca novos, seminovos e usados anunciados por revendas e particulares.',
+    keywords: '#tipo #marca, #marca à venda, comprar #marca, #marca usado, #marca seminovo',
+    texto_h1: '#tipo #marca à venda no Brasil',
+    texto_conteudo: '',
+    link_canonico: ''
+  },
+  marca_modelo: {
+    titulo: '#marca #modelo à venda no Brasil | TEMCAR',
+    descricao: 'Encontre #marca #modelo à venda no Brasil no TEMCAR. Compare ofertas de #marca #modelo novos, seminovos e usados anunciados por revendas e particulares.',
+    keywords: '#marca #modelo, #marca #modelo à venda, comprar #marca #modelo, #marca #modelo usado, #marca #modelo seminovo',
+    texto_h1: '#marca #modelo à venda no Brasil',
+    texto_conteudo: '',
+    link_canonico: ''
+  },
+  carroceria: {
+    titulo: '#tipo #carroceria à venda no Brasil | TEMCAR',
+    descricao: 'Encontre #tipo #carroceria à venda no Brasil no TEMCAR. Compare ofertas de #carroceria novos, seminovos e usados anunciados por revendas e particulares.',
+    keywords: '#tipo #carroceria, #carroceria à venda, comprar #carroceria, #carroceria usado, #carroceria seminovo',
+    texto_h1: '#tipo #carroceria à venda no Brasil',
+    texto_conteudo: '',
+    link_canonico: ''
   }
 };
 
@@ -379,7 +403,7 @@ async function getSeoCidade(cidade, bairro = '') {
     const substituir = (texto) => {
       if (!texto) return '';
       return limparTextoSeo(texto
-        .replace(/#bairro/g, bairroNome || '')
+        .replace(/#bairro/g, bairroNome ? `${bairroNome},` : '')
         .replace(/#cidade/g, cidade.nome || '')
         .replace(/#estado/g, cidade.estado || ''));
     };
@@ -490,4 +514,133 @@ async function getSeoRevenda(id) {
   }
 }
 
-module.exports = { getSeo, getSeoAnuncio, getSeoCidade, getSeoRevenda };
+const TIPO_PLURAL  = { carros: 'carros', motos: 'motos', utilitarios: 'utilitários' };
+const TIPO_TITULO  = { carros: 'Carros', motos: 'Motos', utilitarios: 'Utilitários' };
+const TIPO_SINGULAR = { carros: 'carro', motos: 'moto', utilitarios: 'utilitário' };
+
+async function getSeoMarca(tipo, marcaNome, canonical) {
+  const plural  = TIPO_PLURAL[tipo]  || 'veículos';
+  const titulo  = TIPO_TITULO[tipo]  || 'Veículos';
+  const singular = TIPO_SINGULAR[tipo] || 'veículo';
+  const marcaSlug = slugify(marcaNome);
+
+  const fallback = makeDefaultSeo('marca', {
+    titulo:       `${titulo} ${marcaNome} à venda no Brasil | TEMCAR`,
+    descricao:    `Encontre ${plural} ${marcaNome} à venda no Brasil no TEMCAR. Compare ofertas de ${singular}s ${marcaNome} novos, seminovos e usados anunciados por revendas e particulares.`,
+    keywords:     `${plural} ${marcaNome}, ${singular} ${marcaNome} à venda, comprar ${marcaNome}, ${marcaNome} usado, ${marcaNome} seminovo`,
+    texto_h1:     `${titulo} ${marcaNome} à venda no Brasil`,
+    link_canonico: canonical || `${SITE_URL}/${tipo}/${marcaSlug}`
+  });
+
+  try {
+    const [[seo]] = await db.query(`SELECT * FROM seo_templates WHERE pagina = 'marca' AND ativo = true LIMIT 1`);
+    if (!seo) return fallback;
+
+    const sub = (texto) => !texto ? '' : limparTextoSeo(texto
+      .replace(/#tipo/g, plural)
+      .replace(/#marca/g, marcaNome));
+
+    const subUrl = (texto) => !texto ? '' : texto
+      .replace(/#tipo/g, tipo)
+      .replace(/#marca/g, marcaSlug);
+
+    return {
+      titulo:         sub(seo.titulo)         || fallback.titulo,
+      descricao:      sub(seo.descricao)      || fallback.descricao,
+      keywords:       sub(seo.keywords)       || fallback.keywords,
+      texto_h1:       sub(seo.texto_h1)       || fallback.texto_h1,
+      texto_conteudo: sub(seo.texto_conteudo) || fallback.texto_conteudo,
+      link_canonico:  subUrl(seo.link_canonico) || fallback.link_canonico,
+      og_type: 'website', og_image: fallback.og_image, robots: 'index, follow'
+    };
+  } catch (err) {
+    console.error('Erro SEO marca', marcaNome, err);
+    return fallback;
+  }
+}
+
+async function getSeoMarcaModelo(tipo, marcaNome, modeloNome, canonical) {
+  const plural   = TIPO_PLURAL[tipo]   || 'veículos';
+  const singular = TIPO_SINGULAR[tipo] || 'veículo';
+  const marcaSlug  = slugify(marcaNome);
+  const modeloSlug = slugify(modeloNome);
+
+  const fallback = makeDefaultSeo('marca_modelo', {
+    titulo:       `${marcaNome} ${modeloNome} à venda no Brasil | TEMCAR`,
+    descricao:    `Encontre ${marcaNome} ${modeloNome} à venda no Brasil no TEMCAR. Compare ofertas de ${singular}s ${marcaNome} ${modeloNome} novos, seminovos e usados anunciados por revendas e particulares.`,
+    keywords:     `${marcaNome} ${modeloNome}, ${marcaNome} ${modeloNome} à venda, comprar ${marcaNome} ${modeloNome}, ${marcaNome} ${modeloNome} usado, ${marcaNome} ${modeloNome} seminovo`,
+    texto_h1:     `${marcaNome} ${modeloNome} à venda no Brasil`,
+    link_canonico: canonical || `${SITE_URL}/${tipo}/${marcaSlug}/${modeloSlug}`
+  });
+
+  try {
+    const [[seo]] = await db.query(`SELECT * FROM seo_templates WHERE pagina = 'marca_modelo' AND ativo = true LIMIT 1`);
+    if (!seo) return fallback;
+
+    const sub = (texto) => !texto ? '' : limparTextoSeo(texto
+      .replace(/#tipo/g, plural)
+      .replace(/#marca/g, marcaNome)
+      .replace(/#modelo/g, modeloNome));
+
+    const subUrl = (texto) => !texto ? '' : texto
+      .replace(/#tipo/g, tipo)
+      .replace(/#marca/g, marcaSlug)
+      .replace(/#modelo/g, modeloSlug);
+
+    return {
+      titulo:         sub(seo.titulo)         || fallback.titulo,
+      descricao:      sub(seo.descricao)      || fallback.descricao,
+      keywords:       sub(seo.keywords)       || fallback.keywords,
+      texto_h1:       sub(seo.texto_h1)       || fallback.texto_h1,
+      texto_conteudo: sub(seo.texto_conteudo) || fallback.texto_conteudo,
+      link_canonico:  subUrl(seo.link_canonico) || fallback.link_canonico,
+      og_type: 'website', og_image: fallback.og_image, robots: 'index, follow'
+    };
+  } catch (err) {
+    console.error('Erro SEO marca+modelo', marcaNome, modeloNome, err);
+    return fallback;
+  }
+}
+
+async function getSeoCarroceria(tipo, carroceriaNome, canonical) {
+  const plural  = TIPO_PLURAL[tipo]  || 'veículos';
+  const titulo  = TIPO_TITULO[tipo]  || 'Veículos';
+  const singular = TIPO_SINGULAR[tipo] || 'veículo';
+  const carroceriaSlug = slugify(carroceriaNome);
+
+  const fallback = makeDefaultSeo('carroceria', {
+    titulo:       `${titulo} ${carroceriaNome} à venda no Brasil | TEMCAR`,
+    descricao:    `Encontre ${plural} ${carroceriaNome} à venda no Brasil no TEMCAR. Compare ofertas de ${singular}s ${carroceriaNome} novos, seminovos e usados anunciados por revendas e particulares.`,
+    keywords:     `${plural} ${carroceriaNome}, ${singular} ${carroceriaNome} à venda, comprar ${carroceriaNome}, ${carroceriaNome} usado, ${carroceriaNome} seminovo`,
+    texto_h1:     `${titulo} ${carroceriaNome} à venda no Brasil`,
+    link_canonico: canonical || `${SITE_URL}/${tipo}/carroceria/${carroceriaSlug}`
+  });
+
+  try {
+    const [[seo]] = await db.query(`SELECT * FROM seo_templates WHERE pagina = 'carroceria' AND ativo = true LIMIT 1`);
+    if (!seo) return fallback;
+
+    const sub = (texto) => !texto ? '' : limparTextoSeo(texto
+      .replace(/#tipo/g, plural)
+      .replace(/#carroceria/g, carroceriaNome));
+
+    const subUrl = (texto) => !texto ? '' : texto
+      .replace(/#tipo/g, tipo)
+      .replace(/#carroceria/g, carroceriaSlug);
+
+    return {
+      titulo:         sub(seo.titulo)         || fallback.titulo,
+      descricao:      sub(seo.descricao)      || fallback.descricao,
+      keywords:       sub(seo.keywords)       || fallback.keywords,
+      texto_h1:       sub(seo.texto_h1)       || fallback.texto_h1,
+      texto_conteudo: sub(seo.texto_conteudo) || fallback.texto_conteudo,
+      link_canonico:  subUrl(seo.link_canonico) || fallback.link_canonico,
+      og_type: 'website', og_image: fallback.og_image, robots: 'index, follow'
+    };
+  } catch (err) {
+    console.error('Erro SEO carroceria', carroceriaNome, err);
+    return fallback;
+  }
+}
+
+module.exports = { getSeo, getSeoAnuncio, getSeoCidade, getSeoRevenda, getSeoMarca, getSeoMarcaModelo, getSeoCarroceria };
