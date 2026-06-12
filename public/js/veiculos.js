@@ -280,7 +280,8 @@ async function carregarVeiculos() {
 function atualizarTitulos() {
     const filtro = window.FILTRO || {}
     const query = new URLSearchParams(window.location.search)
-    const tipoNome = capitalize(filtro.tipo || "veículos")
+    const tipoNomeDisplay = { carros: 'Carros', motos: 'Motos', utilitarios: 'Carros Utilitários' }
+    const tipoNome = tipoNomeDisplay[filtro.tipo] || capitalize(filtro.tipo || "veículos")
     const tituloPagina = document.getElementById("titulo-pagina")
     const subtitulo = document.getElementById("subtitulo-pagina")
     const tituloResultados = document.getElementById("titulo-resultados")
@@ -585,6 +586,7 @@ function aplicarFiltros() {
     const blindagemSem = document.getElementById("filtroNaoBlindado")?.checked || false
     const estadoNovo = document.getElementById("filtroNovo")?.checked || false
     const estadoUsado = document.getElementById("filtroUsado")?.checked || false
+    const cidadeInline = document.getElementById("filtro-cidade-inline")?.value || ""
     const tipoInline = document.getElementById("filtro-tipo-anunciante")?.value || ""
     const filtroParticular = tipoInline === "particular" || (document.getElementById("filtroParticular")?.checked || false)
     const filtroRevenda = tipoInline === "revenda" || (document.getElementById("filtroRevenda")?.checked || false)
@@ -615,6 +617,7 @@ function aplicarFiltros() {
         if (blindagemSem && temBlindagem) return false
         if (estadoNovo && item.condicao !== "novo") return false
         if (estadoUsado && item.condicao !== "usado") return false
+        if (cidadeInline && (item.cidade || "") !== cidadeInline) return false
         if (filtroParticular && !filtroRevenda && item.tipo_anunciante !== "particular") return false
         if (filtroRevenda && !filtroParticular && item.tipo_anunciante !== "revenda") return false
 
@@ -649,6 +652,24 @@ function toggleFiltro() {
     document.getElementById("overlay")?.classList.toggle("ativo")
 }
 
+function popularFiltroCidadeInline() {
+    const select = document.getElementById("filtro-cidade-inline")
+    if (!select) return
+    const vistos = new Map()
+    listaVeiculosOriginal.forEach(v => {
+        if (v.cidade && !vistos.has(v.cidade)) vistos.set(v.cidade, v.estado || "")
+    })
+    const cidades = [...vistos.entries()].sort((a, b) => a[0].localeCompare(b[0], 'pt-BR'))
+
+    select.innerHTML = '<option value="">Todas as cidades</option>'
+    cidades.forEach(([cidade, estado]) => {
+        const opt = document.createElement("option")
+        opt.value = cidade
+        opt.textContent = estado ? `${cidade} - ${estado}` : cidade
+        select.appendChild(opt)
+    })
+}
+
 function controlarVisibilidadeSidebar(total) {
     if (total > 20) {
         document.getElementById("tipo-container")?.classList.add("d-none")
@@ -657,6 +678,14 @@ function controlarVisibilidadeSidebar(total) {
         document.getElementById("main-layout")?.classList.remove("sem-sidebar")
         document.body.style.background = "#f5f5f5"
     } else if (total > 0) {
+        popularFiltroCidadeInline()
+        document.getElementById("filtro-cidade-wrapper")?.classList.remove("d-none")
+        const selectCidade = document.getElementById("filtro-cidade-inline")
+        if (selectCidade && !selectCidade._inlineListenerAdded) {
+            selectCidade.addEventListener("change", () => aplicarFiltros())
+            selectCidade._inlineListenerAdded = true
+        }
+
         document.getElementById("filtro-tipo-wrapper")?.classList.remove("d-none")
         const select = document.getElementById("filtro-tipo-anunciante")
         if (select && !select._inlineListenerAdded) {

@@ -215,19 +215,32 @@
                         </div>
                     </section>
 
-                    <!-- Tipo de anúncio inline (visível quando ≤20 registros) -->
+                    <!-- Filtros inline (visível quando ≤20 registros) -->
                     <div class="container" id="tipo-container">
-                        <div id="filtro-tipo-wrapper" class="cidade-filtros d-none mt-3">
-                            <div class="cidade-filtro-copy">
-                                <span class="cidade-filtro-label">Tipo de anúncio</span>
-                                <span class="cidade-filtro-help">Filtre por particular ou loja.</span>
+                        <div class="d-flex gap-3 flex-wrap mt-3">
+                            <div id="filtro-cidade-wrapper" class="cidade-filtros d-none" style="flex:1; min-width:220px; margin-bottom:0;">
+                                <div class="cidade-filtro-copy">
+                                    <span class="cidade-filtro-label">Cidade / Estado</span>
+                                    <span class="cidade-filtro-help">Filtre por localização.</span>
+                                </div>
+                                <div class="cidade-filtro-control">
+                                    <select id="filtro-cidade-inline" class="form-select cidade-filtro-bairro">
+                                        <option value="">Todas as cidades</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="cidade-filtro-control">
-                                <select id="filtro-tipo-anunciante" class="form-select cidade-filtro-bairro">
-                                    <option value="">Todos</option>
-                                    <option value="particular">Particular</option>
-                                    <option value="revenda">Loja / Revenda</option>
-                                </select>
+                            <div id="filtro-tipo-wrapper" class="cidade-filtros d-none" style="flex:1; min-width:220px; margin-bottom:0;">
+                                <div class="cidade-filtro-copy">
+                                    <span class="cidade-filtro-label">Tipo de anúncio</span>
+                                    <span class="cidade-filtro-help">Filtre por particular ou loja.</span>
+                                </div>
+                                <div class="cidade-filtro-control">
+                                    <select id="filtro-tipo-anunciante" class="form-select cidade-filtro-bairro">
+                                        <option value="">Todos</option>
+                                        <option value="particular">Particular</option>
+                                        <option value="revenda">Loja / Revenda</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
