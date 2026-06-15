@@ -117,7 +117,7 @@ window.carregarSlidesExistentes = async function () {
    SALVAR (CRIAR + EDITAR)
 ========================== */
 window.salvarImagensSite = async function () {
-  const slides = document.querySelectorAll(".slide-item");
+  const slides = document.querySelectorAll("#listaSlides .slide-item");
   const formData = new FormData();
 
   if (slides.length === 0) {

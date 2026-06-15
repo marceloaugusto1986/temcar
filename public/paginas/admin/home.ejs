@@ -617,6 +617,21 @@
 
           let cidadeSelecionada = null;
 
+          function atualizarSelecaoCidade() {
+            const selected = select.options[select.selectedIndex];
+            if (!selected || !selected.value) { boxEditar.classList.add("d-none"); cidadeSelecionada = null; return; }
+            cidadeSelecionada = JSON.parse(selected.dataset.cidade);
+            boxEditar.classList.remove("d-none");
+            boxCadastrar.classList.add("d-none");
+            formEditar.nome.value = cidadeSelecionada.nome;
+            formEditar.estado.value = cidadeSelecionada.estado;
+            formEditar.descricao.value = cidadeSelecionada.descricao;
+            if (cidadeSelecionada.imagem) { preview.src = cidadeSelecionada.imagem; preview.style.display = "block"; }
+            else { preview.style.display = "none"; }
+            if (cidadeSelecionada.imagem_mobile) { previewMobile.src = cidadeSelecionada.imagem_mobile; previewMobile.style.display = "block"; }
+            else { previewMobile.style.display = "none"; }
+          }
+
           async function carregarCidades() {
             const res = await fetch("/api/cidades");
             const cidades = await res.json();
@@ -630,20 +645,7 @@
             });
           }
 
-          select.addEventListener("change", () => {
-            const selected = select.options[select.selectedIndex];
-            if (!selected.value) { boxEditar.classList.add("d-none"); cidadeSelecionada = null; return; }
-            cidadeSelecionada = JSON.parse(selected.dataset.cidade);
-            boxEditar.classList.remove("d-none");
-            boxCadastrar.classList.add("d-none");
-            formEditar.nome.value = cidadeSelecionada.nome;
-            formEditar.estado.value = cidadeSelecionada.estado;
-            formEditar.descricao.value = cidadeSelecionada.descricao;
-            if (cidadeSelecionada.imagem) { preview.src = cidadeSelecionada.imagem; preview.style.display = "block"; }
-            else { preview.style.display = "none"; }
-            if (cidadeSelecionada.imagem_mobile) { previewMobile.src = cidadeSelecionada.imagem_mobile; previewMobile.style.display = "block"; }
-            else { previewMobile.style.display = "none"; }
-          });
+          select.addEventListener("change", atualizarSelecaoCidade);
 
           btnMostrarCadastro.addEventListener("click", () => {
             boxCadastrar.classList.remove("d-none");
@@ -901,9 +903,7 @@
               allowClear: true,
               language: { noResults: () => "Nenhuma cidade encontrada" }
             }).on("change", function () {
-              // dispara o evento change original
-              const event = new Event("change");
-              document.getElementById("select-cidades").dispatchEvent(event);
+              atualizarSelecaoCidade();
             });
           }
 
