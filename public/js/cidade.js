@@ -918,6 +918,16 @@ async function carregarDadosCidade() {
     }
 }
 
+function bannerCidadeImagemFalhou(img) {
+    const slide = img.closest('.swiper-slide')
+    if (slide) slide.remove()
+
+    const wrapper = document.getElementById("cidadeBannerWrapper")
+    if (!wrapper || wrapper.querySelectorAll('.swiper-slide').length > 0) return
+
+    renderizarBannerFallback()
+}
+
 async function carregarBannersCidade() {
     const wrapper = document.getElementById("cidadeBannerWrapper")
     if (!wrapper) return
@@ -955,7 +965,7 @@ async function carregarBannersCidade() {
                             class="cidade-banner-img"
                             alt="Banner de ${escaparHtml(obterNomeCidadeAtual())}${index > 0 ? ` ${index + 1}` : ""}"
                             loading="${index === 0 ? "eager" : "lazy"}"
-                            onerror="this.closest('.swiper-slide').remove()"
+                            onerror="bannerCidadeImagemFalhou(this)"
                         >
                     </picture>
                 ${banner.link ? "</a>" : ""}

@@ -295,25 +295,37 @@ router.get("/api/cidades/:slug/:uf/banners", async (req, res) => {
       slugify(c.nome) === slug && c.estado.toLowerCase() === uf.toLowerCase()
     );
 
-    if (!cidade) return res.json([]);
+    let banners;
 
-    const [banners] = await db.query(
-      `SELECT id, imagem, imagem_mobile, link
-       FROM regioes_imagens
-       WHERE cidade_id = ?
-          OR (LOWER(cidade) = LOWER(?) AND (LOWER(estado) = LOWER(?) OR estado IS NULL))
-       ORDER BY id ASC`,
-      [cidade.id, cidade.nome, cidade.estado]
-    );
+    if (cidade) {
+      [banners] = await db.query(
+        `SELECT id, imagem, imagem_mobile, link
+         FROM regioes_imagens
+         WHERE cidade_id = ?
+            OR (LOWER(cidade) = LOWER(?) AND (LOWER(estado) = LOWER(?) OR estado IS NULL))
+         ORDER BY id ASC`,
+        [cidade.id, cidade.nome, cidade.estado]
+      );
+    } else {
+      const nomeSlug = slug.replace(/-/g, ' ');
+      [banners] = await db.query(
+        `SELECT id, imagem, imagem_mobile, link
+         FROM regioes_imagens
+         WHERE LOWER(REPLACE(cidade, '-', ' ')) LIKE LOWER(?)
+           AND LOWER(estado) = LOWER(?)
+         ORDER BY id ASC`,
+        [`%${nomeSlug}%`, uf]
+      );
+    }
 
     const imagens = banners.map(b => ({
       id: b.id,
       imagem: obterUrlUpload(b.imagem),
       imagem_mobile: obterUrlUpload(b.imagem_mobile),
       link: b.link || ''
-    }));
+    })).filter(b => b.imagem);
 
-    if (!imagens.length && (cidade.imagem || cidade.imagem_mobile)) {
+    if (!imagens.length && cidade && (cidade.imagem || cidade.imagem_mobile)) {
       imagens.push({
         id: `cidade-${cidade.id}`,
         imagem: cidade.imagem || cidade.imagem_mobile,
