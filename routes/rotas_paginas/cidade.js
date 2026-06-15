@@ -293,27 +293,16 @@ router.get("/api/cidades/:slug/:uf/banners", async (req, res) => {
     );
     if (!cidade) return res.status(404).json({ message: "Cidade não encontrada" });
     await garantirColunasRegioesImagens();
-    const [[duplicidade]] = await db.query(
-      `SELECT COUNT(*) AS total FROM cidades WHERE nome = ?`,
-      [cidade.nome]
-    );
-
-    const params = [cidade.id, cidade.nome, cidade.estado];
-    let whereLegado = 'cidade = ? AND estado = ?';
-
-    if (Number(duplicidade.total) <= 1) {
-      whereLegado = '(cidade = ? AND (estado = ? OR estado IS NULL))';
-    }
 
     const [banners] = await db.query(
       `
       SELECT id, imagem, imagem_mobile, link
       FROM regioes_imagens
       WHERE cidade_id = ?
-         OR (cidade_id IS NULL AND ${whereLegado})
+         OR (cidade COLLATE utf8mb4_unicode_ci = ? AND (LOWER(estado) = LOWER(?) OR estado IS NULL))
       ORDER BY id ASC
       `,
-      params
+      [cidade.id, cidade.nome, cidade.estado]
     );
     const imagens = banners.map(b => ({
       id: b.id,
