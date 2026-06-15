@@ -587,6 +587,31 @@ router.get('/api/veiculos', async (req, res) => {
 
 router.get('/api/banners', async (req, res) => {
   try {
+    const { cidade, uf } = req.query;
+
+    if (cidade && uf) {
+      const nomeSlug = cidade.toLowerCase().replace(/-/g, ' ');
+      const [cidadeBanners] = await db.query(`
+        SELECT id, imagem, imagem_mobile, link
+        FROM regioes_imagens
+        WHERE LOWER(REPLACE(cidade, '-', ' ')) LIKE LOWER(?)
+          AND LOWER(estado) = LOWER(?)
+        ORDER BY id ASC
+      `, [`%${nomeSlug}%`, uf]);
+
+      const imagens = cidadeBanners
+        .map(b => ({
+          id: b.id,
+          titulo: '',
+          imagem: b.imagem ? (b.imagem.startsWith('/') ? b.imagem : `/uploads/anuncios/${b.imagem}`) : null,
+          imagem_mobile: b.imagem_mobile ? (b.imagem_mobile.startsWith('/') ? b.imagem_mobile : `/uploads/anuncios/${b.imagem_mobile}`) : null,
+          link: b.link || ''
+        }))
+        .filter(b => b.imagem);
+
+      if (imagens.length) return res.json(imagens);
+    }
+
     const [banners] = await db.query(`
       SELECT id, titulo, imagem, link
       FROM banners

@@ -753,13 +753,14 @@ async function carregarBanners(slug, uf) {
         }
 
         if (!banners.length) {
-            const resp = await fetch('/api/banners')
+            const params = slug && uf ? `?cidade=${encodeURIComponent(slug)}&uf=${encodeURIComponent(uf)}` : ''
+            const resp = await fetch(`/api/banners${params}`)
             if (resp.ok) {
                 const globalBanners = await resp.json()
                 banners = globalBanners
                     .map(b => ({
-                        src: b.imagem ? `/uploads/banners/${b.imagem}` : null,
-                        srcMobile: null,
+                        src: b.imagem ? (b.imagem.startsWith('/') ? b.imagem : `/uploads/banners/${b.imagem}`) : null,
+                        srcMobile: b.imagem_mobile ? (b.imagem_mobile.startsWith('/') ? b.imagem_mobile : `/uploads/anuncios/${b.imagem_mobile}`) : null,
                         link: b.link || '',
                         titulo: b.titulo || ''
                     }))
