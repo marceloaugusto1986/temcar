@@ -103,6 +103,15 @@ function capitalize(texto) {
         .join(" ")
 }
 
+function slugify(texto) {
+    return (texto || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+}
+
 function valorFiltroLocal(chaveSlug, chaveNome, queryKey) {
     const filtro = window.FILTRO || {}
     const query = new URLSearchParams(window.location.search)
@@ -669,6 +678,7 @@ function popularFiltroCidadeInline() {
     cidades.forEach(([cidade, estado]) => {
         const opt = document.createElement("option")
         opt.value = cidade
+        opt.dataset.estado = estado
         opt.textContent = estado ? `${cidade} - ${estado}` : cidade
         select.appendChild(opt)
     })
@@ -686,7 +696,16 @@ function controlarVisibilidadeSidebar(total) {
         document.getElementById("filtro-cidade-wrapper")?.classList.remove("d-none")
         const selectCidade = document.getElementById("filtro-cidade-inline")
         if (selectCidade && !selectCidade._inlineListenerAdded) {
-            selectCidade.addEventListener("change", () => aplicarFiltros())
+            selectCidade.addEventListener("change", () => {
+                aplicarFiltros()
+                const opt = selectCidade.options[selectCidade.selectedIndex]
+                const cidadeNome = opt?.value || ""
+                const estadoSigla = opt?.dataset?.estado || ""
+                const filtro = window.FILTRO || {}
+                const cidadeSlug = cidadeNome ? slugify(cidadeNome) : (filtro.cidade || "")
+                const ufSlug = estadoSigla ? estadoSigla.toLowerCase() : (filtro.uf || "")
+                carregarBanners(cidadeSlug, ufSlug)
+            })
             selectCidade._inlineListenerAdded = true
         }
 
