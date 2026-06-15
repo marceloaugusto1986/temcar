@@ -83,29 +83,40 @@
 
     .bannerSwiper {
         width: 100%;
+        height: 250px;
+    }
+
+    .bannerSwiper .swiper-wrapper,
+    .bannerSwiper .swiper-slide {
+        height: 100%;
     }
 
     .bannerSwiper .swiper-slide {
-        width: 60%;
-    }
-
-    .bannerSwiper img {
         width: 100%;
-        height: 350px;
-        object-fit: cover;
-        border-radius: 8px;
     }
 
     .bannerSwiper .swiper-slide a {
         display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .bannerSwiper picture {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .bannerSwiper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        display: block;
     }
 
     @media(max-width:767px) {
-        .bannerSwiper .swiper-slide {
-            width: 100%;
-        }
-
-        .bannerSwiper img {
+        .bannerSwiper {
             height: 200px;
         }
     }

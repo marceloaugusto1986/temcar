@@ -263,6 +263,10 @@ async function carregarVeiculos() {
         renderizarLista()
         renderizarPaginacao()
 
+        if (listaVeiculos.length > 0) {
+            carregarBanners(filtro.cidade || '', filtro.uf || '')
+        }
+
     } catch (erro) {
         console.error(erro)
         document.getElementById("container-card-primary").innerHTML =
@@ -699,40 +703,69 @@ function controlarVisibilidadeSidebar(total) {
 // BANNER SLIDER
 // ===============================
 
-async function carregarBanners() {
+async function carregarBanners(slug, uf) {
     try {
-        const resp = await fetch('/api/banners')
-        if (!resp.ok) return
-        const banners = await resp.json()
+        let banners = []
+
+        if (slug && uf) {
+            const respCidade = await fetch(`/api/cidades/${encodeURIComponent(slug)}/${encodeURIComponent(uf)}/banners`)
+            if (respCidade.ok) {
+                const cidadeBanners = await respCidade.json()
+                banners = cidadeBanners
+                    .map(b => ({
+                        src: b.imagem ? (b.imagem.startsWith('/') ? b.imagem : `/uploads/anuncios/${b.imagem}`) : null,
+                        srcMobile: b.imagem_mobile ? (b.imagem_mobile.startsWith('/') ? b.imagem_mobile : `/uploads/anuncios/${b.imagem_mobile}`) : null,
+                        link: b.link || '',
+                        titulo: ''
+                    }))
+                    .filter(b => b.src)
+            }
+        }
+
+        if (!banners.length) {
+            const resp = await fetch('/api/banners')
+            if (resp.ok) {
+                const globalBanners = await resp.json()
+                banners = globalBanners
+                    .map(b => ({
+                        src: b.imagem ? `/uploads/banners/${b.imagem}` : null,
+                        srcMobile: null,
+                        link: b.link || '',
+                        titulo: b.titulo || ''
+                    }))
+                    .filter(b => b.src)
+            }
+        }
+
         if (!banners.length) return
 
         const wrapper = document.getElementById("bannerWrapper")
         const slider = document.getElementById("bannerSlider")
         const fallback = document.getElementById("bannerFallback")
 
-        banners.forEach(b => {
-            const slide = document.createElement("div")
-            slide.className = "swiper-slide"
-            if (b.link) {
-                slide.innerHTML = `<a href="${b.link}"><img src="/uploads/banners/${b.imagem}" alt="${b.titulo || ''}" onerror="this.parentElement.parentElement.remove()"></a>`
-            } else {
-                slide.innerHTML = `<img src="/uploads/banners/${b.imagem}" alt="${b.titulo || ''}" onerror="this.parentElement.remove()">`
-            }
-            wrapper.appendChild(slide)
-        })
+        wrapper.innerHTML = banners.map(b => `
+            <div class="swiper-slide">
+                ${b.link ? `<a href="${escaparHtml(b.link)}" style="display:block">` : ''}
+                <picture>
+                    ${b.srcMobile ? `<source media="(max-width: 768px)" srcset="${escaparHtml(b.srcMobile)}">` : ''}
+                    <img src="${escaparHtml(b.src)}" alt="${escaparHtml(b.titulo)}" onerror="this.closest('.swiper-slide').remove()">
+                </picture>
+                ${b.link ? '</a>' : ''}
+            </div>
+        `).join('')
 
         slider.classList.remove("d-none")
         if (fallback) fallback.classList.add("d-none")
 
         new Swiper("#bannerSlider", {
             loop: banners.length > 1,
-            centeredSlides: true,
-            slidesPerView: 1.3,
-            spaceBetween: 15,
-            speed: 800,
-            autoplay: { delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true },
+            slidesPerView: 1,
+            speed: 900,
+            effect: "fade",
+            fadeEffect: { crossFade: true },
+            autoplay: banners.length > 1 ? { delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true } : false,
             navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
-            breakpoints: { 768: { slidesPerView: 1.5 } }
+            pagination: { el: "#bannerSlider .swiper-pagination", clickable: true }
         })
     } catch (e) {
         console.error("Erro ao carregar banners:", e)
@@ -744,6 +777,5 @@ async function carregarBanners() {
 // ===============================
 
 document.addEventListener("DOMContentLoaded", () => {
-    carregarBanners()
     carregarVeiculos()
 })

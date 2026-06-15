@@ -227,6 +227,10 @@ async function carregarAnunciosDaCidade() {
         renderizarLista()
         renderizarPaginacaoCidade()
 
+        if (listaCidadeAnuncios.length > 0) {
+            carregarBannersCidade()
+        }
+
     } catch (erro) {
         console.error(erro)
         document.getElementById("container-card-primary").innerHTML =
@@ -909,11 +913,8 @@ async function carregarDadosCidade() {
         if (elNome) elNome.textContent = cidade.nome
         if (elEstado) elEstado.textContent = cidade.estado
 
-        await carregarBannersCidade()
-
     } catch (erro) {
         console.error("Erro ao carregar dados da cidade:", erro)
-        renderizarBannerFallback()
     }
 }
 
@@ -961,6 +962,13 @@ async function carregarBannersCidade() {
             </div>
         `).join("")
 
+        if (banners.length > 1) {
+            const prev = document.querySelector("#cidadeBannerSlider .swiper-button-prev")
+            const next = document.querySelector("#cidadeBannerSlider .swiper-button-next")
+            if (prev) prev.style.display = ""
+            if (next) next.style.display = ""
+        }
+
         iniciarSliderCidade(banners.length)
 
     } catch (erro) {
@@ -1001,11 +1009,22 @@ function renderizarBannerFallback() {
     const wrapper = document.getElementById("cidadeBannerWrapper")
     if (!wrapper) return
 
+    const nomeCidade = obterNomeCidadeAtual()
+    const uf = (window.FILTRO?.ufNome || obterUfAtual() || "").toUpperCase()
+    const titulo = nomeCidade ? `Veículos em ${escaparHtml(nomeCidade)}${uf ? ` - ${escaparHtml(uf)}` : ""}` : ""
+
     wrapper.innerHTML = `
         <div class="swiper-slide">
-            <div class="cidade-banner-fallback"></div>
+            <div class="cidade-banner-fallback d-flex align-items-center justify-content-center text-center">
+                ${titulo ? `<div><h2 class="fw-bold mb-2">${titulo}</h2><p class="mb-0">Ofertas de veículos na sua cidade</p></div>` : ""}
+            </div>
         </div>
     `
+
+    const prev = document.querySelector("#cidadeBannerSlider .swiper-button-prev")
+    const next = document.querySelector("#cidadeBannerSlider .swiper-button-next")
+    if (prev) prev.style.display = "none"
+    if (next) next.style.display = "none"
 
     iniciarSliderCidade(1)
 }

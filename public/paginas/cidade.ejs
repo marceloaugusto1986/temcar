@@ -316,11 +316,22 @@
                         <div class="swiper cidadeBannerSwiper" id="cidadeBannerSlider">
                             <div class="swiper-wrapper" id="cidadeBannerWrapper">
                                 <div class="swiper-slide">
-                                    <div class="cidade-banner-fallback"></div>
+                                    <div class="cidade-banner-fallback d-flex align-items-center justify-content-center text-center">
+                                        <div>
+                                            <h2 class="fw-bold mb-2">
+                                                <% if (typeof filtro !== 'undefined' && filtro.cidadeNome) { %>
+                                                    Veículos em <%= filtro.cidadeNome %><% if (filtro.ufNome) { %> - <%= filtro.ufNome %><% } %>
+                                                <% } else if (typeof seo !== 'undefined' && seo.texto_h1) { %>
+                                                    <%= seo.texto_h1 %>
+                                                <% } %>
+                                            </h2>
+                                            <p class="mb-0">Ofertas de veículos na sua cidade</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="swiper-button-prev"></div>
-                            <div class="swiper-button-next"></div>
+                            <div class="swiper-button-prev" style="display:none"></div>
+                            <div class="swiper-button-next" style="display:none"></div>
                             <div class="swiper-pagination"></div>
                         </div>
                     </section>
