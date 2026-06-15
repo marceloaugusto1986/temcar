@@ -6,6 +6,7 @@ let listaVeiculos = []
 let listaVeiculosOriginal = []
 let paginaAtual = 1
 const limitePorPagina = 12
+let bannerSwiperInstancia = null
 
 const tipoMap = {
     carros: 'Carro',
@@ -272,9 +273,6 @@ async function carregarVeiculos() {
         renderizarLista()
         renderizarPaginacao()
 
-        if (listaVeiculos.length > 0) {
-            carregarBanners(filtro.cidade || '', filtro.uf || '')
-        }
 
     } catch (erro) {
         console.error(erro)
@@ -776,7 +774,12 @@ async function carregarBanners(slug, uf) {
         slider.classList.remove("d-none")
         if (fallback) fallback.classList.add("d-none")
 
-        new Swiper("#bannerSlider", {
+        if (bannerSwiperInstancia) {
+            bannerSwiperInstancia.destroy(true, true)
+            bannerSwiperInstancia = null
+        }
+
+        bannerSwiperInstancia = new Swiper("#bannerSlider", {
             loop: banners.length > 1,
             slidesPerView: 1,
             speed: 900,
@@ -796,5 +799,7 @@ async function carregarBanners(slug, uf) {
 // ===============================
 
 document.addEventListener("DOMContentLoaded", () => {
+    const filtro = window.FILTRO || {}
+    carregarBanners(filtro.cidade || '', filtro.uf || '')
     carregarVeiculos()
 })
