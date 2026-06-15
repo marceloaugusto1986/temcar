@@ -286,30 +286,33 @@ router.get("/veiculos/:estado", async (req, res) => {
 router.get("/api/cidades/:slug/:uf/banners", async (req, res) => {
   try {
     const { slug, uf } = req.params;
-    await garantirColunaImagemMobileCidades();
+
+    try { await garantirColunaImagemMobileCidades(); } catch {}
+    try { await garantirColunasRegioesImagens(); } catch {}
+
     const [cidades] = await db.query(`SELECT * FROM cidades`);
     const cidade = cidades.find(c =>
       slugify(c.nome) === slug && c.estado.toLowerCase() === uf.toLowerCase()
     );
-    if (!cidade) return res.status(404).json({ message: "Cidade não encontrada" });
-    await garantirColunasRegioesImagens();
+
+    if (!cidade) return res.json([]);
 
     const [banners] = await db.query(
-      `
-      SELECT id, imagem, imagem_mobile, link
-      FROM regioes_imagens
-      WHERE cidade_id = ?
-         OR (cidade COLLATE utf8mb4_unicode_ci = ? AND (LOWER(estado) = LOWER(?) OR estado IS NULL))
-      ORDER BY id ASC
-      `,
+      `SELECT id, imagem, imagem_mobile, link
+       FROM regioes_imagens
+       WHERE cidade_id = ?
+          OR (LOWER(cidade) = LOWER(?) AND (LOWER(estado) = LOWER(?) OR estado IS NULL))
+       ORDER BY id ASC`,
       [cidade.id, cidade.nome, cidade.estado]
     );
+
     const imagens = banners.map(b => ({
       id: b.id,
       imagem: obterUrlUpload(b.imagem),
       imagem_mobile: obterUrlUpload(b.imagem_mobile),
       link: b.link || ''
     }));
+
     if (!imagens.length && (cidade.imagem || cidade.imagem_mobile)) {
       imagens.push({
         id: `cidade-${cidade.id}`,
@@ -317,6 +320,7 @@ router.get("/api/cidades/:slug/:uf/banners", async (req, res) => {
         imagem_mobile: cidade.imagem_mobile || null
       });
     }
+
     res.json(imagens);
   } catch (error) {
     console.error("Erro ao buscar banners da cidade:", error);
