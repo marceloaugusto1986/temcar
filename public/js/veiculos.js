@@ -720,6 +720,19 @@ function controlarVisibilidadeSidebar(total) {
 // BANNER SLIDER
 // ===============================
 
+function bannerImagemFalhou(img) {
+    const slide = img.closest('.swiper-slide')
+    if (slide) slide.remove()
+
+    const wrapper = document.getElementById("bannerWrapper")
+    if (!wrapper || wrapper.querySelectorAll('.swiper-slide').length > 0) return
+
+    const slider = document.getElementById("bannerSlider")
+    const fallback = document.getElementById("bannerFallback")
+    if (slider) slider.classList.add("d-none")
+    if (fallback) fallback.classList.remove("d-none")
+}
+
 async function carregarBanners(slug, uf) {
     try {
         let banners = []
@@ -765,7 +778,7 @@ async function carregarBanners(slug, uf) {
                 ${b.link ? `<a href="${escaparHtml(b.link)}" style="display:block">` : ''}
                 <picture>
                     ${b.srcMobile ? `<source media="(max-width: 768px)" srcset="${escaparHtml(b.srcMobile)}">` : ''}
-                    <img src="${escaparHtml(b.src)}" alt="${escaparHtml(b.titulo)}" onerror="this.closest('.swiper-slide').remove()">
+                    <img src="${escaparHtml(b.src)}" alt="${escaparHtml(b.titulo)}" onerror="bannerImagemFalhou(this)">
                 </picture>
                 ${b.link ? '</a>' : ''}
             </div>
