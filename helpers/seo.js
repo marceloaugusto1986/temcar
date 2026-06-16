@@ -211,7 +211,11 @@ async function getSeo(pagina, dadosContexto = {}, fallbackOverrides = {}) {
 
     function aplicarPlaceholders(texto) {
       if (!texto) return texto;
+      const localizacao = [dados.bairro, dados.cidade, dados.estado].filter(Boolean).join(', ');
+      const localizacaoCurta = [dados.cidade, dados.estado].filter(Boolean).join(', ');
       return limparTextoSeo(texto
+        .replaceAll('#localizacao', localizacao)
+        .replaceAll('#localizacao_curta', localizacaoCurta)
         .replaceAll('#marca', dados.marca || '')
         .replaceAll('#modelo', dados.versao || '')
         .replaceAll('#veiculo', dados.veiculo || dados.tipo || '')
@@ -222,7 +226,11 @@ async function getSeo(pagina, dadosContexto = {}, fallbackOverrides = {}) {
 
     function aplicarPlaceholdersUrl(texto) {
       if (!texto) return texto;
+      const localizacaoSlug = [dados.bairro, dados.cidade, dados.estado].filter(Boolean).map(slugify).join('/');
+      const localizacaoCurtaSlug = [dados.cidade, dados.estado].filter(Boolean).map(slugify).join('/');
       return texto
+        .replaceAll('#localizacao', localizacaoSlug)
+        .replaceAll('#localizacao_curta', localizacaoCurtaSlug)
         .replaceAll('#marca', slugify(dados.marca))
         .replaceAll('#modelo', slugify(dados.versao))
         .replaceAll('#veiculo', slugify(dados.veiculo || dados.tipo))
@@ -328,7 +336,11 @@ async function getSeoAnuncio(id) {
 
     const substituir = (texto) => {
       if (!texto) return '';
+      const localizacao = [anuncio.bairro, anuncio.cidade, anuncio.estado].filter(Boolean).join(', ');
+      const localizacaoCurta = [anuncio.cidade, anuncio.estado].filter(Boolean).join(', ');
       return texto
+        .replace(/#localizacao/g, localizacao)
+        .replace(/#localizacao_curta/g, localizacaoCurta)
         .replace(/#marca/g, anuncio.marca || '')
         .replace(/#modelo/g, anuncio.versao || '')
         .replace(/#cidade/g, anuncio.cidade || '')
@@ -402,7 +414,13 @@ async function getSeoCidade(cidade, bairro = '') {
 
     const substituir = (texto) => {
       if (!texto) return '';
+      const localCompleto = bairroNome
+        ? `${bairroNome}, ${cidade.nome}, ${cidade.estado}`
+        : `${cidade.nome}, ${cidade.estado}`;
+      const localCurto = `${cidade.nome}, ${cidade.estado}`;
       return limparTextoSeo(texto
+        .replace(/#localizacao/g, localCompleto)
+        .replace(/#localizacao_curta/g, localCurto)
         .replace(/#bairro/g, bairroNome ? `${bairroNome},` : '')
         .replace(/#cidade/g, cidade.nome || '')
         .replace(/#estado/g, cidade.estado || ''));
@@ -491,7 +509,9 @@ async function getSeoRevenda(id) {
 
     const substituir = (texto) => {
       if (!texto) return '';
+      const localizacaoCurta = [revenda.cidade, revenda.estado].filter(Boolean).join(', ');
       return texto
+        .replace(/#localizacao_curta/g, localizacaoCurta)
         .replace(/#revenda/g, revenda.nome || '')
         .replace(/#cidade/g, revenda.cidade || '')
         .replace(/#estado/g, revenda.estado || '');

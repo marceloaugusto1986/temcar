@@ -4,11 +4,12 @@ const db = require("./../../database/pool_connection");
 const { getSeoCidade } = require('../../helpers/seo');
 
 function slugify(texto) {
-  return texto
+  return (texto || '')
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "-");
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 // Rota nova: /cidade/:slug/:uf (ex: /cidade/mesquita/rj)
