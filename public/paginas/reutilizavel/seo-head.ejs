@@ -46,12 +46,11 @@ const ogImage = (typeof seo !== 'undefined' && seo.og_image) ? seo.og_image : 'h
 <link rel="canonical" href="<%= canonical %>">
 <meta name="robots" content="<%= robots %>">
 
-<!-- Favicon dinâmico do banco -->
-<% if (typeof siteConfig !== 'undefined' && siteConfig.favicon) { %>
-<link rel="icon" href="/uploads/anuncios/<%= siteConfig.favicon %>" id="site-favicon">
-<% } else { %>
-<link rel="icon" href="/images/favicon-default.png" id="site-favicon">
-<% } %>
+<!-- Favicon fixo -->
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" id="site-favicon">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
 
 <!-- Open Graph -->
 <meta property="og:title" content="<%= title %>">

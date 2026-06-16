@@ -5,14 +5,9 @@
 
     const config = await resposta.json();
 
-    /* ===== FAVICON ===== */
-    if (config.favicon) {
-      const link = document.getElementById("site-favicon");
-
-      if (link) {
-        link.href = "/uploads/anuncios/" + config.favicon + "?v=" + Date.now();
-      }
-    }
+    /* ===== FAVICON =====
+       Favicon é fixo (/favicon/favicon.png), definido no <head>.
+       Não é sobrescrito pela configuração do banco. */
 
     /* ===== LOGO ===== */
     if (config.logo) {
