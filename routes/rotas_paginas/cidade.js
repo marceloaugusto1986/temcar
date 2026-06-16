@@ -318,6 +318,8 @@ router.get("/api/cidades/:slug/:uf/banners", async (req, res) => {
       );
     }
 
+    console.log('[regioes_imagens] /api/cidades/%s/%s/banners →', slug, uf, banners);
+
     const imagens = banners.map(b => ({
       id: b.id,
       imagem: obterUrlUpload(b.imagem),

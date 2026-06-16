@@ -599,6 +599,8 @@ router.get('/api/banners', async (req, res) => {
         ORDER BY id ASC
       `, [`%${nomeSlug}%`, uf]);
 
+      console.log('[regioes_imagens] /api/banners cidade=%s uf=%s →', cidade, uf, cidadeBanners);
+
       const imagens = cidadeBanners
         .map(b => ({
           id: b.id,
