@@ -465,7 +465,7 @@
               paginaAtual = this.value;
               resetFormSeo();
               carregarSeoDaPagina();
-              atualizarPlaceholders(this.value);
+              atualizarPlaceholders();
             });
 
             async function carregarSeoDaPagina() {
@@ -534,19 +534,6 @@
               document.getElementById('seoId').value = '';
             }
 
-            const PLACEHOLDERS_POR_PAGINA = {
-              venda:       ['#marca', '#modelo', '#bairro', '#cidade', '#estado', '#localizacao', '#localizacao_curta'],
-              cidade:      ['#bairro', '#cidade', '#estado', '#localizacao', '#localizacao_curta'],
-              revenda:     ['#revenda', '#cidade', '#estado', '#localizacao_curta'],
-              marca:       ['#tipo', '#marca'],
-              marca_modelo:['#tipo', '#marca', '#modelo'],
-              carroceria:  ['#tipo', '#carroceria'],
-              home:        ['#marca', '#modelo', '#cidade', '#estado', '#veiculo'],
-              carros:      [],
-              motos:       [],
-              utilitarios: [],
-            };
-
             const DESCRICAO_PLACEHOLDER = {
               '#marca':            'Marca do veículo (ex: Honda)',
               '#modelo':           'Modelo / versão (ex: Civic)',
@@ -561,21 +548,17 @@
               '#revenda':          'Nome da revenda',
             };
 
-            function atualizarPlaceholders(pagina) {
+            function atualizarPlaceholders() {
               const lista = document.getElementById('placeholders-lista');
-              const vars = PLACEHOLDERS_POR_PAGINA[pagina] || Object.keys(DESCRICAO_PLACEHOLDER);
               lista.innerHTML = '';
-              vars.forEach(p => {
+              Object.entries(DESCRICAO_PLACEHOLDER).forEach(([p, desc]) => {
                 const badge = document.createElement('span');
                 badge.className = 'badge rounded-pill fw-normal';
                 badge.style.cssText = 'background:#f1f3f5;color:#495057;border:1px solid #dee2e6;font-size:0.8rem;cursor:default';
-                badge.title = DESCRICAO_PLACEHOLDER[p] || '';
+                badge.title = desc;
                 badge.textContent = p;
                 lista.appendChild(badge);
               });
-              if (!vars.length) {
-                lista.innerHTML = '<span class="text-muted small fst-italic">Esta página não usa variáveis dinâmicas.</span>';
-              }
             }
 
             atualizarPlaceholders('');
