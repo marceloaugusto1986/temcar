@@ -720,6 +720,11 @@ function controlarVisibilidadeSidebar(total) {
 // BANNER SLIDER
 // ===============================
 
+function mostrarBannerFallback() {
+    document.getElementById("bannerSlider")?.classList.add("d-none")
+    document.getElementById("bannerFallback")?.classList.remove("d-none")
+}
+
 function bannerImagemFalhou(img) {
     const slide = img.closest('.swiper-slide')
     if (slide) slide.remove()
@@ -735,6 +740,12 @@ function bannerImagemFalhou(img) {
 
 async function carregarBanners(slug, uf) {
     try {
+        // Só substitui a tarja vermelha pelo banner quando há veículos na página
+        if (!listaVeiculos.length) {
+            mostrarBannerFallback()
+            return
+        }
+
         let banners = []
 
         if (slug && uf) {
@@ -768,7 +779,10 @@ async function carregarBanners(slug, uf) {
             }
         }
 
-        if (!banners.length) return
+        if (!banners.length) {
+            mostrarBannerFallback()
+            return
+        }
 
         const wrapper = document.getElementById("bannerWrapper")
         const slider = document.getElementById("bannerSlider")
@@ -812,8 +826,8 @@ async function carregarBanners(slug, uf) {
 // INIT
 // ===============================
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const filtro = window.FILTRO || {}
+    await carregarVeiculos()
     carregarBanners(filtro.cidade || '', filtro.uf || '')
-    carregarVeiculos()
 })
