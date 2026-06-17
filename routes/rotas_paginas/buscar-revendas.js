@@ -16,7 +16,18 @@ function slugify(texto) {
 }
 
 function capitalize(texto) {
-  return (texto || '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const minusculas = new Set(['da', 'de', 'do', 'das', 'dos', 'e', 'a', 'o', 'em', 'no', 'na']);
+  return (texto || '')
+    .replace(/-/g, ' ')
+    .split(' ')
+    .map((word, i) => {
+      if (!word) return word;
+      const lower = word.toLowerCase();
+      return (i === 0 || !minusculas.has(lower))
+        ? lower.charAt(0).toUpperCase() + lower.slice(1)
+        : lower;
+    })
+    .join(' ');
 }
 
 async function buscarCidadePorSlugUf(cidadeSlug, ufSlug) {
