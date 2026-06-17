@@ -1021,7 +1021,7 @@ function renderizarBannerFallback() {
 
     const nomeCidade = obterNomeCidadeAtual()
     const uf = (window.FILTRO?.ufNome || obterUfAtual() || "").toUpperCase()
-    const titulo = nomeCidade ? `Veículos em ${escaparHtml(nomeCidade)}${uf ? ` - ${escaparHtml(uf)}` : ""}` : ""
+    const titulo = nomeCidade ? `Carros em ${escaparHtml(nomeCidade)}${uf ? ` - ${escaparHtml(uf)}` : ""}` : ""
 
     wrapper.innerHTML = `
         <div class="swiper-slide">
