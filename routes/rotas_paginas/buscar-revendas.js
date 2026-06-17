@@ -24,6 +24,19 @@ async function buscarCidadePorSlugUf(cidadeSlug, ufSlug) {
   return cidades.find(cidade => slugify(cidade.nome) === cidadeSlug) || null;
 }
 
+async function buscarBairroPorSlug(bairroSlug, cidadeSlug, ufSlug) {
+  const [bairros] = await db.query(
+    'SELECT DISTINCT bairro, cidade FROM revendas_cidades WHERE LOWER(estado) = ?',
+    [ufSlug]
+  );
+  const encontrado = bairros.find(
+    item => item.bairro
+      && slugify(item.bairro) === bairroSlug
+      && slugify(item.cidade) === cidadeSlug
+  );
+  return encontrado ? encontrado.bairro : null;
+}
+
 function montarSeoRevendasLocal({ cidade, uf, bairro = '', canonical }) {
   const local = bairro ? `${bairro}, ${cidade} - ${uf}` : `${cidade} - ${uf}`;
   const localDescricao = bairro ? `no bairro ${bairro}, em ${cidade} - ${uf}` : `em ${cidade} - ${uf}`;
@@ -160,7 +173,8 @@ router.get('/buscar-revendas/:bairro/:cidade/:uf', async (req, res) => {
   const cidadeSlug = slugify(req.params.cidade);
   const ufSlug = slugify(req.params.uf);
   const cidadeEncontrada = await buscarCidadePorSlugUf(cidadeSlug, ufSlug);
-  const nomeBairro = capitalize(bairroSlug);
+  const bairroOriginal = await buscarBairroPorSlug(bairroSlug, cidadeSlug, ufSlug);
+  const nomeBairro = bairroOriginal || capitalize(bairroSlug);
   const nomeCidade = cidadeEncontrada ? cidadeEncontrada.nome : capitalize(cidadeSlug);
   const ufUpper = cidadeEncontrada ? cidadeEncontrada.estado.toUpperCase() : ufSlug.toUpperCase();
   const canonical = `${SITE_URL}/buscar-revendas/${bairroSlug}/${cidadeSlug}/${ufSlug}`;
