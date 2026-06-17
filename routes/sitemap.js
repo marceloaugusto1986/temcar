@@ -80,6 +80,24 @@ router.get('/sitemap.xml', async (req, res) => {
 
           return [
             {
+              loc: `/carros/${bairro}/${cidade}/${estado}`,
+              priority: '0.5',
+              changefreq: 'daily',
+              lastmod: hoje
+            },
+            {
+              loc: `/motos/${bairro}/${cidade}/${estado}`,
+              priority: '0.5',
+              changefreq: 'daily',
+              lastmod: hoje
+            },
+            {
+              loc: `/utilitarios/${bairro}/${cidade}/${estado}`,
+              priority: '0.5',
+              changefreq: 'daily',
+              lastmod: hoje
+            },
+            {
               loc: `/particular/${bairro}/${cidade}/${estado}`,
               priority: '0.5',
               changefreq: 'daily',
