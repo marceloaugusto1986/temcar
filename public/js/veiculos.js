@@ -67,7 +67,7 @@ function montarDetalhesSecundarios(item) {
 }
 
 function montarLocalizacao(item) {
-    const cidadeEstado = [item.cidade, item.estado].filter(Boolean).join(" - ")
+    const cidadeEstado = [item.cidade, item.estado].filter(Boolean).join(", ")
     return item.bairro ? `${item.bairro}, ${cidadeEstado}` : cidadeEstado
 }
 
