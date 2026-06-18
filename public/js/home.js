@@ -676,19 +676,6 @@ function preencherCidadesSelectFilter() {
     })
 }
 
-function filtrarPorCarroceria(tipoCarroceria) {
-    if (!tipoCarroceria) return
-    const slug = tipoCarroceria.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-    window.location.href = `/carros/carroceria/${slug}`
-}
-
-function filtrarPorMarca(marca) {
-    if (!marca) return
-    const slug = marca.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-    window.location.href = `/carros/${slug}`
-}
-
-
 /* ================================
    PAGINAÇÃO
 ================================ */
@@ -809,22 +796,6 @@ document.addEventListener("DOMContentLoaded", () => {
         })
     }
 
-    document.querySelectorAll(".carroceria-item").forEach(el => {
-        el.style.cursor = "pointer"
-
-        el.addEventListener("click", () => {
-            const tipo = el.dataset.carroceria
-            filtrarPorCarroceria(tipo)
-        })
-    })
-
-    document.querySelectorAll(".marca-item").forEach(el => {
-        el.style.cursor = "pointer"
-
-        el.addEventListener("click", () => {
-            const marca = el.dataset.marca
-            filtrarPorMarca(marca)
-        })
-    })
+    // Carrocerias e marcas agora são links <a href> reais no HTML (navegação nativa).
 
 })
