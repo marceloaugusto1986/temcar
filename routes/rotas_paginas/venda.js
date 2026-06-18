@@ -3,6 +3,43 @@ const router = express.Router();
 const db = require('./../../database/pool_connection');
 const { getSeoAnuncio, getSeo } = require('../../helpers/seo');
 const { slugify, montarCaminhoVenda, montarUrlVenda } = require('../../helpers/anuncio-url');
+const { montarSchemaVehicle } = require('../../helpers/schema');
+
+// Busca os dados completos do anúncio para montar o JSON-LD Vehicle (schema.org)
+async function buscarAnuncioParaSchema(id) {
+  try {
+    const [[anuncio]] = await db.query(`
+      SELECT
+        a.marca,
+        a.versao,
+        a.descricao,
+        a.preco,
+        a.ano_fabricacao,
+        a.ano_modelo,
+        a.km,
+        a.cambio,
+        a.motorizacao,
+        a.portas,
+        a.combustivel,
+        a.carroceria,
+        a.cor,
+        a.condicao,
+        u.cidade,
+        u.estado,
+        img.imagem AS imagem_principal
+      FROM anuncios a
+      INNER JOIN usuarios u ON u.id = a.usuario_id
+      LEFT JOIN anuncios_imagens img
+        ON img.anuncio_id = a.id AND img.principal = true
+      WHERE a.id = ?
+      LIMIT 1
+    `, [id]);
+    return anuncio || null;
+  } catch (error) {
+    console.error('Erro ao buscar anúncio para schema', id, error);
+    return null;
+  }
+}
 
 async function buscarAnuncioResumoPorId(id) {
   const [[anuncio]] = await db.query(`
@@ -68,7 +105,10 @@ async function renderizarPaginaVenda(req, res, anuncio) {
     { name: 'Veículo', url: urlVenda }
   ];
 
-  res.render('venda', { seo, breadcrumbs, anuncioId: id || null });
+  const dadosSchema = id ? await buscarAnuncioParaSchema(id) : null;
+  const vehicleSchema = montarSchemaVehicle(dadosSchema, urlVenda);
+
+  res.render('venda', { seo, breadcrumbs, anuncioId: id || null, vehicleSchema });
 }
 
 router.get('/venda', async (req, res) => {
