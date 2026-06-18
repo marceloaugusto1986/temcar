@@ -36,16 +36,41 @@ async function buscarCidadePorSlugUf(cidadeSlug, ufSlug) {
 }
 
 async function buscarBairroPorSlug(bairroSlug, cidadeSlug, ufSlug) {
+  // Fonte autoritativa com acentos: tabela bairros
   const [bairros] = await db.query(
+    'SELECT nome, cidade, slug FROM bairros WHERE LOWER(estado) = ?',
+    [ufSlug]
+  );
+  const noBairros = bairros.find(
+    item => item.nome
+      && (item.slug === bairroSlug || slugify(item.nome) === bairroSlug)
+      && slugify(item.cidade) === cidadeSlug
+  );
+  if (noBairros) return noBairros.nome;
+
+  // Fallback: áreas de atendimento cadastradas pelas revendas
+  const [revendasCidades] = await db.query(
     'SELECT DISTINCT bairro, cidade FROM revendas_cidades WHERE LOWER(estado) = ?',
     [ufSlug]
   );
-  const encontrado = bairros.find(
+  const noRevendas = revendasCidades.find(
     item => item.bairro
       && slugify(item.bairro) === bairroSlug
       && slugify(item.cidade) === cidadeSlug
   );
-  return encontrado ? encontrado.bairro : null;
+  if (noRevendas) return noRevendas.bairro;
+
+  // Fallback: bairro principal das revendas
+  const [usuarios] = await db.query(
+    "SELECT DISTINCT bairro, cidade FROM usuarios WHERE tipo = 'revenda' AND LOWER(estado) = ?",
+    [ufSlug]
+  );
+  const noUsuarios = usuarios.find(
+    item => item.bairro
+      && slugify(item.bairro) === bairroSlug
+      && slugify(item.cidade) === cidadeSlug
+  );
+  return noUsuarios ? noUsuarios.bairro : null;
 }
 
 function montarSeoRevendasLocal({ cidade, uf, bairro = '', canonical }) {
