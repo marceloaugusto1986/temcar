@@ -87,6 +87,35 @@ async function usuariosTemColunaBairro() {
   return cacheUsuariosTemBairro;
 }
 
+// Conta anúncios de particulares que casam com o local (espelha o filtro do front)
+// para aplicar noindex em páginas sem nenhum resultado.
+async function contarParticular({ cidadeSlug, ufSlug, bairroSlug } = {}) {
+  try {
+    const [anuncios] = await db.query(`
+      SELECT u.cidade, u.estado, u.bairro
+      FROM anuncios a
+      INNER JOIN usuarios u ON u.id = a.usuario_id
+      WHERE u.tipo = 'particular'
+        AND a.status = 'ativo'
+        AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
+    `);
+    return anuncios.filter(item => {
+      if (cidadeSlug && slugify(item.cidade) !== cidadeSlug) return false;
+      if (ufSlug && String(item.estado || '').toLowerCase() !== ufSlug) return false;
+      if (bairroSlug && slugify(item.bairro) !== bairroSlug) return false;
+      return true;
+    }).length;
+  } catch (error) {
+    console.error('Erro ao contar particulares para indexação:', error);
+    return 1; // Em caso de erro, mantém comportamento padrão (indexável)
+  }
+}
+
+function aplicarNoindexSeVazio(seo, total) {
+  if (!total) seo.robots = 'noindex, follow';
+  return seo;
+}
+
 function montarSeoParticularLocal({ cidade, uf, bairro = '', canonical }) {
   const local = bairro ? `${bairro}, ${cidade} - ${uf}` : `${cidade} - ${uf}`;
   const localDescricao = bairro ? `no bairro ${bairro}, em ${cidade} - ${uf}` : `em ${cidade} - ${uf}`;
@@ -141,6 +170,8 @@ router.get('/particular/:cidade/:uf', async (req, res) => {
     canonical
   }));
 
+  aplicarNoindexSeVazio(seo, await contarParticular({ cidadeSlug, ufSlug }));
+
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
     { name: 'Particular', url: `${SITE_URL}/particular` },
@@ -181,6 +212,8 @@ router.get('/particular/:bairro/:cidade/:uf', async (req, res) => {
     bairro: nomeBairro,
     canonical
   }));
+
+  aplicarNoindexSeVazio(seo, await contarParticular({ cidadeSlug, ufSlug, bairroSlug }));
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },

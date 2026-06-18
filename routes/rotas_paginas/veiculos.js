@@ -146,6 +146,128 @@ function obterTiposConsulta(tipo) {
   return tiposPorSlug[tipoNormalizado] || (tipo ? [tipo] : []);
 }
 
+// Monta a cláusula WHERE usada tanto pela API quanto pela contagem de resultados
+// (para definir noindex em páginas sem nenhum anúncio).
+function construirFiltroVeiculos({ tipo, cidade, uf, bairro, marca, carroceria, busca } = {}) {
+  let where = "a.status = 'ativo' AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())";
+  const params = [];
+
+  const tiposConsulta = obterTiposConsulta(tipo);
+  if (tiposConsulta.length) {
+    where += ` AND LOWER(a.tipo) IN (${tiposConsulta.map(() => 'LOWER(?)').join(', ')})`;
+    params.push(...tiposConsulta);
+  }
+
+  if (cidade) {
+    const cidadeNorm = `%${cidade.toLowerCase().replace(/-/g, ' ')}%`;
+    if (uf) {
+      where += ` AND (
+        (LOWER(u.cidade) LIKE ? AND LOWER(u.estado) = ?)
+        OR EXISTS (
+          SELECT 1 FROM anuncios_cidades ac
+          WHERE ac.anuncio_id = a.id
+          AND LOWER(ac.cidade) LIKE ?
+          AND LOWER(ac.estado) = ?
+        )
+        OR EXISTS (
+          SELECT 1 FROM revendas_cidades rc
+          WHERE rc.usuario_id = u.id
+          AND LOWER(rc.cidade) LIKE ?
+          AND LOWER(rc.estado) = ?
+        )
+      )`;
+      params.push(cidadeNorm, uf.toLowerCase(), cidadeNorm, uf.toLowerCase(), cidadeNorm, uf.toLowerCase());
+    } else {
+      where += ` AND (
+        LOWER(u.cidade) LIKE ?
+        OR EXISTS (
+          SELECT 1 FROM anuncios_cidades ac
+          WHERE ac.anuncio_id = a.id AND LOWER(ac.cidade) LIKE ?
+        )
+        OR EXISTS (
+          SELECT 1 FROM revendas_cidades rc
+          WHERE rc.usuario_id = u.id AND LOWER(rc.cidade) LIKE ?
+        )
+      )`;
+      params.push(cidadeNorm, cidadeNorm, cidadeNorm);
+    }
+  } else if (uf) {
+    where += ` AND (
+      LOWER(u.estado) = ?
+      OR EXISTS (
+        SELECT 1 FROM anuncios_cidades ac
+        WHERE ac.anuncio_id = a.id AND LOWER(ac.estado) = ?
+      )
+      OR EXISTS (
+        SELECT 1 FROM revendas_cidades rc
+        WHERE rc.usuario_id = u.id AND LOWER(rc.estado) = ?
+      )
+    )`;
+    params.push(uf.toLowerCase(), uf.toLowerCase(), uf.toLowerCase());
+  }
+
+  if (bairro) {
+    const bairroNorm = `%${bairro.toLowerCase().replace(/-/g, ' ')}%`;
+    where += ` AND (
+      LOWER(u.bairro) LIKE ?
+      OR EXISTS (
+        SELECT 1 FROM revendas_cidades rc
+        WHERE rc.usuario_id = u.id
+        AND LOWER(rc.bairro) LIKE ?
+      )
+    )`;
+    params.push(bairroNorm, bairroNorm);
+  }
+
+  if (marca) {
+    const marcaNorm = marca.toLowerCase().replace(/-/g, ' ');
+    where += ' AND (LOWER(a.marca) = ? OR LOWER(a.versao) LIKE ?)';
+    params.push(marcaNorm, `%${marcaNorm}%`);
+  }
+
+  if (carroceria) {
+    where += ' AND LOWER(a.carroceria) = ?';
+    params.push(carroceria.toLowerCase());
+  }
+
+  if (busca) {
+    const termo = `%${busca.toLowerCase().replace(/-/g, ' ')}%`;
+    where += ` AND (
+      LOWER(a.marca) LIKE ?
+      OR LOWER(a.versao) LIKE ?
+      OR LOWER(a.descricao) LIKE ?
+    )`;
+    params.push(termo, termo, termo);
+  }
+
+  return { where, params };
+}
+
+// Conta anúncios que casam com o filtro — usado para aplicar noindex em páginas vazias.
+async function contarVeiculos(filtros) {
+  try {
+    const { where, params } = construirFiltroVeiculos(filtros);
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) AS total
+       FROM anuncios a
+       INNER JOIN usuarios u ON u.id = a.usuario_id
+       WHERE ${where}`,
+      params
+    );
+    return total;
+  } catch (error) {
+    console.error('Erro ao contar veículos para indexação:', error);
+    // Em caso de erro, não força noindex (mantém comportamento padrão)
+    return 1;
+  }
+}
+
+// Define noindex quando a página não tem nenhum resultado
+function aplicarNoindexSeVazio(seo, total) {
+  if (!total) seo.robots = 'noindex, follow';
+  return seo;
+}
+
 const seoBrasilPorTipo = {
   carros: {
     titulo: 'Carros a venda no Brasil | TEMCAR',
@@ -248,6 +370,7 @@ router.get('/:tipo(carros|motos|utilitarios)/carroceria/:carroceria', async (req
   const carroceriaNome = capitalize(carroceria.replace(/-/g, ' '));
   const carroceriaSlug = slugify(carroceriaNome);
   const seo = await getSeoCarroceria(tipo, carroceriaNome, `${SITE_URL}/${tipo}/carroceria/${carroceriaSlug}`);
+  aplicarNoindexSeVazio(seo, await contarVeiculos({ tipo, carroceria: carroceriaNome }));
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
     { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
@@ -264,6 +387,7 @@ router.get('/:tipo(carros|motos|utilitarios)/:marca', async (req, res, next) => 
   const marcaNome = capitalize(marca.replace(/-/g, ' '));
   const marcaSlug = slugify(marcaNome);
   const seo = await getSeoMarca(tipo, marcaNome, `${SITE_URL}/${tipo}/${marcaSlug}`);
+  aplicarNoindexSeVazio(seo, await contarVeiculos({ tipo, marca: marcaNome }));
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
     { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
@@ -302,6 +426,7 @@ router.get('/:tipo(carros|motos|utilitarios)/:marca/:modelo', async (req, res, n
   const modeloNome = capitalize(modelo.replace(/-/g, ' '));
   const modeloSlug = slugify(modeloNome);
   const seo = await getSeoMarcaModelo(tipo, marcaNome, modeloNome, `${SITE_URL}/${tipo}/${marcaSlug}/${modeloSlug}`);
+  aplicarNoindexSeVazio(seo, await contarVeiculos({ tipo, marca: marcaNome, busca: modeloNome }));
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
     { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
@@ -343,6 +468,14 @@ router.get('/:tipo(carros|motos|utilitarios)/:cidade/:uf', async (req, res) => {
       uf: ufUpper,
       canonical
     }));
+
+  aplicarNoindexSeVazio(seo, await contarVeiculos({
+    tipo,
+    cidade: nomeCidade,
+    uf: ufUpper,
+    marca: filtroSeo.ativo ? filtroSeo.marca : '',
+    carroceria: filtroSeo.ativo ? filtroSeo.carroceria : ''
+  }));
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
@@ -395,6 +528,15 @@ router.get('/:tipo(carros|motos|utilitarios)/:bairro/:cidade/:uf', async (req, r
       canonical
     }));
 
+  aplicarNoindexSeVazio(seo, await contarVeiculos({
+    tipo,
+    bairro: nomeBairro,
+    cidade: nomeCidade,
+    uf: ufUpper,
+    marca: filtroSeo.ativo ? filtroSeo.marca : '',
+    carroceria: filtroSeo.ativo ? filtroSeo.carroceria : ''
+  }));
+
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
     { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
@@ -446,98 +588,7 @@ router.get('/api/veiculos', async (req, res) => {
   try {
     await garantirTabelaCidadesRevendas();
 
-    const { tipo, cidade, uf, bairro, marca, carroceria, busca } = req.query;
-
-    let where = "a.status = 'ativo' AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())";
-    const params = [];
-
-    const tiposConsulta = obterTiposConsulta(tipo);
-    if (tiposConsulta.length) {
-      where += ` AND LOWER(a.tipo) IN (${tiposConsulta.map(() => 'LOWER(?)').join(', ')})`;
-      params.push(...tiposConsulta);
-    }
-
-    if (cidade) {
-      const cidadeNorm = `%${cidade.toLowerCase().replace(/-/g, ' ')}%`;
-      if (uf) {
-        where += ` AND (
-          (LOWER(u.cidade) LIKE ? AND LOWER(u.estado) = ?)
-          OR EXISTS (
-            SELECT 1 FROM anuncios_cidades ac
-            WHERE ac.anuncio_id = a.id
-            AND LOWER(ac.cidade) LIKE ?
-            AND LOWER(ac.estado) = ?
-          )
-          OR EXISTS (
-            SELECT 1 FROM revendas_cidades rc
-            WHERE rc.usuario_id = u.id
-            AND LOWER(rc.cidade) LIKE ?
-            AND LOWER(rc.estado) = ?
-          )
-        )`;
-        params.push(cidadeNorm, uf.toLowerCase(), cidadeNorm, uf.toLowerCase(), cidadeNorm, uf.toLowerCase());
-      } else {
-        where += ` AND (
-          LOWER(u.cidade) LIKE ?
-          OR EXISTS (
-            SELECT 1 FROM anuncios_cidades ac
-            WHERE ac.anuncio_id = a.id AND LOWER(ac.cidade) LIKE ?
-          )
-          OR EXISTS (
-            SELECT 1 FROM revendas_cidades rc
-            WHERE rc.usuario_id = u.id AND LOWER(rc.cidade) LIKE ?
-          )
-        )`;
-        params.push(cidadeNorm, cidadeNorm, cidadeNorm);
-      }
-    } else if (uf) {
-      where += ` AND (
-        LOWER(u.estado) = ?
-        OR EXISTS (
-          SELECT 1 FROM anuncios_cidades ac
-          WHERE ac.anuncio_id = a.id AND LOWER(ac.estado) = ?
-        )
-        OR EXISTS (
-          SELECT 1 FROM revendas_cidades rc
-          WHERE rc.usuario_id = u.id AND LOWER(rc.estado) = ?
-        )
-      )`;
-      params.push(uf.toLowerCase(), uf.toLowerCase(), uf.toLowerCase());
-    }
-
-    if (bairro) {
-      const bairroNorm = `%${bairro.toLowerCase().replace(/-/g, ' ')}%`;
-      where += ` AND (
-        LOWER(u.bairro) LIKE ?
-        OR EXISTS (
-          SELECT 1 FROM revendas_cidades rc
-          WHERE rc.usuario_id = u.id
-          AND LOWER(rc.bairro) LIKE ?
-        )
-      )`;
-      params.push(bairroNorm, bairroNorm);
-    }
-
-    if (marca) {
-      const marcaNorm = marca.toLowerCase().replace(/-/g, ' ');
-      where += ' AND (LOWER(a.marca) = ? OR LOWER(a.versao) LIKE ?)';
-      params.push(marcaNorm, `%${marcaNorm}%`);
-    }
-
-    if (carroceria) {
-      where += ' AND LOWER(a.carroceria) = ?';
-      params.push(carroceria.toLowerCase());
-    }
-
-    if (busca) {
-      const termo = `%${busca.toLowerCase().replace(/-/g, ' ')}%`;
-      where += ` AND (
-        LOWER(a.marca) LIKE ?
-        OR LOWER(a.versao) LIKE ?
-        OR LOWER(a.descricao) LIKE ?
-      )`;
-      params.push(termo, termo, termo);
-    }
+    const { where, params } = construirFiltroVeiculos(req.query);
 
     const [anuncios] = await db.query(`
       SELECT

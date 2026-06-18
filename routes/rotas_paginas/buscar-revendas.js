@@ -73,6 +73,79 @@ async function buscarBairroPorSlug(bairroSlug, cidadeSlug, ufSlug) {
   return noUsuarios ? noUsuarios.bairro : null;
 }
 
+function obterCidadesAtendimento(revenda) {
+  if (!revenda.cidades_atendimento) return [];
+  if (Array.isArray(revenda.cidades_atendimento)) return revenda.cidades_atendimento;
+  try {
+    const parsed = JSON.parse(revenda.cidades_atendimento);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// Espelha o filtro do front (revendaAtendeCidade / revendaAtendeBairro)
+function revendaAtendeLocal(revenda, { cidadeSlug, ufSlug, bairroSlug }) {
+  const atendimentos = obterCidadesAtendimento(revenda);
+
+  if (bairroSlug) {
+    const principal =
+      slugify(revenda.bairro) === bairroSlug &&
+      slugify(revenda.cidade) === cidadeSlug &&
+      slugify(revenda.estado) === ufSlug;
+    if (principal) return true;
+    return atendimentos.some(item =>
+      slugify(item.bairro) === bairroSlug &&
+      slugify(item.cidade) === cidadeSlug &&
+      slugify(item.estado) === ufSlug
+    );
+  }
+
+  const principal =
+    slugify(revenda.cidade) === cidadeSlug &&
+    slugify(revenda.estado) === ufSlug;
+  if (principal) return true;
+  return atendimentos.some(item =>
+    slugify(item.cidade) === cidadeSlug &&
+    slugify(item.estado) === ufSlug
+  );
+}
+
+// Conta revendas ativas que atendem o local — para aplicar noindex em páginas vazias.
+async function contarRevendas({ cidadeSlug, ufSlug, bairroSlug } = {}) {
+  try {
+    await garantirTabelaCidadesRevendas();
+    const [revendas] = await db.query(`
+      SELECT
+        u.bairro,
+        u.cidade,
+        u.estado,
+        (
+          SELECT JSON_ARRAYAGG(JSON_OBJECT('bairro', rc.bairro, 'cidade', rc.cidade, 'estado', rc.estado))
+          FROM revendas_cidades rc
+          WHERE rc.usuario_id = u.id
+        ) AS cidades_atendimento
+      FROM usuarios u
+      WHERE u.tipo = 'revenda'
+        AND EXISTS (
+          SELECT 1 FROM anuncios a
+          WHERE a.usuario_id = u.id
+            AND a.status = 'ativo'
+            AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())
+        )
+    `);
+    return revendas.filter(r => revendaAtendeLocal(r, { cidadeSlug, ufSlug, bairroSlug })).length;
+  } catch (error) {
+    console.error('Erro ao contar revendas para indexação:', error);
+    return 1; // Em caso de erro, mantém comportamento padrão (indexável)
+  }
+}
+
+function aplicarNoindexSeVazio(seo, total) {
+  if (!total) seo.robots = 'noindex, follow';
+  return seo;
+}
+
 function montarSeoRevendasLocal({ cidade, uf, bairro = '', canonical }) {
   const local = bairro ? `${bairro}, ${cidade} - ${uf}` : `${cidade} - ${uf}`;
   const localDescricao = bairro ? `no bairro ${bairro}, em ${cidade} - ${uf}` : `em ${cidade} - ${uf}`;
@@ -187,6 +260,8 @@ router.get('/buscar-revendas/:cidade/:uf', async (req, res) => {
     canonical
   }));
 
+  aplicarNoindexSeVazio(seo, await contarRevendas({ cidadeSlug, ufSlug }));
+
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
     { name: 'Revendas', url: `${SITE_URL}/buscar-revendas` },
@@ -224,6 +299,8 @@ router.get('/buscar-revendas/:bairro/:cidade/:uf', async (req, res) => {
     bairro: nomeBairro,
     canonical
   }));
+
+  aplicarNoindexSeVazio(seo, await contarRevendas({ cidadeSlug, ufSlug, bairroSlug }));
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },

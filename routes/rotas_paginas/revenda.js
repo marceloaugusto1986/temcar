@@ -56,12 +56,31 @@ async function renderizarPaginaRevenda(req, res, identificador, partes = []) {
   }
 
   const seo = await getSeoRevenda(revenda.id);
+
+  // noindex quando a revenda não possui nenhum anúncio ativo
+  let totalAnuncios = 1;
+  try {
+    const [[contagem]] = await db.query(`
+      SELECT COUNT(*) AS total
+      FROM anuncios
+      WHERE usuario_id = ?
+        AND status = 'ativo'
+        AND (publicado_ate IS NULL OR publicado_ate >= NOW())
+    `, [revenda.id]);
+    totalAnuncios = contagem.total;
+  } catch (error) {
+    console.error('Erro ao contar anúncios da revenda para indexação:', error);
+  }
+
+  const seoFinal = { ...seo, link_canonico: montarUrlRevenda(revenda) };
+  if (!totalAnuncios) seoFinal.robots = 'noindex, follow';
+
   const breadcrumbs = [
     { name: 'Home', url: 'https://www.temcar.com.br/' },
     { name: 'Revendas', url: 'https://www.temcar.com.br/buscar-revendas' },
     { name: seo.texto_h1 || 'Revenda', url: montarUrlRevenda(revenda) }
   ];
-  return res.render('revenda', { seo: { ...seo, link_canonico: montarUrlRevenda(revenda) }, breadcrumbs, revendaId: revenda.id });
+  return res.render('revenda', { seo: seoFinal, breadcrumbs, revendaId: revenda.id });
 }
 
 /* =========================================================

@@ -265,7 +265,7 @@ function renderizarPagina() {
         document.getElementById("titulo-revendas")?.classList.add("d-none");
 
         cardsContainer.innerHTML = `
-            <div class="cidade-empty-state">
+            <div class="cidade-empty-state" data-nosnippet>
                 <div class="cidade-empty-icon"><i class="bi bi-buildings"></i></div>
                 <p class="cidade-empty-title">${textoTitulo}</p>
                 <p class="cidade-empty-promo">
