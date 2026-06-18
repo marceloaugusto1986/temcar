@@ -1510,8 +1510,8 @@
 							.home-seo-intro-texto h2 .destaque { color: #C90B0C; }
 							.home-seo-intro-arte {
 								position: relative;
-								flex: 0 0 360px;
-								max-width: 360px;
+								flex: 0 0 410px;
+								max-width: 410px;
 								display: flex;
 								align-items: center;
 								justify-content: center;
@@ -1520,21 +1520,30 @@
 							.home-seo-intro-arte::before {
 								content: "";
 								position: absolute;
-								inset: 6% 12% 6% 16%;
+								inset: 10% 14% 10% 18%;
 								background: #C90B0C;
 								border-radius: 18px;
 							}
-							.home-seo-intro-img {
+							.home-seo-carousel {
 								position: relative;
 								z-index: 1;
 								width: 100%;
-								max-width: 360px;
-								height: auto;
+								aspect-ratio: 640 / 367;
+							}
+							.home-seo-carousel img {
+								position: absolute;
+								inset: 0;
+								width: 100%;
+								height: 100%;
+								object-fit: contain;
+								opacity: 0;
+								transition: opacity .6s ease;
 								filter: drop-shadow(0 10px 14px rgba(0,0,0,.22));
 							}
+							.home-seo-carousel img.ativo { opacity: 1; }
 							@media (max-width: 768px) {
 								.home-seo-intro { padding: 20px; gap: 14px; }
-								.home-seo-intro-arte { flex-basis: 100%; max-width: 300px; margin: 2px auto 0; }
+								.home-seo-intro-arte { flex-basis: 100%; max-width: 340px; margin: 2px auto 0; }
 							}
 							.home-seo-links {
 								display: flex;
@@ -1566,8 +1575,11 @@
 									</p>
 								</div>
 								<div class="home-seo-intro-arte">
-									<img class="home-seo-intro-img" src="/images/anuncie-carro.webp"
-										alt="Carros à venda no TEMCAR" loading="lazy" width="360" height="206">
+									<div class="home-seo-carousel" id="homeSeoCarousel">
+										<img class="ativo" src="/images/anuncie-carro.webp" alt="Carros à venda no TEMCAR" loading="lazy" width="410" height="235">
+										<img src="/images/anuncie-carro-4.webp" alt="Veículos novos e usados no TEMCAR" loading="lazy" width="410" height="235">
+										<img src="/images/anuncie-carro-5.webp" alt="Compre e venda veículos no TEMCAR" loading="lazy" width="410" height="235">
+									</div>
 								</div>
 							</div>
 
@@ -1599,6 +1611,18 @@
 							<% } %>
 						</div>
 					</section>
+					<script>
+						(function () {
+							const imgs = document.querySelectorAll('#homeSeoCarousel img');
+							if (imgs.length < 2) return;
+							let i = 0;
+							setInterval(() => {
+								imgs[i].classList.remove('ativo');
+								i = (i + 1) % imgs.length;
+								imgs[i].classList.add('ativo');
+							}, 3500);
+						})();
+					</script>
 					<!-- =================== FIM BLOCO DE CONTEÚDO SEO =================== -->
 
 					<%- include('./reutilizavel/footer-public') %>
