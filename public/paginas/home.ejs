@@ -1478,6 +1478,129 @@
 
 					</section>
 
+					<!-- ===================== BLOCO DE CONTEÚDO SEO ===================== -->
+					<%
+						const locaisSeo = (typeof locais !== 'undefined' && locais) ? locais : { estados: [], cidades: [], bairros: [] };
+					%>
+					<section class="container my-5 home-seo-conteudo">
+						<style>
+							.home-seo-conteudo h2 {
+								font-size: 1.25rem;
+								font-weight: 700;
+								color: #1f2328;
+								margin: 24px 0 12px;
+							}
+							.home-seo-conteudo > h2:first-of-type { margin-top: 0; }
+							.home-seo-conteudo p { color: #444; line-height: 1.6; margin-bottom: 8px; }
+							.home-seo-intro {
+								position: relative;
+								display: flex;
+								align-items: center;
+								gap: 28px;
+								flex-wrap: wrap;
+								background-color: #f5f5f6;
+								background-image: repeating-linear-gradient(135deg, rgba(201,11,12,.04) 0 2px, transparent 2px 24px);
+								border-radius: 14px;
+								padding: 28px 32px;
+								overflow: hidden;
+								margin-bottom: 12px;
+							}
+							.home-seo-intro-texto { flex: 1 1 340px; min-width: 260px; position: relative; z-index: 2; }
+							.home-seo-intro-texto h2 { margin-top: 0; }
+							.home-seo-intro-texto h2 .destaque { color: #C90B0C; }
+							.home-seo-intro-arte {
+								position: relative;
+								flex: 0 0 360px;
+								max-width: 360px;
+								display: flex;
+								align-items: center;
+								justify-content: center;
+							}
+							/* forma arredondada vermelha (cor do site) atrás do carro recortado */
+							.home-seo-intro-arte::before {
+								content: "";
+								position: absolute;
+								inset: 6% 12% 6% 16%;
+								background: #C90B0C;
+								border-radius: 18px;
+							}
+							.home-seo-intro-img {
+								position: relative;
+								z-index: 1;
+								width: 100%;
+								max-width: 360px;
+								height: auto;
+								filter: drop-shadow(0 10px 14px rgba(0,0,0,.22));
+							}
+							@media (max-width: 768px) {
+								.home-seo-intro { padding: 20px; gap: 14px; }
+								.home-seo-intro-arte { flex-basis: 100%; max-width: 300px; margin: 2px auto 0; }
+							}
+							.home-seo-links {
+								display: flex;
+								flex-wrap: wrap;
+								gap: 8px 10px;
+							}
+							.home-seo-links a {
+								display: inline-block;
+								padding: 6px 12px;
+								background: #f4f4f5;
+								border: 1px solid #e4e4e7;
+								border-radius: 999px;
+								color: #C90B0C;
+								text-decoration: none;
+								font-size: .88rem;
+								transition: background .15s, border-color .15s;
+							}
+							.home-seo-links a:hover { background: #fde8e8; border-color: #f3c2c2; }
+						</style>
+
+						<div class="bg-white shadow-sm p-4 rounded">
+							<div class="home-seo-intro">
+								<div class="home-seo-intro-texto">
+									<h2>Comprar <span class="destaque">carros usados e novos</span> no Brasil</h2>
+									<p>
+										O TEMCAR reúne milhares de veículos novos, usados e seminovos anunciados por
+										particulares, revendas e concessionárias em todo o Brasil. Compare preços, encontre
+										ofertas perto de você e negocie direto com o anunciante.
+									</p>
+								</div>
+								<div class="home-seo-intro-arte">
+									<img class="home-seo-intro-img" src="/images/anuncie-carro.webp"
+										alt="Carros à venda no TEMCAR" loading="lazy" width="360" height="206">
+								</div>
+							</div>
+
+							<% if (locaisSeo.estados && locaisSeo.estados.length) { %>
+								<h2>Carros por estado</h2>
+								<div class="home-seo-links">
+									<% locaisSeo.estados.forEach(item => { %>
+										<a href="<%= item.url %>"><%= item.nome %></a>
+									<% }) %>
+								</div>
+							<% } %>
+
+							<% if (locaisSeo.cidades && locaisSeo.cidades.length) { %>
+								<h2>Carros por cidade</h2>
+								<div class="home-seo-links">
+									<% locaisSeo.cidades.forEach(item => { %>
+										<a href="<%= item.url %>"><%= item.nome %></a>
+									<% }) %>
+								</div>
+							<% } %>
+
+							<% if (locaisSeo.bairros && locaisSeo.bairros.length) { %>
+								<h2>Carros por bairro das principais cidades</h2>
+								<div class="home-seo-links">
+									<% locaisSeo.bairros.forEach(item => { %>
+										<a href="<%= item.url %>"><%= item.nome %></a>
+									<% }) %>
+								</div>
+							<% } %>
+						</div>
+					</section>
+					<!-- =================== FIM BLOCO DE CONTEÚDO SEO =================== -->
+
 					<%- include('./reutilizavel/footer-public') %>
 						<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 						<script src="/js/home.js?v=5"></script>

@@ -302,6 +302,16 @@ async function getSeoBrasil(tipoSlug) {
 
 const UFS_VALIDAS = new Set(['ac','al','ap','am','ba','ce','df','es','go','ma','mt','ms','mg','pa','pb','pr','pe','pi','rj','rn','rs','ro','rr','sc','sp','se','to']);
 
+const NOMES_ESTADOS = {
+  ac: 'Acre', al: 'Alagoas', ap: 'Amapá', am: 'Amazonas', ba: 'Bahia',
+  ce: 'Ceará', df: 'Distrito Federal', es: 'Espírito Santo', go: 'Goiás',
+  ma: 'Maranhão', mt: 'Mato Grosso', ms: 'Mato Grosso do Sul', mg: 'Minas Gerais',
+  pa: 'Pará', pb: 'Paraíba', pr: 'Paraná', pe: 'Pernambuco', pi: 'Piauí',
+  rj: 'Rio de Janeiro', rn: 'Rio Grande do Norte', rs: 'Rio Grande do Sul',
+  ro: 'Rondônia', rr: 'Roraima', sc: 'Santa Catarina', sp: 'São Paulo',
+  se: 'Sergipe', to: 'Tocantins'
+};
+
 function montarSeoBuscaVeiculos({ tipo, marca = '', modelo = '', carroceria = '', bairro = '', cidade = '', uf = '', canonical }) {
   const plural = tipoPlural[tipo] || 'veículos';
   const pluralTitulo = tipoPluralTitulo[tipo] || 'Veículos';
@@ -364,6 +374,21 @@ function montarSeoLocalPorTipo(tipo, { cidade, uf, bairro = '', canonical }) {
   };
 }
 
+function montarSeoEstadoPorTipo(tipo, { estadoNome, uf, canonical }) {
+  const plural = tipoPlural[tipo] || 'veículos';
+  const pluralTitulo = tipoPluralTitulo[tipo] || 'Veículos';
+  const singular = tipoSingular[tipo] || 'veículo';
+  const local = `${estadoNome} - ${uf}`;
+
+  return {
+    titulo: `${pluralTitulo} à venda em ${local} | TEMCAR`,
+    descricao: `Encontre ${plural} à venda em ${estadoNome} (${uf}). Compare ofertas de ${singular}s novos, seminovos e usados anunciados por revendas e particulares no TEMCAR.`,
+    keywords: `${plural} em ${estadoNome}, ${plural} ${uf}, comprar ${singular} ${estadoNome}, ${plural} usados ${uf}, ${plural} seminovos`,
+    texto_h1: `${pluralTitulo} à venda em ${local}`,
+    link_canonico: canonical
+  };
+}
+
 // /carros/carroceria/suv, /motos/carroceria/naked etc.
 router.get('/:tipo(carros|motos|utilitarios)/carroceria/:carroceria', async (req, res) => {
   const { tipo, carroceria } = req.params;
@@ -394,6 +419,55 @@ router.get('/:tipo(carros|motos|utilitarios)/:marca', async (req, res, next) => 
     { name: marcaNome, url: `${SITE_URL}/${tipo}/${marcaSlug}` }
   ];
   res.render('veiculos', { seo, breadcrumbs, filtro: { tipo, marca: marcaSlug, marcaNome } });
+});
+
+// /carros/:uf, /motos/:uf ou /utilitarios/:uf (página de estado)
+// Recebe os segmentos de 2 letras repassados pela rota de marca via next().
+router.get('/:tipo(carros|motos|utilitarios)/:uf', async (req, res, next) => {
+  const { tipo, uf } = req.params;
+  const ufSlug = slugify(uf);
+  if (!UFS_VALIDAS.has(ufSlug)) return next();
+
+  const ufUpper = ufSlug.toUpperCase();
+  const estadoNome = NOMES_ESTADOS[ufSlug] || ufUpper;
+  const filtroSeo = obterFiltroSeoQuery(req.query);
+  const canonical = `${SITE_URL}/${tipo}/${ufSlug}`;
+
+  // O template do banco (pagina='carros') assume cidade; para estado, sobrescrevemos
+  // os campos com o SEO específico de UF (mesmo padrão do getSeoBrasil).
+  const seoBase = await getSeo(tipo);
+  const seoEstado = filtroSeo.ativo
+    ? montarSeoBuscaVeiculos({
+      tipo,
+      marca: filtroSeo.marca,
+      carroceria: filtroSeo.carroceria,
+      uf: ufUpper,
+      canonical
+    })
+    : montarSeoEstadoPorTipo(tipo, { estadoNome, uf: ufUpper, canonical });
+  const seo = {
+    ...seoBase,
+    ...seoEstado,
+    dados_contexto: { cidade: '', estado: ufUpper, bairro: '', tipo: tiposValidos[tipo] }
+  };
+
+  aplicarNoindexSeVazio(seo, await contarVeiculos({
+    tipo,
+    uf: ufUpper,
+    marca: filtroSeo.ativo ? filtroSeo.marca : '',
+    carroceria: filtroSeo.ativo ? filtroSeo.carroceria : ''
+  }));
+
+  const breadcrumbs = [
+    { name: 'Home', url: `${SITE_URL}/` },
+    { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
+    { name: `${estadoNome} - ${ufUpper}`, url: canonical }
+  ];
+  res.render('veiculos', {
+    seo,
+    breadcrumbs,
+    filtro: { tipo, uf: ufSlug, ufNome: ufUpper }
+  });
 });
 
 // /carros, /motos ou /utilitarios (geral)

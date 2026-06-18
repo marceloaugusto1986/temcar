@@ -67,6 +67,21 @@ router.get('/sitemap.xml', async (req, res) => {
       console.error('Sitemap: erro ao buscar cidades', e);
     }
 
+    // Estados (páginas /carros/:uf, /motos/:uf, /utilitarios/:uf)
+    let estadosUrls = [];
+    try {
+      const [estados] = await db.query(`SELECT DISTINCT estado FROM cidades WHERE estado IS NOT NULL AND estado <> ''`);
+      estados.forEach(e => {
+        const uf = slugify(e.estado);
+        if (!uf) return;
+        estadosUrls.push({ loc: `/carros/${uf}`, priority: '0.6', changefreq: 'daily', lastmod: hoje });
+        estadosUrls.push({ loc: `/motos/${uf}`, priority: '0.5', changefreq: 'daily', lastmod: hoje });
+        estadosUrls.push({ loc: `/utilitarios/${uf}`, priority: '0.5', changefreq: 'daily', lastmod: hoje });
+      });
+    } catch (e) {
+      console.error('Sitemap: erro ao buscar estados', e);
+    }
+
     // Bairros dinâmicos para anúncios de particulares
     let bairrosUrls = [];
     try {
@@ -157,7 +172,7 @@ router.get('/sitemap.xml', async (req, res) => {
       console.error('Sitemap: erro ao buscar anúncios', e);
     }
 
-    const todas = [...paginasEstaticas, ...cidadesUrls, ...bairrosUrls, ...revendasUrls, ...anunciosUrls];
+    const todas = [...paginasEstaticas, ...estadosUrls, ...cidadesUrls, ...bairrosUrls, ...revendasUrls, ...anunciosUrls];
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
