@@ -328,15 +328,487 @@
 				<h1 class="visually-hidden">TEMCAR - Compre e Venda Veículos Novos e Seminovos</h1>
 				<% } %>
 
+					<!-- ===================== HERO HOME ===================== -->
+					<style>
+						.home-hero {
+							position: relative;
+							overflow: hidden;
+							background:
+								radial-gradient(120% 80% at 85% 0%, rgba(201, 11, 12, .08) 0%, rgba(201, 11, 12, 0) 55%),
+								linear-gradient(180deg, #ffffff 0%, #f5f5f6 100%);
+							border-bottom: 1px solid rgba(15, 23, 42, .06);
+						}
+
+						.home-hero__inner {
+							position: relative;
+							z-index: 1;
+							padding-top: 36px;
+							padding-bottom: 28px;
+						}
+
+						.home-hero__top {
+							display: grid;
+							grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+							align-items: center;
+							gap: 28px;
+						}
+
+						.home-hero__title {
+							font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+							font-weight: 800;
+							line-height: 1.05;
+							color: #151515;
+							margin: 0 0 16px;
+							letter-spacing: -.5px;
+						}
+
+						.home-hero__title span {
+							color: #C90B0C;
+						}
+
+						.home-hero__subtitle {
+							font-size: clamp(1rem, 1.4vw, 1.18rem);
+							color: #5b5f66;
+							line-height: 1.5;
+							margin: 0 0 26px;
+							max-width: 30ch;
+						}
+
+						/* CARD DE BUSCA */
+						.home-hero__search {
+							background: #fff;
+							border-radius: 16px;
+							box-shadow: 0 18px 45px rgba(15, 23, 42, .12);
+							padding: 20px;
+							display: grid;
+							grid-template-columns: 1fr 1fr auto;
+							align-items: end;
+							gap: 14px;
+						}
+
+						.home-hero__field {
+							display: flex;
+							flex-direction: column;
+							gap: 6px;
+							min-width: 0;
+						}
+
+						.home-hero__field label {
+							font-size: .9rem;
+							font-weight: 700;
+							color: #151515;
+						}
+
+						.home-hero__select {
+							position: relative;
+							display: flex;
+							align-items: center;
+						}
+
+						.home-hero__select > .bi-geo-alt {
+							position: absolute;
+							left: 12px;
+							color: #C90B0C;
+							font-size: 1.05rem;
+							pointer-events: none;
+						}
+
+						.home-hero__select select {
+							width: 100%;
+							appearance: none;
+							-webkit-appearance: none;
+							border: 1px solid #e4e4e7;
+							border-radius: 10px;
+							background: #fafafa;
+							padding: 13px 38px 13px 38px;
+							font-size: .98rem;
+							color: #333;
+							cursor: pointer;
+							transition: border-color .15s, box-shadow .15s;
+						}
+
+						.home-hero__select select:focus {
+							outline: none;
+							border-color: #C90B0C;
+							box-shadow: 0 0 0 3px rgba(201, 11, 12, .12);
+						}
+
+						.home-hero__select select:disabled {
+							opacity: .6;
+							cursor: not-allowed;
+						}
+
+						.home-hero__select::after {
+							content: "";
+							position: absolute;
+							right: 14px;
+							width: 9px;
+							height: 9px;
+							border-right: 2px solid #9aa0a6;
+							border-bottom: 2px solid #9aa0a6;
+							transform: rotate(45deg) translateY(-2px);
+							pointer-events: none;
+						}
+
+						.home-hero__btn {
+							border: none;
+							border-radius: 10px;
+							background: #C90B0C;
+							color: #fff;
+							font-weight: 700;
+							font-size: 1rem;
+							padding: 14px 26px;
+							height: 50px;
+							display: inline-flex;
+							align-items: center;
+							gap: 8px;
+							white-space: nowrap;
+							cursor: pointer;
+							transition: background .2s, transform .2s;
+						}
+
+						.home-hero__btn:hover {
+							background: #a50909;
+							transform: translateY(-2px);
+						}
+
+						/* ARTE (MAPA + CARROS) */
+						.home-hero__art {
+							position: relative;
+							width: 100%;
+							max-width: 640px;
+							margin-left: auto;
+						}
+
+						.home-hero__art-cars {
+							display: block;
+							width: 99%;
+							height: auto;
+							margin: 34% 0 0 auto;
+						}
+
+						.home-hero__art-map {
+							position: absolute;
+							top: 0;
+							right: 28%;
+							width: 60%;
+							height: auto;
+							filter: drop-shadow(0 16px 22px rgba(201, 11, 12, .22));
+							animation: heroMapFloat 4s ease-in-out infinite;
+						}
+
+						@keyframes heroMapFloat {
+							0%, 100% { transform: translateY(0); }
+							50% { transform: translateY(-8px); }
+						}
+
+						@media (prefers-reduced-motion: reduce) {
+							.home-hero__art-map { animation: none; }
+						}
+
+						/* FEATURES */
+						.home-hero__features {
+							list-style: none;
+							margin: 30px 0 0;
+							padding: 0;
+							display: grid;
+							grid-template-columns: repeat(4, 1fr);
+							gap: 18px;
+						}
+
+						.home-hero__features li {
+							display: flex;
+							align-items: center;
+							gap: 12px;
+							color: #2f3338;
+							font-size: .95rem;
+							line-height: 1.25;
+						}
+
+						.home-hero__features .feat-ico {
+							flex: 0 0 auto;
+							width: 44px;
+							height: 44px;
+							border-radius: 50%;
+							background: rgba(201, 11, 12, .1);
+							color: #C90B0C;
+							display: grid;
+							place-items: center;
+							font-size: 1.25rem;
+						}
+
+						.home-hero__features .feat-txt {
+							color: #6b7077;
+						}
+
+						.home-hero__features .feat-txt strong {
+							display: block;
+							color: #1f2328;
+							font-weight: 700;
+						}
+
+						/* STATS */
+						.home-hero__stats {
+							margin-top: 22px;
+							display: flex;
+							width: fit-content;
+							max-width: 100%;
+							align-items: center;
+							gap: 18px 26px;
+							background: #fff;
+							border: 1px solid rgba(15, 23, 42, .07);
+							border-radius: 22px;
+							padding: 16px 28px;
+							box-shadow: 0 10px 26px rgba(15, 23, 42, .08);
+						}
+
+						.home-hero__stat {
+							display: flex;
+							align-items: center;
+							gap: 14px;
+						}
+
+						.home-hero__stat .stat-ico {
+							flex: 0 0 auto;
+							width: 48px;
+							height: 48px;
+							border-radius: 50%;
+							background: #C90B0C;
+							color: #fff;
+							display: grid;
+							place-items: center;
+							font-size: 1.3rem;
+						}
+
+						.home-hero__stat .stat-num {
+							font-size: 2rem;
+							font-weight: 800;
+							color: #C90B0C;
+							line-height: 1;
+						}
+
+						.home-hero__stat .stat-desc {
+							color: #555;
+							font-size: .9rem;
+							line-height: 1.25;
+						}
+
+						.home-hero__stat .stat-desc strong {
+							color: #1f2328;
+							font-weight: 700;
+						}
+
+						.home-hero__stat--divider {
+							align-self: stretch;
+							width: 1px;
+							background: rgba(15, 23, 42, .12);
+						}
+
+						/* RESPONSIVO */
+						@media (max-width: 991px) {
+							.home-hero__top { grid-template-columns: 1fr; }
+							.home-hero__art { margin: 8px auto 0; max-width: 520px; }
+							.home-hero__features { grid-template-columns: repeat(2, 1fr); }
+						}
+
+						@media (max-width: 575px) {
+							.home-hero__inner { padding-top: 26px; }
+							.home-hero__search { grid-template-columns: 1fr; }
+							.home-hero__btn { width: 100%; justify-content: center; }
+							.home-hero__subtitle { max-width: 100%; }
+							.home-hero__features { grid-template-columns: 1fr 1fr; gap: 14px; }
+							.home-hero__stats { width: auto; flex-wrap: wrap; gap: 14px; padding: 16px 20px; }
+							.home-hero__stat--divider { display: none; }
+						}
+					</style>
+
+					<section class="home-hero">
+						<div class="container home-hero__inner">
+
+							<div class="home-hero__top">
+
+								<!-- TEXTO + BUSCA -->
+								<div class="home-hero__content">
+									<h2 class="home-hero__title">Encontre carros por <span>estados e cidades</span></h2>
+									<p class="home-hero__subtitle">
+										Milhares de opções perto de você.<br>
+										Mais praticidade, mais opções, o carro ideal te espera.
+									</p>
+
+									<form class="home-hero__search" id="heroBuscaForm">
+										<div class="home-hero__field">
+											<label for="heroEstado">Estado</label>
+											<div class="home-hero__select">
+												<i class="bi bi-geo-alt"></i>
+												<select id="heroEstado" aria-label="Selecione o estado">
+													<option value="">Selecione o estado</option>
+													<option value="ac">Acre</option>
+													<option value="al">Alagoas</option>
+													<option value="ap">Amapá</option>
+													<option value="am">Amazonas</option>
+													<option value="ba">Bahia</option>
+													<option value="ce">Ceará</option>
+													<option value="df">Distrito Federal</option>
+													<option value="es">Espírito Santo</option>
+													<option value="go">Goiás</option>
+													<option value="ma">Maranhão</option>
+													<option value="mt">Mato Grosso</option>
+													<option value="ms">Mato Grosso do Sul</option>
+													<option value="mg">Minas Gerais</option>
+													<option value="pa">Pará</option>
+													<option value="pb">Paraíba</option>
+													<option value="pr">Paraná</option>
+													<option value="pe">Pernambuco</option>
+													<option value="pi">Piauí</option>
+													<option value="rj">Rio de Janeiro</option>
+													<option value="rn">Rio Grande do Norte</option>
+													<option value="rs">Rio Grande do Sul</option>
+													<option value="ro">Rondônia</option>
+													<option value="rr">Roraima</option>
+													<option value="sc">Santa Catarina</option>
+													<option value="sp">São Paulo</option>
+													<option value="se">Sergipe</option>
+													<option value="to">Tocantins</option>
+												</select>
+											</div>
+										</div>
+
+										<div class="home-hero__field">
+											<label for="heroCidade">Cidade</label>
+											<div class="home-hero__select">
+												<i class="bi bi-geo-alt"></i>
+												<select id="heroCidade" aria-label="Selecione a cidade" disabled>
+													<option value="">Selecione a cidade</option>
+												</select>
+											</div>
+										</div>
+
+										<button type="submit" class="home-hero__btn">
+											<i class="bi bi-search"></i> Buscar Veículos
+										</button>
+									</form>
+								</div>
+
+								<!-- MAPA + CARROS -->
+								<div class="home-hero__art" aria-hidden="true">
+									<img class="home-hero__art-cars" src="/images/hero-carros.webp"
+										alt="Carros disponíveis no TEMCAR" loading="eager">
+									<img class="home-hero__art-map" src="/images/hero-mapa.webp"
+										alt="Mapa do Brasil com carros por estados e cidades" loading="eager">
+								</div>
+
+							</div>
+
+							<!-- DIFERENCIAIS -->
+							<ul class="home-hero__features">
+								<li>
+									<span class="feat-ico"><i class="bi bi-geo-alt-fill"></i></span>
+									<span class="feat-txt">Busca por <strong>estado e cidade</strong></span>
+								</li>
+								<li>
+									<span class="feat-ico"><i class="bi bi-car-front-fill"></i></span>
+									<span class="feat-txt">Mais opções <strong>perto de você</strong></span>
+								</li>
+								<li>
+									<span class="feat-ico"><i class="bi bi-shield-check"></i></span>
+									<span class="feat-txt">Negocie com <strong>segurança</strong></span>
+								</li>
+								<li>
+									<span class="feat-ico"><i class="bi bi-award-fill"></i></span>
+									<span class="feat-txt">Veículos verificados <strong>e de qualidade</strong></span>
+								</li>
+							</ul>
+
+							<!-- ESTATÍSTICAS -->
+							<div class="home-hero__stats">
+								<div class="home-hero__stat">
+									<span class="stat-ico"><i class="bi bi-people-fill"></i></span>
+									<strong class="stat-num">+25.000</strong>
+									<span class="stat-desc">veículos anunciados<br>em todo o Brasil</span>
+								</div>
+								<div class="home-hero__stat--divider"></div>
+								<div class="home-hero__stat">
+									<span class="stat-ico"><i class="bi bi-shield-fill-check"></i></span>
+									<span class="stat-desc">Segurança e confiança<br><strong>em cada negociação</strong></span>
+								</div>
+							</div>
+
+						</div>
+					</section>
+
+					<script>
+						(function () {
+							const selEstado = document.getElementById('heroEstado');
+							const selCidade = document.getElementById('heroCidade');
+							const form = document.getElementById('heroBuscaForm');
+							if (!selEstado || !selCidade || !form) return;
+
+							function slugify(t) {
+								return (t || '').toString().toLowerCase().normalize('NFD')
+									.replace(/[̀-ͯ]/g, '')
+									.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+							}
+
+							let cidadesPorUf = null;
+
+							async function carregarCidades() {
+								if (cidadesPorUf) return cidadesPorUf;
+								cidadesPorUf = {};
+								try {
+									const res = await fetch('/api/cidades');
+									const cidades = await res.json();
+									cidades.forEach(c => {
+										const uf = (c.estado || '').toLowerCase();
+										if (!uf || !c.nome) return;
+										(cidadesPorUf[uf] = cidadesPorUf[uf] || []).push(c.nome);
+									});
+								} catch (e) {
+									console.error('Erro ao carregar cidades do hero:', e);
+								}
+								return cidadesPorUf;
+							}
+
+							selEstado.addEventListener('change', async function () {
+								const uf = selEstado.value;
+								selCidade.innerHTML = '<option value="">Selecione a cidade</option>';
+								if (!uf) { selCidade.disabled = true; return; }
+
+								const mapa = await carregarCidades();
+								const lista = (mapa[uf] || []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+								lista.forEach(nome => {
+									const opt = document.createElement('option');
+									opt.value = nome;
+									opt.textContent = nome;
+									selCidade.appendChild(opt);
+								});
+								selCidade.disabled = lista.length === 0;
+							});
+
+							form.addEventListener('submit', function (e) {
+								e.preventDefault();
+								const uf = selEstado.value;
+								const cidade = selCidade.value;
+								if (!uf) { selEstado.focus(); return; }
+								if (cidade) {
+									window.location.href = `/carros/${slugify(cidade)}/${uf}`;
+								} else {
+									window.location.href = `/carros/${uf}`;
+								}
+							});
+						})();
+					</script>
+					<!-- =================== FIM HERO HOME =================== -->
+
 					<!-- 🔹 SLIDER PADRÃO -->
-					<div class="swiper bannerSwiper" id="sliderPadrao">
+					<div class="swiper bannerSwiper" id="sliderPadrao" style="display: none;">
 						<div class="swiper-wrapper" id="bannerWrapper">
 							<!-- já existente -->
 						</div>
 					</div>
 
 					<!-- 🔹 SLIDER POR CIDADE -->
-					<div class="swiper bannerSwiper d-none" id="sliderCidade">
+					<div class="swiper bannerSwiper d-none" id="sliderCidade" style="display: none;">
 						<div class="swiper-wrapper" id="bannerWrapperCidade">
 							<!-- carregado dinamicamente -->
 						</div>
