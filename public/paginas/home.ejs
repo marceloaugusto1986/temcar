@@ -320,14 +320,6 @@
 <body>
 	<%- include('./reutilizavel/header-public') %>
 
-		<% if (typeof seo !=='undefined' && seo.texto_h1) { %>
-			<h1 class="visually-hidden">
-				<%= seo.texto_h1 %>
-			</h1>
-			<% } else { %>
-				<h1 class="visually-hidden">TEMCAR - Compre e Venda Veículos Novos e Seminovos</h1>
-				<% } %>
-
 					<!-- ===================== HERO HOME ===================== -->
 					<style>
 						.home-hero {
@@ -629,7 +621,13 @@
 
 								<!-- TEXTO + BUSCA -->
 								<div class="home-hero__content">
-									<h2 class="home-hero__title">Encontre carros por <span>estados e cidades</span></h2>
+									<h1 class="home-hero__title">
+										<% if (typeof seo !== 'undefined' && seo.texto_h1) { %>
+											<%= seo.texto_h1 %>
+										<% } else { %>
+											Encontre carros usados e seminovos por <span>estados e cidades</span>
+										<% } %>
+									</h1>
 									<p class="home-hero__subtitle">
 										Milhares de opções perto de você.<br>
 										Mais praticidade, mais opções, o carro ideal te espera.
@@ -706,9 +704,9 @@
 								<!-- MAPA + CARROS -->
 								<div class="home-hero__art" aria-hidden="true">
 									<img class="home-hero__art-cars" src="/images/hero-carros.webp"
-										alt="Carros disponíveis no TEMCAR" loading="eager">
+										alt="Carros usados e seminovos à venda no Brasil" loading="eager">
 									<img class="home-hero__art-map" src="/images/hero-mapa.webp"
-										alt="Mapa do Brasil com carros por estados e cidades" loading="eager">
+										alt="Mapa do Brasil para encontrar carros usados por cidade" loading="eager">
 								</div>
 
 							</div>
