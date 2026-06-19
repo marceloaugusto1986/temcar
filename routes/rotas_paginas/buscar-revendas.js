@@ -111,7 +111,7 @@ function revendaAtendeLocal(revenda, { cidadeSlug, ufSlug, bairroSlug }) {
   );
 }
 
-// Conta revendas ativas que atendem o local — para aplicar noindex em páginas vazias.
+// Conta revendas ativas que atendem o local — para sinalizar páginas vazias.
 async function contarRevendas({ cidadeSlug, ufSlug, bairroSlug } = {}) {
   try {
     await garantirTabelaCidadesRevendas();
@@ -141,8 +141,11 @@ async function contarRevendas({ cidadeSlug, ufSlug, bairroSlug } = {}) {
   }
 }
 
-function aplicarNoindexSeVazio(seo, total) {
-  if (!total) seo.robots = 'noindex, follow';
+// Páginas sem revendas continuam indexáveis (index, follow) com o SEO das meta
+// tags; apenas sinalizamos a ausência para o template aplicar data-nosnippet nas
+// tarjas vermelhas (Google indexa, mas não lê o título da tarja).
+function marcarSemAnuncios(seo, total) {
+  seo.semAnuncios = !total;
   return seo;
 }
 
@@ -260,7 +263,7 @@ router.get('/buscar-revendas/:cidade/:uf', async (req, res) => {
     canonical
   }));
 
-  aplicarNoindexSeVazio(seo, await contarRevendas({ cidadeSlug, ufSlug }));
+  marcarSemAnuncios(seo, await contarRevendas({ cidadeSlug, ufSlug }));
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
@@ -300,7 +303,7 @@ router.get('/buscar-revendas/:bairro/:cidade/:uf', async (req, res) => {
     canonical
   }));
 
-  aplicarNoindexSeVazio(seo, await contarRevendas({ cidadeSlug, ufSlug, bairroSlug }));
+  marcarSemAnuncios(seo, await contarRevendas({ cidadeSlug, ufSlug, bairroSlug }));
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },

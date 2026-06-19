@@ -57,7 +57,7 @@ async function renderizarPaginaRevenda(req, res, identificador, partes = []) {
 
   const seo = await getSeoRevenda(revenda.id);
 
-  // noindex quando a revenda não possui nenhum anúncio ativo
+  // conta anúncios ativos para sinalizar revenda sem anúncio (sem aplicar noindex)
   let totalAnuncios = 1;
   try {
     const [[contagem]] = await db.query(`
@@ -73,7 +73,10 @@ async function renderizarPaginaRevenda(req, res, identificador, partes = []) {
   }
 
   const seoFinal = { ...seo, link_canonico: montarUrlRevenda(revenda) };
-  if (!totalAnuncios) seoFinal.robots = 'noindex, follow';
+  // Revenda sem anúncio ativo continua indexável (index, follow) com o SEO das meta
+  // tags; o template aplica data-nosnippet na tarja vermelha (Google indexa, mas
+  // não lê o título da tarja).
+  seoFinal.semAnuncios = !totalAnuncios;
 
   const breadcrumbs = [
     { name: 'Home', url: 'https://www.temcar.com.br/' },

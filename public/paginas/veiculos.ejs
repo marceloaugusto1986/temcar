@@ -203,8 +203,11 @@
 <body>
     <%- include('./reutilizavel/header-public') %>
 
+        <% /* Sem anúncios: a página continua indexável pelo meta SEO, mas marcamos
+              a tarja com data-nosnippet para o Google não usar/ler esse título. */ %>
+        <% const semAnuncios = (typeof seo !== 'undefined' && seo.semAnuncios); %>
         <% if (typeof seo !=='undefined' && seo.texto_h1) { %>
-            <h1 class="visually-hidden">
+            <h1 class="visually-hidden"<%- semAnuncios ? ' data-nosnippet' : '' %>>
                 <%= seo.texto_h1 %>
             </h1>
             <% } else { %>
@@ -219,7 +222,7 @@
                     </div>
 
                     <!-- Banner fallback -->
-                    <section class="veiculos-banner text-white text-center" id="bannerFallback">
+                    <section class="veiculos-banner text-white text-center" id="bannerFallback"<%- semAnuncios ? ' data-nosnippet' : '' %>>
                         <div class="container">
                             <h2 class="fw-bold mb-2" id="titulo-pagina"></h2>
                             <p class="mb-0" id="subtitulo-pagina"></p>

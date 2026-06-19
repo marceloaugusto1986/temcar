@@ -88,7 +88,7 @@ async function usuariosTemColunaBairro() {
 }
 
 // Conta anúncios de particulares que casam com o local (espelha o filtro do front)
-// para aplicar noindex em páginas sem nenhum resultado.
+// para sinalizar páginas sem nenhum resultado.
 async function contarParticular({ cidadeSlug, ufSlug, bairroSlug } = {}) {
   try {
     const [anuncios] = await db.query(`
@@ -111,8 +111,11 @@ async function contarParticular({ cidadeSlug, ufSlug, bairroSlug } = {}) {
   }
 }
 
-function aplicarNoindexSeVazio(seo, total) {
-  if (!total) seo.robots = 'noindex, follow';
+// Páginas sem anúncio continuam indexáveis (index, follow) com o SEO das meta
+// tags; apenas sinalizamos a ausência de anúncios para o template aplicar
+// data-nosnippet nas tarjas vermelhas (Google indexa, mas não lê o título da tarja).
+function marcarSemAnuncios(seo, total) {
+  seo.semAnuncios = !total;
   return seo;
 }
 
@@ -170,7 +173,7 @@ router.get('/particular/:cidade/:uf', async (req, res) => {
     canonical
   }));
 
-  aplicarNoindexSeVazio(seo, await contarParticular({ cidadeSlug, ufSlug }));
+  marcarSemAnuncios(seo, await contarParticular({ cidadeSlug, ufSlug }));
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
@@ -213,7 +216,7 @@ router.get('/particular/:bairro/:cidade/:uf', async (req, res) => {
     canonical
   }));
 
-  aplicarNoindexSeVazio(seo, await contarParticular({ cidadeSlug, ufSlug, bairroSlug }));
+  marcarSemAnuncios(seo, await contarParticular({ cidadeSlug, ufSlug, bairroSlug }));
 
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },

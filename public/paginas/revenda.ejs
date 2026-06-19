@@ -49,8 +49,10 @@
 
     <%- include('./reutilizavel/header-public') %>
 
+        <% /* Sem anúncio ativo: indexável pelo meta SEO, mas a tarja recebe data-nosnippet. */ %>
+        <% const semAnuncios = (typeof seo !== 'undefined' && seo.semAnuncios); %>
         <% if (typeof seo !== 'undefined' && seo.texto_h1) { %>
-        <h1 class="visually-hidden"><%= seo.texto_h1 %></h1>
+        <h1 class="visually-hidden"<%- semAnuncios ? ' data-nosnippet' : '' %>><%= seo.texto_h1 %></h1>
         <% } else { %>
         <h1 class="visually-hidden">Veículos de Revendas - TEMCAR</h1>
         <% } %>
@@ -203,7 +205,7 @@
             <main class="conteudo">
 
                 <!-- BANNER REVENDA -->
-                <section class="banner d-flex align-items-start gap-3 flex-wrap">
+                <section class="banner d-flex align-items-start gap-3 flex-wrap"<%- semAnuncios ? ' data-nosnippet' : '' %>>
 
                     <img id="logoRevendaPagina"
                          style="width:110px;height:110px;object-fit:cover;border-radius:10px;border:2px solid rgba(255,255,255,.4);display:none;flex-shrink:0;"
