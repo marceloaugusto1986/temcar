@@ -598,6 +598,7 @@ function aplicarFiltros() {
     const estadoNovo = document.getElementById("filtroNovo")?.checked || false
     const estadoUsado = document.getElementById("filtroUsado")?.checked || false
     const cidadeInline = document.getElementById("filtro-cidade-inline")?.value || ""
+    const bairroInline = document.getElementById("filtro-bairro-inline")?.value || ""
     const tipoInline = document.getElementById("filtro-tipo-anunciante")?.value || ""
     const filtroParticular = tipoInline === "particular" || (document.getElementById("filtroParticular")?.checked || false)
     const filtroRevenda = tipoInline === "revenda" || (document.getElementById("filtroRevenda")?.checked || false)
@@ -629,6 +630,7 @@ function aplicarFiltros() {
         if (estadoNovo && item.condicao !== "novo") return false
         if (estadoUsado && item.condicao !== "usado") return false
         if (cidadeInline && (item.cidade || "") !== cidadeInline) return false
+        if (bairroInline && (item.bairro || "").trim() !== bairroInline) return false
         if (filtroParticular && !filtroRevenda && item.tipo_anunciante !== "particular") return false
         if (filtroRevenda && !filtroParticular && item.tipo_anunciante !== "revenda") return false
 
@@ -682,6 +684,27 @@ function popularFiltroCidadeInline() {
     })
 }
 
+// Preenche o filtro de bairro com os bairros distintos da cidade atual.
+// Retorna a quantidade de bairros encontrados (0 = não há o que filtrar).
+function popularFiltroBairroInline() {
+    const select = document.getElementById("filtro-bairro-inline")
+    if (!select) return 0
+    const bairros = [...new Set(
+        listaVeiculosOriginal
+            .map(v => (v.bairro || "").trim())
+            .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b, 'pt-BR'))
+
+    select.innerHTML = '<option value="">Todos os bairros</option>'
+    bairros.forEach(bairro => {
+        const opt = document.createElement("option")
+        opt.value = bairro
+        opt.textContent = bairro
+        select.appendChild(opt)
+    })
+    return bairros.length
+}
+
 function controlarVisibilidadeSidebar(total) {
     if (total > 20) {
         document.getElementById("tipo-container")?.classList.add("d-none")
@@ -690,21 +713,45 @@ function controlarVisibilidadeSidebar(total) {
         document.getElementById("main-layout")?.classList.remove("sem-sidebar")
         document.body.style.background = "#f5f5f5"
     } else if (total > 0) {
-        popularFiltroCidadeInline()
-        document.getElementById("filtro-cidade-wrapper")?.classList.remove("d-none")
-        const selectCidade = document.getElementById("filtro-cidade-inline")
-        if (selectCidade && !selectCidade._inlineListenerAdded) {
-            selectCidade.addEventListener("change", () => {
-                aplicarFiltros()
-                const opt = selectCidade.options[selectCidade.selectedIndex]
-                const cidadeNome = opt?.value || ""
-                const estadoSigla = opt?.dataset?.estado || ""
-                const filtro = window.FILTRO || {}
-                const cidadeSlug = cidadeNome ? slugify(cidadeNome) : (filtro.cidade || "")
-                const ufSlug = estadoSigla ? estadoSigla.toLowerCase() : (filtro.uf || "")
-                carregarBanners(cidadeSlug, ufSlug)
-            })
-            selectCidade._inlineListenerAdded = true
+        const filtro = window.FILTRO || {}
+        // Com cidade + estado na URL (ex.: /carros/mesquita/rj), troca o filtro de
+        // cidade pelo de bairro daquela cidade. Sem cidade (só estado ou nenhum),
+        // mantém o filtro de cidade.
+        const temCidadeNaUrl = !!(filtro.cidade && filtro.uf && !filtro.bairro)
+        const cidadeWrapper = document.getElementById("filtro-cidade-wrapper")
+        const bairroWrapper = document.getElementById("filtro-bairro-wrapper")
+
+        if (temCidadeNaUrl) {
+            cidadeWrapper?.classList.add("d-none")
+            const totalBairros = popularFiltroBairroInline()
+            if (totalBairros > 0) {
+                bairroWrapper?.classList.remove("d-none")
+                const selectBairro = document.getElementById("filtro-bairro-inline")
+                if (selectBairro && !selectBairro._inlineListenerAdded) {
+                    selectBairro.addEventListener("change", () => aplicarFiltros())
+                    selectBairro._inlineListenerAdded = true
+                }
+            } else {
+                bairroWrapper?.classList.add("d-none")
+            }
+        } else {
+            bairroWrapper?.classList.add("d-none")
+            popularFiltroCidadeInline()
+            cidadeWrapper?.classList.remove("d-none")
+            const selectCidade = document.getElementById("filtro-cidade-inline")
+            if (selectCidade && !selectCidade._inlineListenerAdded) {
+                selectCidade.addEventListener("change", () => {
+                    aplicarFiltros()
+                    const opt = selectCidade.options[selectCidade.selectedIndex]
+                    const cidadeNome = opt?.value || ""
+                    const estadoSigla = opt?.dataset?.estado || ""
+                    const filtroAtual = window.FILTRO || {}
+                    const cidadeSlug = cidadeNome ? slugify(cidadeNome) : (filtroAtual.cidade || "")
+                    const ufSlug = estadoSigla ? estadoSigla.toLowerCase() : (filtroAtual.uf || "")
+                    carregarBanners(cidadeSlug, ufSlug)
+                })
+                selectCidade._inlineListenerAdded = true
+            }
         }
 
         document.getElementById("filtro-tipo-wrapper")?.classList.remove("d-none")
