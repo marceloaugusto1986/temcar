@@ -715,9 +715,11 @@ function controlarVisibilidadeSidebar(total) {
     } else if (total > 0) {
         const filtro = window.FILTRO || {}
         // Com cidade + estado na URL (ex.: /carros/mesquita/rj), troca o filtro de
-        // cidade pelo de bairro daquela cidade. Sem cidade (só estado ou nenhum),
+        // cidade pelo de bairro daquela cidade. Quando a URL já traz o bairro
+        // (ex.: /carros/luz/nova-iguacu/rj), também usa o filtro de bairro, já
+        // deixando o bairro da URL selecionado. Sem cidade (só estado ou nenhum),
         // mantém o filtro de cidade.
-        const temCidadeNaUrl = !!(filtro.cidade && filtro.uf && !filtro.bairro)
+        const temCidadeNaUrl = !!(filtro.cidade && filtro.uf)
         const cidadeWrapper = document.getElementById("filtro-cidade-wrapper")
         const bairroWrapper = document.getElementById("filtro-bairro-wrapper")
 
@@ -727,9 +729,17 @@ function controlarVisibilidadeSidebar(total) {
             if (totalBairros > 0) {
                 bairroWrapper?.classList.remove("d-none")
                 const selectBairro = document.getElementById("filtro-bairro-inline")
-                if (selectBairro && !selectBairro._inlineListenerAdded) {
-                    selectBairro.addEventListener("change", () => aplicarFiltros())
-                    selectBairro._inlineListenerAdded = true
+                if (selectBairro) {
+                    // Bairro veio na URL: deixa selecionado o bairro correspondente.
+                    const bairroSlugUrl = (filtro.bairro || slugify(filtro.bairroNome || "")).trim()
+                    if (bairroSlugUrl) {
+                        const match = [...selectBairro.options].find(o => o.value && slugify(o.value) === bairroSlugUrl)
+                        if (match) selectBairro.value = match.value
+                    }
+                    if (!selectBairro._inlineListenerAdded) {
+                        selectBairro.addEventListener("change", () => aplicarFiltros())
+                        selectBairro._inlineListenerAdded = true
+                    }
                 }
             } else {
                 bairroWrapper?.classList.add("d-none")
