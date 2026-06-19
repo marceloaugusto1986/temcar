@@ -147,7 +147,7 @@ function obterTiposConsulta(tipo) {
 }
 
 // Monta a cláusula WHERE usada tanto pela API quanto pela contagem de resultados
-// (para definir noindex em páginas sem nenhum anúncio).
+// (para sinalizar páginas sem nenhum anúncio).
 function construirFiltroVeiculos({ tipo, cidade, uf, bairro, marca, carroceria, busca } = {}) {
   let where = "a.status = 'ativo' AND (a.publicado_ate IS NULL OR a.publicado_ate >= NOW())";
   const params = [];
@@ -243,7 +243,7 @@ function construirFiltroVeiculos({ tipo, cidade, uf, bairro, marca, carroceria, 
   return { where, params };
 }
 
-// Conta anúncios que casam com o filtro — usado para aplicar noindex em páginas vazias.
+// Conta anúncios que casam com o filtro — usado para sinalizar páginas vazias.
 async function contarVeiculos(filtros) {
   try {
     const { where, params } = construirFiltroVeiculos(filtros);
@@ -257,14 +257,17 @@ async function contarVeiculos(filtros) {
     return total;
   } catch (error) {
     console.error('Erro ao contar veículos para indexação:', error);
-    // Em caso de erro, não força noindex (mantém comportamento padrão)
+    // Em caso de erro, assume que há anúncios (mantém comportamento padrão)
     return 1;
   }
 }
 
-// Define noindex quando a página não tem nenhum resultado
-function aplicarNoindexSeVazio(seo, total) {
-  if (!total) seo.robots = 'noindex, follow';
+// Páginas sem nenhum anúncio continuam indexáveis (index, follow) com o SEO das
+// meta tags. Apenas sinalizamos a ausência de anúncios para o template aplicar
+// data-nosnippet nas tarjas vermelhas — assim o Google indexa a página pelo meta,
+// mas não lê/usa o título da tarja no snippet.
+function marcarSemAnuncios(seo, total) {
+  seo.semAnuncios = !total;
   return seo;
 }
 
@@ -395,7 +398,7 @@ router.get('/:tipo(carros|motos|utilitarios)/carroceria/:carroceria', async (req
   const carroceriaNome = capitalize(carroceria.replace(/-/g, ' '));
   const carroceriaSlug = slugify(carroceriaNome);
   const seo = await getSeoCarroceria(tipo, carroceriaNome, `${SITE_URL}/${tipo}/carroceria/${carroceriaSlug}`);
-  aplicarNoindexSeVazio(seo, await contarVeiculos({ tipo, carroceria: carroceriaNome }));
+  marcarSemAnuncios(seo, await contarVeiculos({ tipo, carroceria: carroceriaNome }));
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
     { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
@@ -412,7 +415,7 @@ router.get('/:tipo(carros|motos|utilitarios)/:marca', async (req, res, next) => 
   const marcaNome = capitalize(marca.replace(/-/g, ' '));
   const marcaSlug = slugify(marcaNome);
   const seo = await getSeoMarca(tipo, marcaNome, `${SITE_URL}/${tipo}/${marcaSlug}`);
-  aplicarNoindexSeVazio(seo, await contarVeiculos({ tipo, marca: marcaNome }));
+  marcarSemAnuncios(seo, await contarVeiculos({ tipo, marca: marcaNome }));
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
     { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
@@ -451,7 +454,7 @@ router.get('/:tipo(carros|motos|utilitarios)/:uf', async (req, res, next) => {
     dados_contexto: { cidade: '', estado: ufUpper, bairro: '', tipo: tiposValidos[tipo] }
   };
 
-  aplicarNoindexSeVazio(seo, await contarVeiculos({
+  marcarSemAnuncios(seo, await contarVeiculos({
     tipo,
     uf: ufUpper,
     marca: filtroSeo.ativo ? filtroSeo.marca : '',
@@ -500,7 +503,7 @@ router.get('/:tipo(carros|motos|utilitarios)/:marca/:modelo', async (req, res, n
   const modeloNome = capitalize(modelo.replace(/-/g, ' '));
   const modeloSlug = slugify(modeloNome);
   const seo = await getSeoMarcaModelo(tipo, marcaNome, modeloNome, `${SITE_URL}/${tipo}/${marcaSlug}/${modeloSlug}`);
-  aplicarNoindexSeVazio(seo, await contarVeiculos({ tipo, marca: marcaNome, busca: modeloNome }));
+  marcarSemAnuncios(seo, await contarVeiculos({ tipo, marca: marcaNome, busca: modeloNome }));
   const breadcrumbs = [
     { name: 'Home', url: `${SITE_URL}/` },
     { name: capitalize(tipo), url: `${SITE_URL}/${tipo}` },
@@ -543,7 +546,7 @@ router.get('/:tipo(carros|motos|utilitarios)/:cidade/:uf', async (req, res) => {
       canonical
     }));
 
-  aplicarNoindexSeVazio(seo, await contarVeiculos({
+  marcarSemAnuncios(seo, await contarVeiculos({
     tipo,
     cidade: nomeCidade,
     uf: ufUpper,
@@ -602,7 +605,7 @@ router.get('/:tipo(carros|motos|utilitarios)/:bairro/:cidade/:uf', async (req, r
       canonical
     }));
 
-  aplicarNoindexSeVazio(seo, await contarVeiculos({
+  marcarSemAnuncios(seo, await contarVeiculos({
     tipo,
     bairro: nomeBairro,
     cidade: nomeCidade,

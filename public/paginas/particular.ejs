@@ -119,8 +119,10 @@
 <body>
     <%- include('./reutilizavel/header-public') %>
 
+        <% /* Sem anúncios: indexável pelo meta SEO, mas a tarja recebe data-nosnippet. */ %>
+        <% const semAnuncios = (typeof seo !== 'undefined' && seo.semAnuncios); %>
         <% if (typeof seo !== 'undefined' && seo.texto_h1) { %>
-        <h1 class="visually-hidden"><%= seo.texto_h1 %></h1>
+        <h1 class="visually-hidden"<%- semAnuncios ? ' data-nosnippet' : '' %>><%= seo.texto_h1 %></h1>
         <% } else { %>
         <h1 class="visually-hidden">Veículos de Particulares - TEMCAR</h1>
         <% } %>
@@ -133,7 +135,7 @@
         </div>
 
         <!-- Banner fallback -->
-        <section class="veiculos-banner text-white text-center" id="bannerFallback">
+        <section class="veiculos-banner text-white text-center" id="bannerFallback"<%- semAnuncios ? ' data-nosnippet' : '' %>>
             <div class="container">
                 <h2 class="fw-bold mb-2" id="titulo-pagina"></h2>
                 <p class="mb-0" id="subtitulo-pagina"></p>
