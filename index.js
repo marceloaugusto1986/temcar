@@ -56,9 +56,26 @@ const DOMAIN = "localhost";
 const SITE_URL = (process.env.SITE_URL || 'https://www.temcar.com.br').replace(/\/$/, '');
 const APP_STARTED_AT = new Date().toISOString();
 
+// Domínio canônico derivado do SITE_URL (ex.: https://www.temcar.com.br)
+const CANONICAL = new URL(SITE_URL);
+const CANONICAL_HOST = CANONICAL.host;                 // www.temcar.com.br
+const CANONICAL_PROTO = CANONICAL.protocol.slice(0, -1); // https
+
 app.set('trust proxy', 1);
 app.set('view cache', false);
 app.disable('etag');
+
+// Padroniza domínio: força host com www e https em 301 (apex/http -> canônico).
+// Respeita X-Forwarded-Proto/Host via trust proxy; ignora ambiente local.
+app.use((req, res, next) => {
+    const hostname = (req.headers.host || '').split(':')[0].toLowerCase();
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return next();
+
+    if (hostname !== CANONICAL_HOST || req.protocol !== CANONICAL_PROTO) {
+        return res.redirect(301, `${CANONICAL_PROTO}://${CANONICAL_HOST}${req.originalUrl}`);
+    }
+    next();
+});
 
 app.use((req, res, next) => {
     res.setHeader('X-Temcar-Pid', String(process.pid));
