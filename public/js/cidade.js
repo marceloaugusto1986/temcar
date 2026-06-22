@@ -854,6 +854,13 @@ function toggleFiltro() {
 }
 
 function controlarVisibilidadeSidebar(total) {
+    // Sem carros anunciados: usa "Carros" no lugar de "veículos" na faixa do topo.
+    if (total === 0) {
+        document.querySelectorAll("#cidade-banner-titulo, #cidade-banner-sub").forEach(el => {
+            el.textContent = el.textContent.replace(/Veículos/g, "Carros").replace(/veículos/g, "carros")
+        })
+    }
+
     if (total > 20) {
         // Move bairro inline para dentro da sidebar
         const bairroSection = document.getElementById("cidade-filtros")

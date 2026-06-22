@@ -318,14 +318,14 @@
                                 <div class="swiper-slide">
                                     <div class="cidade-banner-fallback d-flex align-items-center justify-content-center text-center">
                                         <div>
-                                            <h2 class="fw-bold mb-2">
+                                            <h2 class="fw-bold mb-2" id="cidade-banner-titulo">
                                                 <% if (typeof filtro !== 'undefined' && filtro.cidadeNome) { %>
                                                     Veículos em <%= filtro.cidadeNome %><% if (filtro.ufNome) { %> - <%= filtro.ufNome %><% } %>
                                                 <% } else if (typeof seo !== 'undefined' && seo.texto_h1) { %>
                                                     <%= seo.texto_h1 %>
                                                 <% } %>
                                             </h2>
-                                            <p class="mb-0">Ofertas de veículos na sua cidade</p>
+                                            <p class="mb-0" id="cidade-banner-sub">Ofertas de veículos na sua cidade</p>
                                         </div>
                                     </div>
                                 </div>
@@ -485,7 +485,7 @@
                     </script>
 
                     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-                    <script src="/js/cidade.js?v=32"></script>
+                    <script src="/js/cidade.js?v=33"></script>
 
                     <%- include('./reutilizavel/footer-public') %>
 

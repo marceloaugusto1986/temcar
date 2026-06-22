@@ -116,6 +116,16 @@ function atualizarTituloParticular() {
         sub = "Veículos de particulares na sua cidade"
     }
 
+    // Sem carros anunciados no contexto da página: usa "Carros" no lugar de
+    // "veículos" na faixa do topo e oculta a coluna lateral de filtros.
+    const semCarros = anunciosOriginais.length === 0
+    if (semCarros) {
+        texto = texto.replace(/Veículos/g, "Carros").replace(/veículos/g, "carros")
+        sub = sub.replace(/Veículos/g, "Carros").replace(/veículos/g, "carros")
+    }
+    document.getElementById("sidebar")?.classList.toggle("d-none", semCarros)
+    document.querySelector(".btn-abrir-filtro")?.closest(".d-lg-none")?.classList.toggle("d-none", semCarros)
+
     if (titulo) titulo.textContent = texto
     if (total) total.textContent = `${anunciosFiltrados.length} anúncio(s)`
     if (tituloBanner) tituloBanner.textContent = texto
