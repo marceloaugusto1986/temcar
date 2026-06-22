@@ -415,9 +415,9 @@ function renderizarSemResultados(container) {
     const uf = obterUfFiltro()
     const bairro = obterBairroFiltro()
 
-    let textoTitulo = "Veículos de Particulares à Venda"
-    if (bairro && cidade) textoTitulo = `Veículos de Particulares à venda em <strong>${bairro}, ${cidade} - ${uf}</strong>`
-    else if (cidade) textoTitulo = `Veículos de Particulares à venda em <strong>${cidade} - ${uf}</strong>`
+    let textoTitulo = "Carros de Particulares à Venda"
+    if (bairro && cidade) textoTitulo = `Carros de Particulares à venda em <strong>${bairro}, ${cidade} - ${uf}</strong>`
+    else if (cidade) textoTitulo = `Carros de Particulares à venda em <strong>${cidade} - ${uf}</strong>`
 
     document.getElementById("titulo-particular")?.closest("div")?.classList.add("d-none")
 
