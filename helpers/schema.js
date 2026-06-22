@@ -62,6 +62,20 @@ function montarSchemaVehicle(anuncio, url) {
       if (anuncio.estado) address.addressRegion = anuncio.estado;
       schema.offers.areaServed = { '@type': 'Place', address };
     }
+
+    // Venda de veículo é retirada presencial: declaramos explicitamente "sem frete"
+    // e "sem devolução" para silenciar os avisos de merchant listing do Search Console
+    // (shippingDetails / hasMerchantReturnPolicy faltando em "offers").
+    schema.offers.shippingDetails = {
+      '@type': 'OfferShippingDetails',
+      shippingRate: { '@type': 'MonetaryAmount', value: 0, currency: 'BRL' },
+      shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'BR' }
+    };
+    schema.offers.hasMerchantReturnPolicy = {
+      '@type': 'MerchantReturnPolicy',
+      applicableCountry: 'BR',
+      returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted'
+    };
   }
 
   return schema;
