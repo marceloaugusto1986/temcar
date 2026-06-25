@@ -76,7 +76,13 @@ function preencherFormularioAdmin(anuncio) {
   setAdminSelect("cor", anuncio.cor);
   setAdminInput("preco", anuncio.preco);
   setAdminTextarea("descricao", anuncio.descricao);
+  setAdminCheckbox("destaque", anuncio.destaque);
   preencherAcessoriosAdmin(anuncio.acessorios);
+}
+
+function setAdminCheckbox(name, value) {
+  const field = adminEditForm.querySelector(`[name="${name}"]`);
+  if (field) field.checked = Boolean(Number(value));
 }
 
 function setAdminInput(name, value) {
@@ -229,6 +235,7 @@ adminEditForm?.addEventListener("submit", async event => {
     .querySelectorAll("[data-admin-acessorio]:checked")
     .forEach(checkbox => acessorios.push(checkbox.dataset.adminAcessorio));
 
+  formData.set("destaque", adminEditForm.querySelector('[name="destaque"]')?.checked ? "1" : "0");
   formData.append("acessorios", JSON.stringify(acessorios));
   formData.append("imagensRemovidas", JSON.stringify(adminEditImagensRemovidas));
 

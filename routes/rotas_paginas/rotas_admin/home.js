@@ -548,6 +548,7 @@ router.get('/api/admin/anuncios/:id', checkAuth('private'), async (req, res) => 
         a.preco,
         a.descricao,
         a.acessorios,
+        a.destaque,
         u.cidade,
         u.estado
       FROM anuncios a
@@ -604,6 +605,7 @@ router.put('/api/admin/anuncios/:id', checkAuth('private'), upload.array("imagen
       preco,
       descricao,
       acessorios,
+      destaque,
       imagensRemovidas
     } = req.body;
 
@@ -721,7 +723,8 @@ router.put('/api/admin/anuncios/:id', checkAuth('private'), upload.array("imagen
         cor = ?,
         preco = ?,
         descricao = ?,
-        acessorios = ?
+        acessorios = ?,
+        destaque = ?
       WHERE id = ?
       `,
       [
@@ -742,6 +745,7 @@ router.put('/api/admin/anuncios/:id', checkAuth('private'), upload.array("imagen
         preco,
         descricao,
         acessoriosFinal,
+        destaque === "1" || destaque === 1 || destaque === true ? 1 : 0,
         anuncioId
       ]
     );
