@@ -44,7 +44,11 @@ function montarDetalhesSecundarios(item) {
 
 function montarLocalizacao(item) {
     const cidadeEstado = [item.cidade, item.estado].filter(Boolean).join(", ")
-    return item.bairro ? `${item.bairro}, ${cidadeEstado}` : cidadeEstado
+    const linhas = item.bairro ? [item.bairro, cidadeEstado] : [cidadeEstado]
+    return linhas
+        .filter(Boolean)
+        .map(linha => `<span style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${linha}</span>`)
+        .join("")
 }
 
 function criarSlugVenda(texto) {
@@ -455,7 +459,7 @@ function criarCardAnuncio(item) {
 
               <p class="small mb-0 d-flex align-items-start gap-1" style="min-width:0; color:#3f4650; font-size:.88rem;">
                 <i class="bi bi-geo-alt-fill" style="color:#C90B0C; flex-shrink:0; line-height:1.3;"></i>
-                <span style="min-width:0; line-height:1.3; min-height:2.6em; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${localizacao}</span>
+                <span style="min-width:0; line-height:1.3; min-height:2.6em; display:block; overflow:hidden;">${localizacao}</span>
               </p>
             </div>
         </div>
