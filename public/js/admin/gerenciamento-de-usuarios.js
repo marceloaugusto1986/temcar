@@ -413,7 +413,6 @@ async function verUsuario(id) {
     </div>
   </div>
 
-  ${usuario.tipo === 'revenda' ? `
   <!-- 🔹 CIDADES DE ATUAÇÃO -->
   <div class="col-12">
     <div class="border rounded-3 p-4 bg-white shadow-sm">
@@ -448,7 +447,6 @@ async function verUsuario(id) {
       </div>
     </div>
   </div>
-  ` : ''}
 
   <!-- 🔹 SEGURANÇA -->
   <div class="col-12">
@@ -479,9 +477,9 @@ async function verUsuario(id) {
 	  `;
 	  if (usuario.tipo === 'revenda') {
 	    carregarCapaUsuario(id);
-	    carregarSelectCidadesAtendimentoAdmin();
-	    renderizarCidadesAtendimentoAdmin();
 	  }
+	  carregarSelectCidadesAtendimentoAdmin();
+	  renderizarCidadesAtendimentoAdmin();
 	  carregarAnunciosDoUsuario(id);
 	}
 

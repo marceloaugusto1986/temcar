@@ -244,10 +244,6 @@ router.put('/api/admin/usuarios/:id/cidades-atendimento', checkAuth('private'), 
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
 
-    if (usuario.tipo !== 'revenda') {
-      return res.status(400).json({ message: 'Cidades de atuação disponíveis apenas para revendas.' });
-    }
-
     const cidadesValidas = cidadesAtendimento
       .map(item => ({
         bairro: String(item?.bairro || '').trim(),
