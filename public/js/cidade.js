@@ -600,6 +600,8 @@ function obterTextoSeoEmptyState(localizacao, tipo) {
         .replaceAll("#bairro", bairro)
         .replaceAll("#veiculo", tipoSeo)
         .replaceAll("#tipo", tipoSeo)
+        .replace(/,\s*,/g, ",")        // vírgula dupla
+        .replace(/(^|\s),\s*/g, "$1")  // vírgula órfã (ex.: #bairro vazio em "em #bairro, #cidade")
         .replace(/\s+/g, " ")
         .trim()
 

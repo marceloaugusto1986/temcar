@@ -307,8 +307,22 @@ router.get("/api/particular-ativos-home", async (req, res) => {
   try {
     const bairroSelect = await usuariosTemColunaBairro() ? 'u.bairro,' : 'NULL AS bairro,';
 
+    // Garante a tabela de cidades extras (criada de forma lazy por outras rotas)
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS revendas_cidades (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        usuario_id INT NOT NULL,
+        bairro VARCHAR(150) NOT NULL DEFAULT '',
+        cidade VARCHAR(150) NOT NULL,
+        estado VARCHAR(2) NOT NULL,
+        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uniq_revenda_cidade (usuario_id, bairro, cidade, estado),
+        KEY idx_revendas_cidades_usuario (usuario_id)
+      )
+    `);
+
     const [anuncios] = await db.query(`
-      SELECT 
+      SELECT
   a.id,
   a.tipo AS tipo_carro,
   a.marca,
@@ -332,6 +346,11 @@ router.get("/api/particular-ativos-home", async (req, res) => {
   u.estado,
   ${bairroSelect}
   u.tipo AS tipo_anunciante,
+  (
+    SELECT JSON_ARRAYAGG(JSON_OBJECT('bairro', rc.bairro, 'cidade', rc.cidade, 'estado', rc.estado))
+    FROM revendas_cidades rc
+    WHERE rc.usuario_id = u.id
+  ) AS cidades_atendimento,
   img.imagem
 FROM anuncios a
 INNER JOIN usuarios u 
