@@ -1375,11 +1375,24 @@
 							height: auto;
 							display: flex;
 							justify-content: center;
+							align-items: stretch;
 						}
 
 						.home-carousel .vehicle-card {
 							width: 100% !important;
 							max-width: 280px;
+							height: 100%;
+							display: flex;
+							flex-direction: column;
+						}
+
+						.home-carousel .vehicle-card .card-body {
+							flex: 1 1 auto;
+						}
+
+						/* Reserva 2 linhas para o titulo para alinhar preco/detalhes entre os cards */
+						.home-carousel .vehicle-card .card-body h5 {
+							min-height: 2.4em;
 						}
 
 						.home-carousel .swiper-button-next,
