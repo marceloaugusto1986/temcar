@@ -493,9 +493,9 @@ function renderizarLista() {
             }
                   </p>
 
-                  <p class="small mb-0 text-truncate" style="min-width:0; color:#3f4650; font-size:.88rem;">
-                    <i class="bi bi-geo-alt-fill" style="color:#C90B0C;"></i>
-                    ${localizacao}
+                  <p class="small mb-0 d-flex align-items-start gap-1" style="min-width:0; color:#3f4650; font-size:.88rem;">
+                    <i class="bi bi-geo-alt-fill" style="color:#C90B0C; flex-shrink:0; line-height:1.3;"></i>
+                    <span style="min-width:0; line-height:1.3; min-height:2.6em; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${localizacao}</span>
                   </p>
                 </div>
             </div>
