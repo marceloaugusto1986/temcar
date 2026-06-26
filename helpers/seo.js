@@ -154,8 +154,9 @@ function makeDefaultSeo(pagina, overrides = {}) {
 
 function limparTextoSeo(texto) {
   return (texto || '')
-    .replace(/\s+,/g, ',')
-    .replace(/,\s*,/g, ',')
+    .replace(/,\s*,/g, ',')        // token vazio no meio: "Cidade, , Estado" -> "Cidade, Estado"
+    .replace(/(^|\s),\s*/g, '$1')  // token vazio no início/após espaço: ", Cidade" / "em , Cidade" -> "Cidade" / "em Cidade"
+    .replace(/,\s*$/g, '')         // token vazio no fim: "Bairro, Cidade," -> "Bairro, Cidade"
     .replace(/\s+-\s*-/g, ' - ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -338,14 +339,14 @@ async function getSeoAnuncio(id) {
       if (!texto) return '';
       const localizacao = [anuncio.bairro, anuncio.cidade, anuncio.estado].filter(Boolean).join(', ');
       const localizacaoCurta = [anuncio.cidade, anuncio.estado].filter(Boolean).join(', ');
-      return texto
+      return limparTextoSeo(texto
         .replace(/#localizacao_curta/g, localizacaoCurta)
         .replace(/#localizacao/g, localizacao)
         .replace(/#marca/g, anuncio.marca || '')
         .replace(/#modelo/g, anuncio.versao || '')
         .replace(/#cidade/g, anuncio.cidade || '')
         .replace(/#estado/g, anuncio.estado || '')
-        .replace(/#bairro/g, anuncio.bairro || '');
+        .replace(/#bairro/g, anuncio.bairro || ''));
     };
 
     const ogImage = anuncio.imagem_principal ? `${SITE_URL}/uploads/anuncios/${anuncio.imagem_principal}` : fallbackSeo.og_image;
@@ -511,12 +512,12 @@ async function getSeoRevenda(id) {
       if (!texto) return '';
       const localizacao = [revenda.bairro, revenda.cidade, revenda.estado].filter(Boolean).join(', ');
       const localizacaoCurta = [revenda.cidade, revenda.estado].filter(Boolean).join(', ');
-      return texto
+      return limparTextoSeo(texto
         .replace(/#localizacao_curta/g, localizacaoCurta)
         .replace(/#localizacao/g, localizacao)
         .replace(/#revenda/g, revenda.nome || '')
         .replace(/#cidade/g, revenda.cidade || '')
-        .replace(/#estado/g, revenda.estado || '');
+        .replace(/#estado/g, revenda.estado || ''));
     };
 
     return {
