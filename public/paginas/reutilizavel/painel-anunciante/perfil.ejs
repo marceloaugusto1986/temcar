@@ -443,17 +443,15 @@ renderizarLogo();
           </div>
         </div>
 
-        ${isRevenda ? `
-          <!-- 🔹 CIDADES DE ATUAÇÃO -->
-          <div class="col-12">
-            <div class="border rounded-3 p-4 bg-white shadow-sm">
-              <h6 class="text-uppercase text-muted mb-3">Cidades onde seus anúncios são encontrados</h6>
-              <div class="cidade-atendimento-lista">
-                ${renderizarPillsCidades(obterCidadesAtendimentoPerfil(usuario))}
-              </div>
+        <!-- 🔹 CIDADES DE ATUAÇÃO -->
+        <div class="col-12">
+          <div class="border rounded-3 p-4 bg-white shadow-sm">
+            <h6 class="text-uppercase text-muted mb-3">Cidades onde seus anúncios são encontrados</h6>
+            <div class="cidade-atendimento-lista">
+              ${renderizarPillsCidades(obterCidadesAtendimentoPerfil(usuario))}
             </div>
           </div>
-        ` : ''}
+        </div>
 
         <!-- 🔹 SEGURANÇA -->
         <div class="col-12">
@@ -642,27 +640,25 @@ renderizarLogo();
             <input type="text" id="editEstado" class="form-control">
           </div>
 
-          ${isRevenda ? `
-            <div class="col-12">
-              <hr class="my-2">
-              <h6 class="text-uppercase text-muted mb-2">Cidades onde seus anúncios são encontrados</h6>
-              <div class="row g-3 align-items-end">
-                <div class="col-md-8">
-                  <label class="form-label">Local de atuação</label>
-                  <select id="editCidadeAtendimento" class="form-control">
-                    <option value="">Selecione uma cidade ou bairro</option>
-                  </select>
-                </div>
-                <div class="col-md-4">
-                  <button type="button" id="btnAddCidadeAtendimento" class="btn btn-outline-danger w-100">
-                    Adicionar local
-                  </button>
-                </div>
+          <div class="col-12">
+            <hr class="my-2">
+            <h6 class="text-uppercase text-muted mb-2">Cidades onde seus anúncios são encontrados</h6>
+            <div class="row g-3 align-items-end">
+              <div class="col-md-8">
+                <label class="form-label">Local de atuação</label>
+                <select id="editCidadeAtendimento" class="form-control">
+                  <option value="">Selecione uma cidade ou bairro</option>
+                </select>
               </div>
-              <small class="text-muted d-block mt-2">Escolha até 3 locais.</small>
-              <div id="editCidadesAtendimentoLista" class="cidade-atendimento-lista"></div>
+              <div class="col-md-4">
+                <button type="button" id="btnAddCidadeAtendimento" class="btn btn-outline-danger w-100">
+                  Adicionar local
+                </button>
+              </div>
             </div>
-          ` : ''}
+            <small class="text-muted d-block mt-2">Escolha até 3 locais.</small>
+            <div id="editCidadesAtendimentoLista" class="cidade-atendimento-lista"></div>
+          </div>
 
           <div class="col-12 d-flex gap-2">
             <button type="submit" class="btn btn-success">Salvar</button>
@@ -836,37 +832,36 @@ renderizarLogo();
         }
       }
 
-      if (isRevenda) {
-        renderizarCidadesAtendimentoEdicao();
-        carregarSelectCidadesAtendimentoEdicao();
+      // Cidades de atuação valem para qualquer tipo de anunciante (revenda ou particular)
+      renderizarCidadesAtendimentoEdicao();
+      carregarSelectCidadesAtendimentoEdicao();
 
-        document.getElementById('btnAddCidadeAtendimento')?.addEventListener('click', () => {
-          const select = document.getElementById('editCidadeAtendimento');
-          if (!select || !select.value) return;
+      document.getElementById('btnAddCidadeAtendimento')?.addEventListener('click', () => {
+        const select = document.getElementById('editCidadeAtendimento');
+        if (!select || !select.value) return;
 
-          if (cidadesAtendimentoSelecionadas.length >= 3) {
-            alert('Escolha no máximo 3 locais de atuação.');
-            return;
-          }
+        if (cidadesAtendimentoSelecionadas.length >= 3) {
+          alert('Escolha no máximo 3 locais de atuação.');
+          return;
+        }
 
-          const cidade = JSON.parse(select.value);
-          const jaExiste = cidadesAtendimentoSelecionadas.some(item =>
-            chaveCidadeAtendimento(item) === chaveCidadeAtendimento(cidade)
-          );
+        const cidade = JSON.parse(select.value);
+        const jaExiste = cidadesAtendimentoSelecionadas.some(item =>
+          chaveCidadeAtendimento(item) === chaveCidadeAtendimento(cidade)
+        );
 
-          if (!jaExiste) {
-            cidadesAtendimentoSelecionadas.push({
-              bairro: cidade.bairro || '',
-              nome: cidade.nome,
-              cidade: cidade.cidade || cidade.nome,
-              estado: cidade.estado
-            });
-            renderizarCidadesAtendimentoEdicao();
-          }
+        if (!jaExiste) {
+          cidadesAtendimentoSelecionadas.push({
+            bairro: cidade.bairro || '',
+            nome: cidade.nome,
+            cidade: cidade.cidade || cidade.nome,
+            estado: cidade.estado
+          });
+          renderizarCidadesAtendimentoEdicao();
+        }
 
-          select.value = '';
-        });
-      }
+        select.value = '';
+      });
 
       /* =========================
          PUT – SALVAR ALTERAÇÕES
@@ -892,8 +887,10 @@ renderizarLogo();
           if (isRevenda) {
             dadosAtualizados.cnpj = editCnpj.value;
             dadosAtualizados.telefone = editTelefone.value;
-            dadosAtualizados.cidadesAtendimento = cidadesAtendimentoSelecionadas;
           }
+
+          // Cidades de atuação valem para revenda e particular
+          dadosAtualizados.cidadesAtendimento = cidadesAtendimentoSelecionadas;
 
           try {
             const response = await fetch(

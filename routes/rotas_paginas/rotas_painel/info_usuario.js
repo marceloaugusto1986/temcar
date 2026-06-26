@@ -241,27 +241,21 @@ router.put('/api/editar-perfil-anunciante/:id', async (req, res) => {
         });
       }
 
-      const [[usuarioAtualizado]] = await conn.query(
-        'SELECT tipo FROM usuarios WHERE id = ? LIMIT 1',
-        [id]
-      );
+      // Cidades de atuação valem para qualquer tipo de anunciante (revenda ou particular)
+      await conn.query('DELETE FROM revendas_cidades WHERE usuario_id = ?', [id]);
 
-      if (usuarioAtualizado?.tipo === 'revenda') {
-        await conn.query('DELETE FROM revendas_cidades WHERE usuario_id = ?', [id]);
+      if (cidadesAtendimentoValidas.length) {
+        const valores = cidadesAtendimentoValidas.map(item => [
+          id,
+          item.bairro,
+          item.cidade,
+          item.estado
+        ]);
 
-        if (cidadesAtendimentoValidas.length) {
-          const valores = cidadesAtendimentoValidas.map(item => [
-            id,
-            item.bairro,
-            item.cidade,
-            item.estado
-          ]);
-
-          await conn.query(
-            'INSERT IGNORE INTO revendas_cidades (usuario_id, bairro, cidade, estado) VALUES ?',
-            [valores]
-          );
-        }
+        await conn.query(
+          'INSERT IGNORE INTO revendas_cidades (usuario_id, bairro, cidade, estado) VALUES ?',
+          [valores]
+        );
       }
 
       await conn.commit();
