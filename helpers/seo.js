@@ -396,6 +396,9 @@ async function getSeoCidade(cidade, bairro = '') {
   const uf = (cidade.estado || '').toLowerCase();
   const bairroNome = typeof bairro === 'string' ? bairro : (bairro?.nome || '');
   const bairroSlug = slugify(bairroNome);
+  // Texto exclusivo cadastrado para a cidade (conteúdo único por município).
+  // Só se aplica na página da cidade (não em páginas de bairro).
+  const descricaoCidade = (cidade.descricao || '').trim();
   const localTitulo = bairroNome
     ? `${bairroNome}, ${cidade.nome} - ${cidade.estado}`
     : `${cidade.nome}, ${cidade.estado}`;
@@ -410,6 +413,7 @@ async function getSeoCidade(cidade, bairro = '') {
       ? `veículos em ${bairroNome}, carros em ${bairroNome}, motos em ${bairroNome}, ${cidade.nome}, ${cidade.estado}`
       : `veículos em ${cidade.nome}, carros em ${cidade.nome}, motos em ${cidade.nome}, utilitários em ${cidade.nome}`,
     texto_h1: `Veículos à Venda em ${localTitulo}`,
+    texto_conteudo: bairroNome ? '' : descricaoCidade,
     link_canonico: bairroSlug
       ? `${SITE_URL}/veiculos/${uf}/${slug}/${bairroSlug}`
       : `${SITE_URL}/cidade/${slug}/${uf}`
@@ -464,7 +468,10 @@ async function getSeoCidade(cidade, bairro = '') {
       descricao: aplicarCampo('descricao', fallbackSeo.descricao),
       keywords: aplicarCampo('keywords', fallbackSeo.keywords),
       texto_h1: aplicarCampo('texto_h1', fallbackSeo.texto_h1),
-      texto_conteudo: aplicarCampo('texto_conteudo', fallbackSeo.texto_conteudo),
+      // A descrição exclusiva da cidade tem precedência sobre o texto genérico do template.
+      texto_conteudo: (!bairroNome && descricaoCidade)
+        ? descricaoCidade
+        : aplicarCampo('texto_conteudo', fallbackSeo.texto_conteudo),
       link_canonico: linkCanonico,
       descricao_template: substituir(seo.descricao || ''),
       descricao_template_original: seo.descricao || '',

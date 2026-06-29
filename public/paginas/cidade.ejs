@@ -472,6 +472,13 @@
                                 <nav class="mt-4">
                                     <ul class="pagination justify-content-center" id="paginacao"></ul>
                                 </nav>
+
+                                <% if (typeof seo !== 'undefined' && seo.texto_conteudo) { %>
+                                    <section class="cidade-seo-texto mt-4 pt-3 border-top"
+                                        style="white-space: pre-line; line-height: 1.6; color: #555; font-size: .95rem;">
+                                        <%= seo.texto_conteudo %>
+                                    </section>
+                                <% } %>
                             </div>
                         </main>
 
