@@ -7,8 +7,25 @@
 	<%- include('reutilizavel/seo-head', { seo: typeof seo !=='undefined' ? seo : {} }) %>
 		<%- include('reutilizavel/jsonld-organization') %>
 			<%- include('reutilizavel/jsonld-website') %>
+<%
+// Mantém em sincronia com os links visíveis de "Marcas mais buscadas" e "Carrocerias".
+const _base = (typeof siteUrl !== 'undefined' ? siteUrl : 'https://www.temcar.com.br').replace(/\/+$/, '');
+const _marcasItens = [
+  ['Audi', 'audi'], ['BMW', 'bmw'], ['Caoa Chery', 'caoa-chery'], ['Chevrolet', 'chevrolet'],
+  ['Citroën', 'citroen'], ['Fiat', 'fiat'], ['Ford', 'ford'], ['Honda', 'honda'],
+  ['Hyundai', 'hyundai'], ['Jeep', 'jeep'], ['Land Rover', 'land-rover'], ['Mercedes', 'mercedes'],
+  ['Mitsubishi', 'mitsubishi'], ['Nissan', 'nissan'], ['Peugeot', 'peugeot'], ['Renault', 'renault'],
+  ['Toyota', 'toyota'], ['Volkswagen', 'volkswagen'], ['Volvo', 'volvo']
+].map(([nome, slug]) => ({ nome: `Carros ${nome}`, url: `${_base}/carros/${slug}` }));
+const _carroceriasItens = [
+  ['Conversível', 'conversivel'], ['Cupê', 'coupe'], ['Sedã', 'sedan'], ['SUV', 'suv'],
+  ['Picape', 'picape'], ['Hatch', 'hatch'], ['Furgão', 'furgao'], ['Minivan', 'minivan'],
+  ['Monovolume', 'monovolume'], ['Van', 'van'], ['SW/Perua', 'swperua'], ['Elétrico', 'eletrico']
+].map(([nome, slug]) => ({ nome: `Carros ${nome}`, url: `${_base}/carros/carroceria/${slug}` }));
+%>
+			<%- include('reutilizavel/jsonld-itemlist', { nome: 'Marcas de carros mais buscadas', itens: _marcasItens }) %>
+			<%- include('reutilizavel/jsonld-itemlist', { nome: 'Carrocerias de carros', itens: _carroceriasItens }) %>
 
-			<script src="./../js/site-config.js" defers></script>
 
 			<!-- Bootstrap 5 -->
 			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -621,7 +638,7 @@
 
 								<!-- TEXTO + BUSCA -->
 								<div class="home-hero__content">
-									<h1 class="home-hero__title">Encontre carros por <span>estados e cidades</span></h1>
+									<h1 class="home-hero__title">Encontre carros usados e seminovos por <span>estado e cidade</span></h1>
 									<p class="home-hero__subtitle">
 										Milhares de Carros Usados e Novos perto de você.<br>
 										Mais praticidade, mais opções, encontre o carro dos seus sonhos.
@@ -1506,62 +1523,62 @@
 
 
 										<a href="/carros/carroceria/conversivel" class="carroceria-item" data-carroceria="Conversível">
-											<img src="./../imagens/img/carrocerias/conversivel.webp" width="100" alt="Conversível">
+											<img src="./../imagens/img/carrocerias/conversivel.webp" width="100" alt="Carros conversíveis usados e seminovos" loading="lazy">
 											<p class="m-0 small">Conversível</p>
 										</a>
 
 										<a href="/carros/carroceria/coupe" class="carroceria-item" data-carroceria="coupe">
-											<img src="./../imagens/img/carrocerias/coupe.webp" width="100" alt="Coupé">
+											<img src="./../imagens/img/carrocerias/coupe.webp" width="100" alt="Carros cupê usados e seminovos" loading="lazy">
 											<p class="m-0 small">Coupé</p>
 										</a>
 
 										<a href="/carros/carroceria/sedan" class="carroceria-item" data-carroceria="sedan">
-											<img src="./../imagens/img/carrocerias/sedan.webp" width="100" alt="Sedan">
+											<img src="./../imagens/img/carrocerias/sedan.webp" width="100" alt="Carros sedã usados e seminovos" loading="lazy">
 											<p class="m-0 small">Sedan</p>
 										</a>
 
 										<a href="/carros/carroceria/suv" class="carroceria-item" data-carroceria="suv">
-											<img src="./../imagens/img/carrocerias/suv.webp" width="100" alt="SUV">
+											<img src="./../imagens/img/carrocerias/suv.webp" width="100" alt="SUVs usados e seminovos" loading="lazy">
 											<p class="m-0 small">SUV</p>
 										</a>
 
 										<a href="/carros/carroceria/picape" class="carroceria-item" data-carroceria="picape">
-											<img src="./../imagens/img/carrocerias/picape.webp" width="100" alt="Pickup">
+											<img src="./../imagens/img/carrocerias/picape.webp" width="100" alt="Picapes usadas e seminovas" loading="lazy">
 											<p class="m-0 small">Pickup</p>
 										</a>
 
 										<a href="/carros/carroceria/hatch" class="carroceria-item" data-carroceria="hatch">
-											<img src="./../imagens/img/carrocerias/hatch.webp" width="100" alt="Hatch">
+											<img src="./../imagens/img/carrocerias/hatch.webp" width="100" alt="Carros hatch usados e seminovos" loading="lazy">
 											<p class="m-0 small">Hatch</p>
 										</a>
 
 										<a href="/carros/carroceria/furgao" class="carroceria-item" data-carroceria="furgao">
-											<img src="./../imagens/img/carrocerias/furgaop.webp" width="100" alt="Furgão Pequeno">
+											<img src="./../imagens/img/carrocerias/furgaop.webp" width="100" alt="Furgões pequenos usados e seminovos" loading="lazy">
 											<p class="m-0 small">Furgão Pequeno</p>
 										</a>
 
 										<a href="/carros/carroceria/minivan" class="carroceria-item" data-carroceria="minivan">
-											<img src="./../imagens/img/carrocerias/minivan.webp" width="100" alt="Minivan">
+											<img src="./../imagens/img/carrocerias/minivan.webp" width="100" alt="Minivans usadas e seminovas" loading="lazy">
 											<p class="m-0 small">Minivan</p>
 										</a>
 
 										<a href="/carros/carroceria/monovolume" class="carroceria-item" data-carroceria="monovolume">
-											<img src="./../imagens/img/carrocerias/monovolume.webp" width="100" alt="Monovolume">
+											<img src="./../imagens/img/carrocerias/monovolume.webp" width="100" alt="Monovolumes usados e seminovos" loading="lazy">
 											<p class="m-0 small">Monovolume</p>
 										</a>
 
 										<a href="/carros/carroceria/van" class="carroceria-item" data-carroceria="van">
-											<img src="./../imagens/img/carrocerias/van.webp" width="100" alt="Van">
+											<img src="./../imagens/img/carrocerias/van.webp" width="100" alt="Vans usadas e seminovas" loading="lazy">
 											<p class="m-0 small">Van</p>
 										</a>
 
 										<a href="/carros/carroceria/swperua" class="carroceria-item" data-carroceria="swperua">
-											<img src="./../imagens/img/carrocerias/swperua.webp" width="100" alt="SW-Perua">
+											<img src="./../imagens/img/carrocerias/swperua.webp" width="100" alt="Carros SW perua usados e seminovos" loading="lazy">
 											<p class="m-0 small">SW-Perua</p>
 										</a>
 
 										<a href="/carros/carroceria/eletrico" class="carroceria-item" data-carroceria="eletrico">
-											<img src="./../imagens/img/carrocerias/eletrico.webp" width="100" alt="Elétrico">
+											<img src="./../imagens/img/carrocerias/eletrico.webp" width="100" alt="Carros elétricos usados e seminovos" loading="lazy">
 											<p class="m-0 small">Elétrico</p>
 										</a>
 
@@ -1655,97 +1672,97 @@
     <div class="container-marcas">
 
       <a href="/carros/audi" class="marca-item" data-marca="AUDI">
-        <img src="./../imagens/img/logomarca-de-fabricantes/AUDI.webp" width="130" alt="AUDI">
+        <img src="./../imagens/img/logomarca-de-fabricantes/AUDI.webp" width="130" alt="Carros Audi usados e seminovos" loading="lazy">
         <p class="m-0 small">AUDI</p>
       </a>
 
       <a href="/carros/bmw" class="marca-item" data-marca="BMW">
-        <img src="./../imagens/img/logomarca-de-fabricantes/BMW.webp" width="130" alt="BMW">
+        <img src="./../imagens/img/logomarca-de-fabricantes/BMW.webp" width="130" alt="Carros BMW usados e seminovos" loading="lazy">
         <p class="m-0 small">BMW</p>
       </a>
 
       <a href="/carros/caoa-chery" class="marca-item" data-marca="CAOA CHERY">
-        <img src="./../imagens/img/logomarca-de-fabricantes/CAOA CHERY.webp" width="130" alt="CAOA CHERY">
+        <img src="./../imagens/img/logomarca-de-fabricantes/CAOA CHERY.webp" width="130" alt="Carros Caoa Chery usados e seminovos" loading="lazy">
         <p class="m-0 small">CAOA CHERY</p>
       </a>
 
       <a href="/carros/chevrolet" class="marca-item" data-marca="CHEVROLET">
-        <img src="./../imagens/img/logomarca-de-fabricantes/CHEVROLET.webp" width="130" alt="CHEVROLET">
+        <img src="./../imagens/img/logomarca-de-fabricantes/CHEVROLET.webp" width="130" alt="Carros Chevrolet usados e seminovos" loading="lazy">
         <p class="m-0 small">CHEVROLET</p>
       </a>
 
       <a href="/carros/citroen" class="marca-item" data-marca="CITROEN">
-        <img src="./../imagens/img/logomarca-de-fabricantes/CITROEN.webp" width="130" alt="CITROEN">
+        <img src="./../imagens/img/logomarca-de-fabricantes/CITROEN.webp" width="130" alt="Carros Citroën usados e seminovos" loading="lazy">
         <p class="m-0 small">CITROEN</p>
       </a>
 
       <a href="/carros/fiat" class="marca-item" data-marca="FIAT">
-        <img src="./../imagens/img/logomarca-de-fabricantes/FIAT.webp" width="130" alt="FIAT">
+        <img src="./../imagens/img/logomarca-de-fabricantes/FIAT.webp" width="130" alt="Carros Fiat usados e seminovos" loading="lazy">
         <p class="m-0 small">FIAT</p>
       </a>
 
       <a href="/carros/ford" class="marca-item" data-marca="FORD">
-        <img src="./../imagens/img/logomarca-de-fabricantes/FORD.webp" width="130" alt="FORD">
+        <img src="./../imagens/img/logomarca-de-fabricantes/FORD.webp" width="130" alt="Carros Ford usados e seminovos" loading="lazy">
         <p class="m-0 small">FORD</p>
       </a>
 
       <a href="/carros/honda" class="marca-item" data-marca="HONDA">
-        <img src="./../imagens/img/logomarca-de-fabricantes/HONDA.webp" width="130" alt="HONDA">
+        <img src="./../imagens/img/logomarca-de-fabricantes/HONDA.webp" width="130" alt="Carros Honda usados e seminovos" loading="lazy">
         <p class="m-0 small">HONDA</p>
       </a>
 
       <a href="/carros/hyundai" class="marca-item" data-marca="HYUNDAI">
-        <img src="./../imagens/img/logomarca-de-fabricantes/HYUNDAI.webp" width="130" alt="HYUNDAI">
+        <img src="./../imagens/img/logomarca-de-fabricantes/HYUNDAI.webp" width="130" alt="Carros Hyundai usados e seminovos" loading="lazy">
         <p class="m-0 small">HYUNDAI</p>
       </a>
 
       <a href="/carros/jeep" class="marca-item" data-marca="JEEP">
-        <img src="./../imagens/img/logomarca-de-fabricantes/JEEP.webp" width="130" alt="JEEP">
+        <img src="./../imagens/img/logomarca-de-fabricantes/JEEP.webp" width="130" alt="Carros Jeep usados e seminovos" loading="lazy">
         <p class="m-0 small">JEEP</p>
       </a>
 
       <a href="/carros/land-rover" class="marca-item" data-marca="LAND ROVER">
-        <img src="./../imagens/img/logomarca-de-fabricantes/LAND ROVER.webp" width="130" alt="LAND ROVER">
+        <img src="./../imagens/img/logomarca-de-fabricantes/LAND ROVER.webp" width="130" alt="Carros Land Rover usados e seminovos" loading="lazy">
         <p class="m-0 small">LAND ROVER</p>
       </a>
 
       <a href="/carros/mercedes" class="marca-item" data-marca="MERCEDES">
-        <img src="./../imagens/img/logomarca-de-fabricantes/MERCEDES BENZ.webp" width="130" alt="MERCEDES">
+        <img src="./../imagens/img/logomarca-de-fabricantes/MERCEDES BENZ.webp" width="130" alt="Carros Mercedes-Benz usados e seminovos" loading="lazy">
         <p class="m-0 small">MERCEDES</p>
       </a>
 
       <a href="/carros/mitsubishi" class="marca-item" data-marca="MITSUBISHI">
-        <img src="./../imagens/img/logomarca-de-fabricantes/MITSUBISHI.webp" width="130" alt="MITSUBISHI">
+        <img src="./../imagens/img/logomarca-de-fabricantes/MITSUBISHI.webp" width="130" alt="Carros Mitsubishi usados e seminovos" loading="lazy">
         <p class="m-0 small">MITSUBISHI</p>
       </a>
 
       <a href="/carros/nissan" class="marca-item" data-marca="NISSAN">
-        <img src="./../imagens/img/logomarca-de-fabricantes/NISSAN.webp" width="130" alt="NISSAN">
+        <img src="./../imagens/img/logomarca-de-fabricantes/NISSAN.webp" width="130" alt="Carros Nissan usados e seminovos" loading="lazy">
         <p class="m-0 small">NISSAN</p>
       </a>
 
       <a href="/carros/peugeot" class="marca-item" data-marca="PEUGEOT">
-        <img src="./../imagens/img/logomarca-de-fabricantes/PEUGEOT.webp" width="130" alt="PEUGEOT">
+        <img src="./../imagens/img/logomarca-de-fabricantes/PEUGEOT.webp" width="130" alt="Carros Peugeot usados e seminovos" loading="lazy">
         <p class="m-0 small">PEUGEOT</p>
       </a>
 
       <a href="/carros/renault" class="marca-item" data-marca="RENAULT">
-        <img src="./../imagens/img/logomarca-de-fabricantes/Renaut.webp" width="130" alt="RENAULT">
+        <img src="./../imagens/img/logomarca-de-fabricantes/Renaut.webp" width="130" alt="Carros Renault usados e seminovos" loading="lazy">
         <p class="m-0 small">RENAULT</p>
       </a>
 
       <a href="/carros/toyota" class="marca-item" data-marca="TOYOTA">
-        <img src="./../imagens/img/logomarca-de-fabricantes/TOYOTA.webp" width="130" alt="TOYOTA">
+        <img src="./../imagens/img/logomarca-de-fabricantes/TOYOTA.webp" width="130" alt="Carros Toyota usados e seminovos" loading="lazy">
         <p class="m-0 small">TOYOTA</p>
       </a>
 
       <a href="/carros/volkswagen" class="marca-item" data-marca="VOLKSWAGEN">
-        <img src="./../imagens/img/logomarca-de-fabricantes/VOLKSWAGEM.webp" width="130" alt="VOLKSWAGEN">
+        <img src="./../imagens/img/logomarca-de-fabricantes/VOLKSWAGEM.webp" width="130" alt="Carros Volkswagen usados e seminovos" loading="lazy">
         <p class="m-0 small">VOLKSWAGEN</p>
       </a>
 
       <a href="/carros/volvo" class="marca-item" data-marca="VOLVO">
-        <img src="./../imagens/img/logomarca-de-fabricantes/VOLVO.webp" width="130" alt="VOLVO">
+        <img src="./../imagens/img/logomarca-de-fabricantes/VOLVO.webp" width="130" alt="Carros Volvo usados e seminovos" loading="lazy">
         <p class="m-0 small">VOLVO</p>
       </a>
 

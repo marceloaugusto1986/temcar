@@ -1,0 +1,22 @@
+<%
+// Partial reutilizável: emite um schema.org ItemList.
+// Espera: nome (string) e itens (array de { nome, url }).
+// Só emite quando há itens reais (evita structured data vazio).
+const _itensLista = (typeof itens !== 'undefined' && Array.isArray(itens)) ? itens.filter(i => i && i.nome && i.url) : [];
+if (_itensLista.length) {
+%>
+<script type="application/ld+json">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": typeof nome !== 'undefined' ? nome : '',
+  "numberOfItems": _itensLista.length,
+  "itemListElement": _itensLista.map((item, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "name": item.nome,
+    "url": item.url
+  }))
+}) %>
+</script>
+<% } %>
