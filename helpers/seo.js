@@ -242,15 +242,28 @@ async function getSeo(pagina, dadosContexto = {}, fallbackOverrides = {}) {
         .replace(/,\s*/g, '/');
     }
 
+    // A rota passou contexto de localização explícito? Se não, um template
+    // com placeholders de local não deve ser preenchido com o anúncio-amostra
+    // mais recente (senão páginas genéricas vazam a cidade do último anúncio).
+    const temContextoLocal = !!(dadosContexto
+      && (dadosContexto.cidade || dadosContexto.bairro || dadosContexto.estado));
+
+    const templateUsaLocal = (template) => (template || '').includes('#bairro')
+      || (template || '').includes('#cidade')
+      || (template || '').includes('#estado')
+      || (template || '').includes('#localizacao');
+
     const deveUsarFallbackLocal = (campo) => {
       const template = seo[campo] || '';
+      if (templateUsaLocal(template) && !temContextoLocal) return true;
       return (dados.bairro && !template.includes('#bairro'))
         || (dados.cidade && !template.includes('#cidade'));
     };
 
     const templateCanonico = seo.link_canonico || '';
     const linkCanonico = (
-      (dados.bairro && !templateCanonico.includes('#bairro'))
+      (templateUsaLocal(templateCanonico) && !temContextoLocal)
+      || (dados.bairro && !templateCanonico.includes('#bairro'))
       || (dados.cidade && !templateCanonico.includes('#cidade'))
     )
       ? fallbackSeo.link_canonico
