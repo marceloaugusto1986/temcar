@@ -100,7 +100,7 @@ function construirFiltroVeiculos({ tipo, cidade, uf, bairro, marca, carroceria, 
 
   if (marca) {
     const marcaNorm = marca.toLowerCase().replace(/-/g, ' ');
-    where += ' AND (LOWER(a.marca) = ? OR LOWER(a.versao) LIKE ?)';
+    where += " AND (REPLACE(LOWER(a.marca), '-', ' ') = ? OR LOWER(a.versao) LIKE ?)";
     params.push(marcaNorm, `%${marcaNorm}%`);
   }
 
