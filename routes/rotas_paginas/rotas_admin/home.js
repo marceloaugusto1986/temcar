@@ -517,6 +517,88 @@ router.get('/api/admin/anuncios-publicados', checkAuth('private'), async (req, r
   }
 });
 
+router.get('/api/admin/anuncios-expirados', checkAuth('private'), async (req, res) => {
+  try {
+    const [anuncios] = await db.query(`
+      SELECT
+        a.id,
+        a.status,
+        a.marca,
+        a.versao,
+        a.descricao,
+        a.preco,
+        a.ano_modelo,
+        a.publicado_ate,
+        u.nome AS anunciante,
+        u.cidade,
+        u.estado,
+        (
+          SELECT imagem
+          FROM anuncios_imagens
+          WHERE anuncio_id = a.id
+          ORDER BY principal DESC, id ASC
+          LIMIT 1
+        ) AS imagem
+      FROM anuncios a
+      INNER JOIN usuarios u ON u.id = a.usuario_id
+      WHERE a.status = 'ativo'
+        AND a.publicado_ate IS NOT NULL
+        AND a.publicado_ate < NOW()
+      ORDER BY a.publicado_ate DESC
+    `);
+
+    return res.json(anuncios);
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Erro interno' });
+  }
+});
+
+/* EXCLUIR anúncio (admin) — remove arquivos físicos e o registro (cascade nas imagens) */
+router.delete('/api/admin/anuncios/:id', checkAuth('private'), async (req, res) => {
+  try {
+    const anuncioId = req.params.id;
+
+    const [[anuncio]] = await db.query(
+      "SELECT id FROM anuncios WHERE id = ? LIMIT 1",
+      [anuncioId]
+    );
+
+    if (!anuncio) {
+      return res.status(404).json({ message: "Anúncio não encontrado" });
+    }
+
+    const [imagens] = await db.query(
+      "SELECT imagem FROM anuncios_imagens WHERE anuncio_id = ?",
+      [anuncioId]
+    );
+
+    for (const img of imagens) {
+      const caminhoImagem = path.join(
+        __dirname,
+        "..", "..", "..",
+        "public",
+        "uploads",
+        "anuncios",
+        img.imagem
+      );
+
+      if (fs.existsSync(caminhoImagem)) {
+        fs.unlinkSync(caminhoImagem);
+      }
+    }
+
+    await db.query("DELETE FROM anuncios WHERE id = ?", [anuncioId]);
+
+    return res.json({ message: "Anúncio excluído com sucesso" });
+
+  } catch (err) {
+    console.error("Erro ao excluir anúncio:", err);
+    return res.status(500).json({ message: "Erro interno" });
+  }
+});
+
 router.get('/api/admin/anuncios/:id', checkAuth('private'), async (req, res) => {
   try {
     const anuncioId = req.params.id;
