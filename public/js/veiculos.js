@@ -296,6 +296,7 @@ async function carregarVeiculos() {
 
 function atualizarTitulos() {
     const filtro = window.FILTRO || {}
+    const seo = window.SEO_PAGINA || {}
     const query = new URLSearchParams(window.location.search)
     const tipoNomeDisplay = { carros: 'Carros', motos: 'Motos', utilitarios: 'Carros Utilitários' }
     const tipoNome = tipoNomeDisplay[filtro.tipo] || capitalize(filtro.tipo || "veículos")
@@ -338,6 +339,10 @@ function atualizarTitulos() {
         titulo = `Resultado para ${query.get('busca')}`
         sub = `Veículos encontrados para sua busca`
     }
+
+    // O título da tarja usa o H1 cadastrado no SEO (mesmo texto indexado),
+    // exceto na busca livre client-side, que o SEO da página não representa.
+    if (seo.texto_h1 && !query.get('busca')) titulo = seo.texto_h1
 
     if (tituloPagina) tituloPagina.textContent = titulo
     if (subtitulo) subtitulo.textContent = sub

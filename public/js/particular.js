@@ -104,6 +104,7 @@ function atualizarTituloParticular() {
     const tituloBanner = document.getElementById("titulo-pagina")
     const subtituloBanner = document.getElementById("subtitulo-pagina")
     const filtro = window.FILTRO || {}
+    const seo = window.SEO_PAGINA || {}
 
     let texto = "Veículos de Particulares"
     let sub = "Encontre veículos de particulares no TEMCAR"
@@ -126,9 +127,13 @@ function atualizarTituloParticular() {
     document.getElementById("sidebar")?.classList.toggle("d-none", semCarros)
     document.querySelector(".btn-abrir-filtro")?.closest(".d-lg-none")?.classList.toggle("d-none", semCarros)
 
+    // A tarja usa o H1 cadastrado no SEO (mesmo texto indexado).
+    let bannerTexto = seo.texto_h1 || texto
+    if (semCarros) bannerTexto = bannerTexto.replace(/Veículos/g, "Carros").replace(/veículos/g, "carros")
+
     if (titulo) titulo.textContent = texto
     if (total) total.textContent = `${anunciosFiltrados.length} anúncio(s)`
-    if (tituloBanner) tituloBanner.textContent = texto
+    if (tituloBanner) tituloBanner.textContent = bannerTexto
     if (subtituloBanner) subtituloBanner.textContent = sub
 }
 

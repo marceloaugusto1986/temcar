@@ -318,10 +318,10 @@
                                     <div class="cidade-banner-fallback d-flex align-items-center justify-content-center text-center">
                                         <div>
                                             <h2 class="fw-bold mb-2" id="cidade-banner-titulo">
-                                                <% if (typeof filtro !== 'undefined' && filtro.cidadeNome) { %>
-                                                    Veículos em <%= filtro.cidadeNome %><% if (filtro.ufNome) { %> - <%= filtro.ufNome %><% } %>
-                                                <% } else if (typeof seo !== 'undefined' && seo.texto_h1) { %>
+                                                <% if (typeof seo !== 'undefined' && seo.texto_h1) { %>
                                                     <%= seo.texto_h1 %>
+                                                <% } else if (typeof filtro !== 'undefined' && filtro.cidadeNome) { %>
+                                                    Veículos em <%= filtro.cidadeNome %><% if (filtro.ufNome) { %> - <%= filtro.ufNome %><% } %>
                                                 <% } %>
                                             </h2>
                                             <p class="mb-0" id="cidade-banner-sub">Ofertas de veículos na sua cidade</p>
