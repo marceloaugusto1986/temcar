@@ -631,11 +631,6 @@ function renderizarCidadeSemAnuncios(container) {
     const localizacao = obterLocalizacaoEmptyState()
     const textoTitulo = obterTextoSeoEmptyState(localizacao, tipo)
 
-    // heading com cidade/estado
-    const nomeCidade = escaparHtml(obterNomeCidadeAtual())
-    const estado = escaparHtml(obterEstadoAtual())
-    const tituloHeading = estado ? `${nomeCidade}, ${estado}` : nomeCidade
-
     container.classList.remove("overflow-auto")
     container.classList.add("overflow-visible")
 
