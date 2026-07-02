@@ -132,8 +132,10 @@ function atualizarTituloParticular() {
     let bannerTexto = seoTitulo || texto
     if (semCarros) bannerTexto = bannerTexto.replace(/Veículos/g, "Carros").replace(/veículos/g, "carros")
 
-    if (titulo) titulo.textContent = texto
-    if (total) total.textContent = `${anunciosFiltrados.length} anúncio(s)`
+    // Sem anúncios: o contexto já aparece na tarja do topo, então não
+    // repetimos o título acima do box central.
+    if (titulo) titulo.textContent = semCarros ? "" : texto
+    if (total) total.textContent = semCarros ? "" : `${anunciosFiltrados.length} anúncio(s)`
     if (tituloBanner) tituloBanner.textContent = bannerTexto
     if (subtituloBanner) subtituloBanner.textContent = sub
 }

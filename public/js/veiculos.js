@@ -347,7 +347,11 @@ function atualizarTitulos() {
 
     if (tituloPagina) tituloPagina.textContent = titulo
     if (subtitulo) subtitulo.textContent = sub
-    if (tituloResultados) tituloResultados.textContent = `${listaVeiculos.length} ${(filtro.tipo || "veículos")} encontrados`
+    // Sem anúncios: o nome/contexto já aparece na tarja do topo, então não
+    // repetimos o título acima do box central.
+    if (tituloResultados) tituloResultados.textContent = listaVeiculos.length
+        ? `${listaVeiculos.length} ${(filtro.tipo || "veículos")} encontrados`
+        : ""
     if (totalEl) totalEl.textContent = ""
 }
 
