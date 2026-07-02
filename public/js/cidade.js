@@ -413,7 +413,9 @@ function atualizarTituloCidade() {
     }
 
     if (!listaFiltrada.length) {
-        titulo.textContent = `${nomeCidade}, ${estado}`
+        // Sem anúncios: o nome da cidade já aparece na tarja do topo,
+        // então não repetimos acima do box central.
+        titulo.textContent = ""
         return
     }
 
