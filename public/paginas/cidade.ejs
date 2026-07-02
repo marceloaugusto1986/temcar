@@ -318,8 +318,8 @@
                                     <div class="cidade-banner-fallback d-flex align-items-center justify-content-center text-center">
                                         <div>
                                             <h2 class="fw-bold mb-2" id="cidade-banner-titulo">
-                                                <% if (typeof seo !== 'undefined' && seo.texto_h1) { %>
-                                                    <%= seo.texto_h1 %>
+                                                <% if (typeof seo !== 'undefined' && seo.titulo) { %>
+                                                    <%= String(seo.titulo).replace(/\s*\|\s*TEMCAR\s*$/i, '').trim() %>
                                                 <% } else if (typeof filtro !== 'undefined' && filtro.cidadeNome) { %>
                                                     Veículos em <%= filtro.cidadeNome %><% if (filtro.ufNome) { %> - <%= filtro.ufNome %><% } %>
                                                 <% } %>

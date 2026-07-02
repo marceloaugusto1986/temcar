@@ -127,8 +127,9 @@ function atualizarTituloParticular() {
     document.getElementById("sidebar")?.classList.toggle("d-none", semCarros)
     document.querySelector(".btn-abrir-filtro")?.closest(".d-lg-none")?.classList.toggle("d-none", semCarros)
 
-    // A tarja usa o H1 cadastrado no SEO (mesmo texto indexado).
-    let bannerTexto = seo.texto_h1 || texto
+    // A tarja usa o meta title cadastrado no SEO (sem o sufixo do site).
+    const seoTitulo = String(seo.titulo || "").replace(/\s*\|\s*TEMCAR\s*$/i, "").trim()
+    let bannerTexto = seoTitulo || texto
     if (semCarros) bannerTexto = bannerTexto.replace(/Veículos/g, "Carros").replace(/veículos/g, "carros")
 
     if (titulo) titulo.textContent = texto

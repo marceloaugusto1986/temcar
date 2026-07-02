@@ -340,9 +340,10 @@ function atualizarTitulos() {
         sub = `Veículos encontrados para sua busca`
     }
 
-    // O título da tarja usa o H1 cadastrado no SEO (mesmo texto indexado),
+    // O título da tarja usa o meta title cadastrado no SEO (sem o sufixo do site),
     // exceto na busca livre client-side, que o SEO da página não representa.
-    if (seo.texto_h1 && !query.get('busca')) titulo = seo.texto_h1
+    const seoTitulo = String(seo.titulo || "").replace(/\s*\|\s*TEMCAR\s*$/i, "").trim()
+    if (seoTitulo && !query.get('busca')) titulo = seoTitulo
 
     if (tituloPagina) tituloPagina.textContent = titulo
     if (subtitulo) subtitulo.textContent = sub
