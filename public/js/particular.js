@@ -423,7 +423,7 @@ function renderizarCards() {
     const paginaItens = itens.slice(inicio, fim)
     paginaItens.forEach(item => {
         const col = document.createElement("div")
-        col.className = "col-12 col-sm-6 col-lg-4 col-xl-3"
+        col.className = "col"
         col.appendChild(criarCardAnuncio(item))
         container.appendChild(col)
     })
