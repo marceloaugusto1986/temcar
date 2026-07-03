@@ -110,10 +110,10 @@ function criarCardAnuncio(item) {
         ${item.destaque == 1 ? `
             <span style="
                 position:absolute;top:10px;left:10px;
-                background:#ffc107;color:#000;
+                background:#C90B0C;color:#fff;
                 padding:5px 10px;border-radius:6px;
                 font-size:12px;font-weight:bold;z-index:10;">
-                ⭐ Destaque
+                Destaque
             </span>` : ''}
 
         <img
