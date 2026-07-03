@@ -43,8 +43,6 @@
         }
 
         .vehicle-card {
-		max-width: 320px;
-
 		border-radius: 6px;
 	}
 
@@ -294,7 +292,7 @@
                 </div>
 
                 <!-- CARDS -->
-                <section class="cards" id="listaCards"></section>
+                <section class="row g-3" id="listaCards"></section>
 
                 <!-- PAGINAÇÃO -->
                 <nav class="mt-4">
@@ -311,7 +309,8 @@
                 window.SEO_PAGINA = <%- JSON.stringify(typeof seo !== 'undefined' ? seo : {}) %>;
             </script>
             <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-            <script src="/js/particular.js?v=15"></script>
+            <script src="/js/reutilizavel/card-anuncio.js?v=1"></script>
+            <script src="/js/particular.js?v=16"></script>
 </body>
 
 </html>

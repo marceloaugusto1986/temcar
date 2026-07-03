@@ -289,10 +289,6 @@
             width: 100%;
         }
 
-        #container-card-primary .vehicle-card {
-            width: min(280px, calc(100vw - 76px)) !important;
-        }
-
         .cidade-empty-state {
             padding: 24px 18px;
         }
@@ -467,7 +463,7 @@
                             <div class="bg-white p-3 rounded cidade-page-panel" style="min-height: 70vh;">
                                 <h4 id="titulo-cidade" class="mb-3 fw-bold" style="color:#C90B0C;"></h4>
 
-                                <div id="container-card-primary" class="d-flex gap-3 flex-wrap pb-2"></div>
+                                <div id="container-card-primary" class="row g-3"></div>
 
                                 <nav class="mt-4">
                                     <ul class="pagination justify-content-center" id="paginacao"></ul>
@@ -490,7 +486,8 @@
                     </script>
 
                     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-                    <script src="/js/cidade.js?v=35"></script>
+                    <script src="/js/reutilizavel/card-anuncio.js?v=1"></script>
+                    <script src="/js/cidade.js?v=36"></script>
 
                     <%- include('./reutilizavel/footer-public') %>
 

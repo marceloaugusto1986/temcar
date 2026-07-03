@@ -41,46 +41,8 @@ function criarSlugVenda(texto) {
         .replace(/^-+|-+$/g, "")
 }
 
-function montarUrlVenda(item) {
-    const marcaModelo = criarSlugVenda([item.marca, item.versao || item.modelo].filter(Boolean).join(" ")) || "veiculo"
-    const cidade = criarSlugVenda(item.cidade) || "cidade"
-    const estado = criarSlugVenda(item.estado) || "estado"
-
-    return `/venda/${marcaModelo}/${cidade}/${estado}`
-}
-
-function formatarKm(valor) {
-    if (valor === null || valor === undefined || valor === "") return ""
-    const numero = Number(valor)
-    if (isNaN(numero)) return ""
-    return `${numero.toLocaleString("pt-BR")} km`
-}
-
-function formatarPreco(valor) {
-    const numero = Number(valor)
-    if (!numero || isNaN(numero)) return "Consulte"
-    return `R$ ${numero.toLocaleString("pt-BR")}`
-}
-
-function montarDetalhesPrincipais(item) {
-    return [
-        item.motorizacao,
-        item.portas ? `${item.portas}P` : "",
-        item.cambio
-    ].filter(Boolean).join(" ")
-}
-
-function montarDetalhesSecundarios(item) {
-    return [
-        item.combustivel,
-        formatarKm(item.km)
-    ].filter(Boolean).join(" | ")
-}
-
-function montarLocalizacao(item) {
-    const cidadeEstado = [item.cidade, item.estado].filter(Boolean).join(", ")
-    return item.bairro ? `${item.bairro}, ${cidadeEstado}` : cidadeEstado
-}
+// montarUrlVenda, formatarPreco, formatarKm, montarDetalhesPrincipais/Secundarios,
+// montarLocalizacao e criarCardAnuncio vêm de /js/reutilizavel/card-anuncio.js
 
 /* ================================
    CARREGAR ANÚNCIOS
@@ -350,68 +312,9 @@ function renderizarCards() {
     const fim = inicio + itensPorPagina
     const paginaItens = itens.slice(inicio, fim)
     paginaItens.forEach(item => {
-        const detalhesPrincipais = montarDetalhesPrincipais(item)
-        const detalhesSecundarios = montarDetalhesSecundarios(item)
-        const localizacao = montarLocalizacao(item)
-
         const col = document.createElement("div")
-        col.innerHTML = `
-  <div class="card shadow-sm h-100 position-relative"
-       style="cursor:pointer;border-radius:6px;overflow:hidden;"
-       onclick="window.location.href='${montarUrlVenda(item)}'">
-
-    ${item.destaque == 1 ? `
-      <span style="
-        position:absolute;top:10px;left:10px;
-        background:#ffc107;color:#000;
-        padding:5px 10px;border-radius:6px;
-        font-size:12px;font-weight:bold;z-index:10;">
-        ⭐ Destaque
-      </span>` : ''}
-
-    <img
-      src="${item.imagem ? `/uploads/anuncios/${item.imagem}` : '/img/sem-foto.jpg'}"
-      class="card-img-top"
-      style="height:182px;object-fit:cover;"
-      onerror="this.src='/img/sem-foto.jpg'"
-      alt="${item.marca || ''} ${item.versao || ''}"
-    >
-
-    <div class="card-body d-flex flex-column" style="padding:14px 16px 12px;">
-
-      <h5 class="fw-bold text-uppercase mb-1" style="font-size:1rem;line-height:1.2;">
-        <span style="color:#1f2328;">${item.marca || ''}</span>
-        <span style="color:#C90B0C;"> ${item.versao || ''}</span>
-      </h5>
-
-      <p class="mb-2" style="color:#666;font-size:.88rem;line-height:1.25;font-weight:600;">
-        ${detalhesPrincipais || "&nbsp;"}
-      </p>
-
-      <div class="d-flex align-items-baseline mb-1" style="gap:6px;">
-        <strong style="color:#C90B0C;font-size:1.18rem;line-height:1;">
-          ${formatarPreco(item.preco)}
-        </strong>
-        <strong style="color:#2b2f36;font-size:1.05rem;">
-          ${item.ano ? `| ${item.ano}` : ""}
-        </strong>
-      </div>
-
-      <p class="mb-2" style="color:#666;font-size:.84rem;line-height:1.25;font-weight:600;">
-        ${detalhesSecundarios || "&nbsp;"}
-      </p>
-
-      <p class="small fw-bold mb-1 d-flex align-items-center gap-1 mt-auto" style="font-size:.83rem;">
-        <i class="bi bi-building"></i> ${item.nome || "Revenda"}
-      </p>
-
-      <p class="small mb-0 text-truncate" style="min-width:0;color:#3f4650;font-size:.88rem;">
-        <i class="bi bi-geo-alt-fill" style="color:#C90B0C;"></i>
-        ${localizacao}
-      </p>
-
-    </div>
-  </div>`
+        col.className = "col-12 col-sm-6 col-lg-4 col-xl-3"
+        col.appendChild(criarCardAnuncio(item))
         container.appendChild(col)
     })
 }
