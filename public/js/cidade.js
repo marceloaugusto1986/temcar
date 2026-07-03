@@ -33,55 +33,8 @@ function criarSlug(texto) {
         .replace(/^-+|-+$/g, "")
 }
 
-function montarUrlVenda(item) {
-    const marcaModelo = criarSlug([item.marca, item.versao || item.modelo].filter(Boolean).join(" ")) || "veiculo"
-    const cidade = criarSlug(item.cidade) || "cidade"
-    const estado = criarSlug(item.estado) || "estado"
-
-    return `/venda/${marcaModelo}/${cidade}/${estado}`
-}
-
-function formatarValor(valor) {
-    const numero = Number(valor)
-    if (!numero || isNaN(numero)) return "Consulte"
-    return numero.toLocaleString("pt-BR")
-}
-
-function formatarKm(valor) {
-    if (valor === null || valor === undefined || valor === "") return ""
-    const numero = Number(valor)
-    if (isNaN(numero)) return ""
-    return `${numero.toLocaleString("pt-BR")} km`
-}
-
-function formatarPreco(valor) {
-    const preco = formatarValor(valor)
-    return preco === "Consulte" ? preco : `R$ ${preco}`
-}
-
-function montarDetalhesPrincipais(item) {
-    return [
-        item.motorizacao,
-        item.portas ? `${item.portas}P` : "",
-        item.cambio
-    ].filter(Boolean).join(" ")
-}
-
-function montarDetalhesSecundarios(item) {
-    return [
-        item.combustivel,
-        formatarKm(item.km)
-    ].filter(Boolean).join(" | ")
-}
-
-function montarLocalizacao(item) {
-    const cidadeEstado = [item.cidade, item.estado].filter(Boolean).join(", ")
-    const linhas = item.bairro ? [item.bairro, cidadeEstado] : [cidadeEstado]
-    return linhas
-        .filter(Boolean)
-        .map(linha => `<span style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${linha}</span>`)
-        .join("")
-}
+// Helpers de card/anúncio e criarCardAnuncio vêm de
+// /js/reutilizavel/card-anuncio.js
 
 // ===============================
 // CAPTURAR SLUG E UF DA URL
@@ -435,79 +388,15 @@ function renderizarLista() {
         return
     }
 
-    container.classList.remove("overflow-visible")
-    container.classList.add("overflow-auto")
-
     const inicio = (paginaAtualCidade - 1) * limitePorPagina
     const fim = inicio + limitePorPagina
     const pagina = listaFiltrada.slice(inicio, fim)
 
     pagina.forEach(item => {
-        const wrapper = document.createElement("div")
-        const detalhesPrincipais = montarDetalhesPrincipais(item)
-        const detalhesSecundarios = montarDetalhesSecundarios(item)
-        const localizacao = montarLocalizacao(item)
-
-        wrapper.innerHTML = `
-            <div class="card shadow-sm vehicle-card position-relative"
-                 style="width: 280px; cursor: pointer; border-radius: 6px; overflow: hidden;"
-                 onclick="window.location.href='${montarUrlVenda(item)}'">
-
-                ${item.destaque == 1 ? `
-                    <span style="
-                        position:absolute;top:10px;left:10px;
-                        background:#ffc107;color:#000;
-                        padding:5px 10px;border-radius:6px;
-                        font-size:12px;font-weight:bold;z-index:10;">
-                        ⭐ Destaque
-                    </span>` : ''}
-
-                <img
-                  src="${item.imagem ? `/uploads/anuncios/${item.imagem}` : '/img/sem-foto.jpg'}"
-                  class="card-img-top vehicle-img"
-                  style="height:182px;object-fit:cover;"
-                  onerror="this.src='/img/sem-foto.jpg'"
-                >
-
-                <div class="card-body d-flex flex-column" style="padding:14px 16px 12px;">
-                  <h5 class="fw-bold text-uppercase mb-1" style="font-size:1rem; line-height:1.2;">
-                    <span style="color:#1f2328;">${item.marca || ''}</span>
-                    <span style="color:#C90B0C;"> ${item.versao || ''}</span>
-                  </h5>
-
-                  <p class="mb-2" style="color:#666; font-size:.88rem; line-height:1.25; font-weight:600;">
-                    ${detalhesPrincipais || "&nbsp;"}
-                  </p>
-
-                  <div class="d-flex align-items-baseline mb-1" style="gap:6px;">
-                    <strong style="color:#C90B0C; font-size:1.18rem; line-height:1;">
-                      ${formatarPreco(item.preco)}
-                    </strong>
-                    <strong style="color:#2b2f36; font-size:1.05rem;">
-                      ${item.ano_modelo ? `| ${item.ano_modelo}` : ""}
-                    </strong>
-                  </div>
-
-                  <p class="mb-2" style="color:#666; font-size:.84rem; line-height:1.25; font-weight:600;">
-                    ${detalhesSecundarios || "&nbsp;"}
-                  </p>
-
-                  <p class="small fw-bold mb-1 d-flex align-items-center gap-1 mt-auto" style="font-size:.83rem;">
-                    ${item.tipo_anunciante === "particular"
-                ? `<i class="bi bi-person-fill"></i> Particular`
-                : `<i class="bi bi-building"></i> ${item.nome || "Revenda"}`
-            }
-                  </p>
-
-                  <p class="small mb-0 d-flex align-items-start gap-1" style="min-width:0; color:#3f4650; font-size:.88rem;">
-                    <i class="bi bi-geo-alt-fill" style="color:#C90B0C; flex-shrink:0; line-height:1.3;"></i>
-                    <span style="min-width:0; line-height:1.3; min-height:2.6em; display:block; overflow:hidden;">${localizacao}</span>
-                  </p>
-                </div>
-            </div>
-        `
-
-        container.appendChild(wrapper)
+        const col = document.createElement("div")
+        col.className = "col-12 col-sm-6 col-lg-4 col-xl-3"
+        col.appendChild(criarCardAnuncio(item))
+        container.appendChild(col)
     })
 }
 
