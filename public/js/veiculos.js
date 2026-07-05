@@ -581,6 +581,19 @@ function popularFiltroCidadeInline() {
     })
 }
 
+// Verifica se o anúncio pertence de fato à cidade da página. Anúncios que
+// aparecem aqui só por atender outra cidade (revendas_cidades/anuncios_cidades)
+// têm o bairro da cidade de origem, que não deve entrar no filtro de bairro.
+function anuncioNaCidadeDaPagina(v) {
+    const filtro = window.FILTRO || {}
+    const cidadePagina = slugify(filtro.cidadeNome || filtro.cidade || "")
+    if (!cidadePagina) return true
+    const ufPagina = (filtro.ufNome || filtro.uf || "").toLowerCase()
+    const mesmaCidade = slugify(v.cidade || "") === cidadePagina
+    const mesmoEstado = !ufPagina || (v.estado || "").toLowerCase() === ufPagina
+    return mesmaCidade && mesmoEstado
+}
+
 // Preenche o filtro de bairro com os bairros distintos da cidade atual.
 // Retorna a quantidade de bairros encontrados (0 = não há o que filtrar).
 function popularFiltroBairroInline() {
@@ -588,6 +601,7 @@ function popularFiltroBairroInline() {
     if (!select) return 0
     const bairros = [...new Set(
         listaVeiculosOriginal
+            .filter(anuncioNaCidadeDaPagina)
             .map(v => (v.bairro || "").trim())
             .filter(Boolean)
     )].sort((a, b) => a.localeCompare(b, 'pt-BR'))
@@ -733,9 +747,17 @@ async function carregarBanners(slug, uf) {
             }
         }
 
+        // Há veículos na página (o guard acima já garante isso), mas nenhuma
+        // cidade/banner específico foi cadastrado. Em vez da tarja de fallback,
+        // exibimos o banner padrão da cidade — o fallback fica reservado para
+        // páginas sem anúncios.
         if (!banners.length) {
-            mostrarBannerFallback()
-            return
+            banners = [{
+                src: '/imagens/img/banner-cidade-default.png',
+                srcMobile: '/imagens/img/banner-cidade-default-mobile.png',
+                link: '',
+                titulo: ''
+            }]
         }
 
         const wrapper = document.getElementById("bannerWrapper")
