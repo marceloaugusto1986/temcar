@@ -393,7 +393,7 @@ function renderizarSemResultados(container) {
     document.getElementById("titulo-particular")?.closest("div")?.classList.add("d-none")
 
     container.innerHTML = `
-        <div style="grid-column: 1 / -1;">
+        <div class="w-100" style="flex: 0 0 100%; max-width: 100%;">
             <div class="cidade-empty-state">
                 <div class="cidade-empty-icon">
                     <i class="bi bi-person-fill"></i>
