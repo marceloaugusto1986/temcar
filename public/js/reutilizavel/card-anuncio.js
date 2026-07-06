@@ -50,14 +50,8 @@ function montarDetalhesSecundarios(item) {
 }
 
 function montarLocalizacao(item) {
-    // Campos *_exibicao permitem que a página sobrescreva a localização mostrada
-    // (ex.: anúncio que atende outra cidade deve exibir a cidade da página, não a
-    // de origem). Sem eles, usa a localização real do anúncio.
-    const cidade = item.cidade_exibicao ?? item.cidade
-    const estado = item.estado_exibicao ?? item.estado
-    const bairro = item.bairro_exibicao ?? item.bairro
-    const cidadeEstado = [cidade, estado].filter(Boolean).join(", ")
-    const linhas = bairro ? [bairro, cidadeEstado] : [cidadeEstado]
+    const cidadeEstado = [item.cidade, item.estado].filter(Boolean).join(", ")
+    const linhas = item.bairro ? [item.bairro, cidadeEstado] : [cidadeEstado]
     return linhas
         .filter(Boolean)
         .map(linha => `<span style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${linha}</span>`)
