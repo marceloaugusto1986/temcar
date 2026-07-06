@@ -8,6 +8,7 @@ const path = require("path");
 const upload = require("../../../middlewares/uploadImagens");
 const converterWebp = require("../../../middlewares/converterWebp");
 const { buscarPlanoDoUsuario, calcularDatasPublicacao } = require("../../../database/planos");
+const { buscarBannersRegioesCidade } = require("../../../helpers/banners-cidade");
 
 async function garantirColunasRegioesImagens() {
   const [colunas] = await db.query(`
@@ -2080,25 +2081,7 @@ router.get("/api/admin/regioes/imagens", async (req, res) => {
       return res.status(404).json({ message: "Cidade não encontrada" });
     }
 
-    const [[duplicidade]] = await db.query(
-      `SELECT COUNT(*) AS total FROM cidades WHERE nome = ?`,
-      [cidadeEncontrada.nome]
-    );
-
-    const params = [cidadeEncontrada.id, cidadeEncontrada.nome, cidadeEncontrada.estado];
-    let whereLegado = 'cidade = ? AND estado = ?';
-
-    if (Number(duplicidade.total) <= 1) {
-      whereLegado = '(cidade = ? AND (estado = ? OR estado IS NULL))';
-    }
-
-    const [imagens] = await db.query(`
-      SELECT *
-      FROM regioes_imagens
-      WHERE cidade_id = ?
-         OR (cidade_id IS NULL AND ${whereLegado})
-      ORDER BY id ASC
-    `, params);
+    const imagens = await buscarBannersRegioesCidade(db, cidadeEncontrada, '*');
 
     res.json(imagens);
 

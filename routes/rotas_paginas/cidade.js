@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require("./../../database/pool_connection");
 const { getSeoCidade } = require('../../helpers/seo');
+const { buscarBannersRegioesCidade } = require('../../helpers/banners-cidade');
 
 function slugify(texto) {
   return (texto || '')
@@ -298,14 +299,9 @@ router.get("/api/cidades/:slug/:uf/banners", async (req, res) => {
     let banners;
 
     if (cidade) {
-      [banners] = await db.query(
-        `SELECT id, imagem, imagem_mobile, link
-         FROM regioes_imagens
-         WHERE cidade_id = ?
-            OR (LOWER(cidade) = LOWER(?) AND (LOWER(estado) = LOWER(?) OR estado IS NULL))
-         ORDER BY id ASC`,
-        [cidade.id, cidade.nome, cidade.estado]
-      );
+      // Mesma regra do admin: garante que a página pública exiba exatamente os
+      // banners gerenciados no painel (sem registros legados "fantasma").
+      banners = await buscarBannersRegioesCidade(db, cidade);
     } else {
       const nomeSlug = slug.replace(/-/g, ' ');
       [banners] = await db.query(
