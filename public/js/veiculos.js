@@ -213,6 +213,7 @@ async function carregarVeiculos() {
         if (!resp.ok) throw new Error("Erro ao buscar veículos")
 
         listaVeiculos = await resp.json()
+        aplicarLocalizacaoDaPagina(listaVeiculos)
         listaVeiculosOriginal = ordenarComDestaque([...listaVeiculos])
         listaVeiculos = [...listaVeiculosOriginal]
 
@@ -592,6 +593,25 @@ function anuncioNaCidadeDaPagina(v) {
     const mesmaCidade = slugify(v.cidade || "") === cidadePagina
     const mesmoEstado = !ufPagina || (v.estado || "").toLowerCase() === ufPagina
     return mesmaCidade && mesmoEstado
+}
+
+// Anúncios que aparecem aqui só por atender outra cidade carregam a localização
+// de origem do vendedor (bairro/cidade de outra cidade). Na página de uma cidade
+// específica, o card deve mostrar a cidade da página — onde o veículo está sendo
+// anunciado —, não o bairro/cidade de origem. A URL de detalhe segue usando a
+// localização real do anúncio (campos originais preservados).
+function aplicarLocalizacaoDaPagina(lista) {
+    const filtro = window.FILTRO || {}
+    const cidadePaginaNome = filtro.cidadeNome || ""
+    if (!cidadePaginaNome) return
+    const ufPaginaNome = (filtro.ufNome || filtro.uf || "").toUpperCase()
+    lista.forEach(v => {
+        if (!anuncioNaCidadeDaPagina(v)) {
+            v.cidade_exibicao = cidadePaginaNome
+            v.estado_exibicao = ufPaginaNome
+            v.bairro_exibicao = filtro.bairroNome || ""
+        }
+    })
 }
 
 // Preenche o filtro de bairro com os bairros distintos da cidade atual.
