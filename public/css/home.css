@@ -872,6 +872,8 @@
 
 			.home-carousel .swiper-pagination {
 				bottom: 0;
+				--swiper-pagination-bullet-size: 11px;
+				--swiper-pagination-bullet-horizontal-gap: 7px;
 			}
 
 			.home-carousel .swiper-pagination-bullet-active {
