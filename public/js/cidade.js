@@ -119,12 +119,18 @@ function obterCidadesAtendimento(item) {
     }
 }
 
-function anuncioAtendeCidade(item, slug, uf) {
+// O anúncio "mora" na cidade quando a cidade de origem do vendedor é a da
+// página. Anúncios que só atendem esta cidade (cidades_atendimento) não moram
+// aqui — e por isso o bairro de origem deles não deve entrar no filtro de bairro.
+function anuncioMoraNaCidade(item, slug, uf) {
     const cidadeItem = (item.cidade || "").split("-")[0].trim()
     const slugItem = criarSlug(cidadeItem)
     const estadoItem = (item.estado || "").toLowerCase()
+    return slugItem === slug && (!uf || estadoItem === uf)
+}
 
-    if (slugItem === slug && (!uf || estadoItem === uf)) return true
+function anuncioAtendeCidade(item, slug, uf) {
+    if (anuncioMoraNaCidade(item, slug, uf)) return true
 
     return obterCidadesAtendimento(item).some(cidadeAtendimento => {
         const slugAtendimento = criarSlug(cidadeAtendimento.cidade || "")
@@ -223,9 +229,14 @@ function aplicarFiltroBairro(renderizar = true) {
 }
 
 function obterBairrosDosAnunciosDaCidade() {
+    const slug = obterSlugAtual()
+    const uf = obterUfAtual()
     const bairrosPorNome = new Map()
 
     listaCidadeAnuncios.forEach(item => {
+        // Ignora anúncios que só atendem esta cidade: o bairro deles é de outra
+        // cidade e não pertence ao filtro de bairro desta página.
+        if (!anuncioMoraNaCidade(item, slug, uf)) return
         const bairro = String(item.bairro || "").trim()
         if (!bairro) return
 
