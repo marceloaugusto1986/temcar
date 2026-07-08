@@ -120,19 +120,17 @@ function seoTituloLimpo() {
 }
 
 // Frase do box (sem resultados) a partir do SEO cadastrado, com a localização em
-// negrito. Cai para o texto genérico quando não há SEO/local.
+// negrito. O negrito vai do nome do bairro/cidade até o fim do título, para
+// funcionar com qualquer separador do cadastro (" - ", ", ", "/"...), como na
+// página de carros. Cai para o texto genérico quando não há SEO/local.
 function textoBoxSemResultados() {
     const seo = seoPagina();
     const h1 = String(seo.texto_h1 || "").trim();
     const dc = seo.dados_contexto || {};
-    if (h1 && (dc.cidade || dc.bairro)) {
-        const cidadeUf = [dc.cidade, dc.estado].filter(Boolean).join(" - ");
-        const candidatos = [];
-        if (dc.bairro && dc.cidade) candidatos.push(`${dc.bairro}, ${cidadeUf}`);
-        if (cidadeUf) candidatos.push(cidadeUf);
-        for (const loc of candidatos) {
-            if (loc && h1.includes(loc)) return h1.replace(loc, `<strong>${loc}</strong>`);
-        }
+    const marcador = dc.bairro || dc.cidade;
+    if (h1 && marcador) {
+        const idx = h1.indexOf(marcador);
+        if (idx >= 0) return `${h1.slice(0, idx)}<strong>${h1.slice(idx)}</strong>`;
         return h1;
     }
 
