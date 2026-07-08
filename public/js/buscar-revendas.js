@@ -110,13 +110,51 @@ function filtrarPorContexto(lista) {
     });
 }
 
+// SEO da página (título/H1 vindos do cadastro), exposto pela view em window.SEO_PAGINA.
+function seoPagina() {
+    return window.SEO_PAGINA || {};
+}
+
+function seoTituloLimpo() {
+    return String(seoPagina().titulo || "").replace(/\s*\|\s*TEMCAR\s*$/i, "").trim();
+}
+
+// Frase do box (sem resultados) a partir do SEO cadastrado, com a localização em
+// negrito. Cai para o texto genérico quando não há SEO/local.
+function textoBoxSemResultados() {
+    const seo = seoPagina();
+    const h1 = String(seo.texto_h1 || "").trim();
+    const dc = seo.dados_contexto || {};
+    if (h1 && (dc.cidade || dc.bairro)) {
+        const cidadeUf = [dc.cidade, dc.estado].filter(Boolean).join(" - ");
+        const candidatos = [];
+        if (dc.bairro && dc.cidade) candidatos.push(`${dc.bairro}, ${cidadeUf}`);
+        if (cidadeUf) candidatos.push(cidadeUf);
+        for (const loc of candidatos) {
+            if (loc && h1.includes(loc)) return h1.replace(loc, `<strong>${loc}</strong>`);
+        }
+        return h1;
+    }
+
+    const cidade = obterCidadeFiltro();
+    const uf = obterUfFiltro();
+    const bairro = obterBairroFiltro();
+    if (bairro && cidade) return `Revendas de Carros em <strong>${bairro}, ${cidade} - ${uf}</strong>`;
+    if (cidade) return `Revendas de Carros em <strong>${cidade} - ${uf}</strong>`;
+    return "Revendas de Carros";
+}
+
 function atualizarTitulos() {
     const filtro = window.FILTRO || {};
     const titulo = document.getElementById("titulo-revendas");
     const hero = document.getElementById("titulo-revendas-hero");
 
+    const seoTitulo = seoTituloLimpo();
     let texto = "Revendas Parceiras";
-    if (filtro.bairro) {
+    if ((filtro.cidade || filtro.bairro) && seoTitulo) {
+        // Tarja/título vêm do cadastro de SEO (igual à página de carros).
+        texto = seoTitulo;
+    } else if (filtro.bairro) {
         texto = `Revendas em ${obterBairroFiltro()}, ${obterCidadeFiltro()} - ${obterUfFiltro()}`;
     } else if (filtro.cidade) {
         texto = `Revendas em ${obterCidadeFiltro()} - ${obterUfFiltro()}`;
@@ -254,13 +292,7 @@ function renderizarPagina() {
     const pagina = revendasFiltradas.slice(inicio, inicio + ITENS_POR_PAGINA);
 
     if (!pagina.length) {
-        const cidade = obterCidadeFiltro();
-        const uf = obterUfFiltro();
-        const bairro = obterBairroFiltro();
-
-        let textoTitulo = "Revendas de Carros";
-        if (bairro && cidade) textoTitulo = `Revendas de Carros em <strong>${bairro}, ${cidade} - ${uf}</strong>`;
-        else if (cidade) textoTitulo = `Revendas de Carros em <strong>${cidade} - ${uf}</strong>`;
+        const textoTitulo = textoBoxSemResultados();
 
         document.getElementById("titulo-revendas")?.classList.add("d-none");
 
