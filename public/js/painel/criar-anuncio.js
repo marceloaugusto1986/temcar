@@ -39,8 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const files = Array.from(inputImagens.files);
 
             for (const file of files) {
-                if (imagensSelecionadas.length >= 10) {
-                    alert("Você pode adicionar no máximo 10 imagens.");
+                if (imagensSelecionadas.length >= 20) {
+                    alert("Você pode adicionar no máximo 20 imagens.");
                     break;
                 }
 
@@ -204,8 +204,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        if (imagensSelecionadas.length > 10) {
-            alert("Máximo de 10 imagens permitidas.");
+        if (imagensSelecionadas.length > 20) {
+            alert("Máximo de 20 imagens permitidas.");
             return;
         }
 

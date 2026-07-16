@@ -220,6 +220,22 @@ app.use((req, res, next) => {
     res.status(404).render('error-page');
 });
 
+// Tratamento de erros de upload (multer) → resposta JSON amigável em vez de
+// página HTML de erro (que quebra o fetch/JSON do front-end no cadastro).
+app.use((err, req, res, next) => {
+    if (err && err.name === 'MulterError') {
+        const mensagens = {
+            LIMIT_UNEXPECTED_FILE: 'Você enviou mais imagens do que o permitido (máximo 20 por anúncio).',
+            LIMIT_FILE_COUNT: 'Você enviou mais imagens do que o permitido (máximo 20 por anúncio).',
+            LIMIT_FILE_SIZE: 'Alguma imagem excede o tamanho máximo de 5MB.'
+        };
+        return res.status(400).json({
+            message: mensagens[err.code] || 'Falha no envio das imagens. Tente novamente.'
+        });
+    }
+    next(err);
+});
+
 (async () => {
     await start_DB();
 

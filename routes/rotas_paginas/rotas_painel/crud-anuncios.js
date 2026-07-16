@@ -21,7 +21,7 @@ function auth(req, res, next) {
   next();
 }
 
-router.post("/api/anunciante/anuncios", auth, upload.array("imagens", 10), converterWebp, async (req, res) => {
+router.post("/api/anunciante/anuncios", auth, upload.array("imagens", 20), converterWebp, async (req, res) => {
   try {
     const usuarioId = req.session.usuario.id;
 
@@ -385,7 +385,7 @@ router.delete("/api/anunciante/anuncios/:id", auth, async (req, res) => {
   }
 });
 
-router.put("/api/anunciante/anuncios/:id", auth, upload.array("imagens", 10), converterWebp, async (req, res) => {
+router.put("/api/anunciante/anuncios/:id", auth, upload.array("imagens", 20), converterWebp, async (req, res) => {
   try {
     const usuarioId = req.session.usuario.id;
     const anuncioId = req.params.id;

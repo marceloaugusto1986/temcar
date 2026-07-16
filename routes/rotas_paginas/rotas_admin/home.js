@@ -662,7 +662,7 @@ router.get('/api/admin/anuncios/:id', checkAuth('private'), async (req, res) => 
   }
 });
 
-router.put('/api/admin/anuncios/:id', checkAuth('private'), upload.array("imagens", 10), converterWebp, async (req, res) => {
+router.put('/api/admin/anuncios/:id', checkAuth('private'), upload.array("imagens", 20), converterWebp, async (req, res) => {
   try {
     const anuncioId = req.params.id;
 
