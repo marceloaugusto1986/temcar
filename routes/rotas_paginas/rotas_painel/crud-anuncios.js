@@ -7,6 +7,10 @@ const fs = require("fs");
 const path = require("path");
 const { validarCriacaoAnuncio, validarEdicaoAnuncio } = require("../../../database/planos");
 
+// Converte string vazia / undefined em NULL (campos opcionais, ex.: moto sem
+// portas/carroceria/tração/motorização — importante pois `portas` é INT).
+const nuloSeVazio = (v) => (v === "" || v === undefined || v === null ? null : v);
+
 // Middleware simples de autenticação
 function auth(req, res, next) {
   if (!req.session || !req.session.usuario) {
@@ -106,11 +110,11 @@ router.post("/api/anunciante/anuncios", auth, upload.array("imagens", 10), conve
         km,
         condicao,
         cambio,
-        motorizacao,
-        portas,
-        carroceria,
+        nuloSeVazio(motorizacao),
+        nuloSeVazio(portas),
+        nuloSeVazio(carroceria),
         combustivel,
-        tracao,
+        nuloSeVazio(tracao),
         cor,
         acessorios ? JSON.stringify(acessorios) : null
       ]
@@ -578,11 +582,11 @@ router.put("/api/anunciante/anuncios/:id", auth, upload.array("imagens", 10), co
         km,
         condicao,
         cambio,
-        motorizacao,
-        portas,
-        carroceria,
+        nuloSeVazio(motorizacao),
+        nuloSeVazio(portas),
+        nuloSeVazio(carroceria),
         combustivel,
-        tracao,
+        nuloSeVazio(tracao),
         cor,
         preco,
         descricao,

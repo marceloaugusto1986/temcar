@@ -688,6 +688,10 @@ router.put('/api/admin/anuncios/:id', checkAuth('private'), upload.array("imagen
       imagensRemovidas
     } = req.body;
 
+    // Campos opcionais (ex.: moto sem portas/carroceria/tração/motorização):
+    // string vazia vira NULL — importante pois `portas` é INT.
+    const nuloSeVazio = (v) => (v === "" || v === undefined || v === null ? null : v);
+
     const [[anuncio]] = await db.query(
       "SELECT id FROM anuncios WHERE id = ?",
       [anuncioId]
@@ -815,11 +819,11 @@ router.put('/api/admin/anuncios/:id', checkAuth('private'), upload.array("imagen
         km,
         condicao,
         cambio,
-        motorizacao,
-        portas,
-        carroceria,
+        nuloSeVazio(motorizacao),
+        nuloSeVazio(portas),
+        nuloSeVazio(carroceria),
         combustivel,
-        tracao,
+        nuloSeVazio(tracao),
         cor,
         preco,
         descricao,

@@ -96,6 +96,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("formCadastroVeiculo");
     if (!form) return;
 
+    /* ==================================================
+       MOTO: limpa campos opcionais ao selecionar o tipo
+       (motorização, portas, carroceria e tração)
+    ================================================== */
+    const selectsForm = form.querySelectorAll("select");
+    const tipoSelect = selectsForm[0];
+    const camposOpcionaisMoto = [
+        selectsForm[4], // motorização
+        selectsForm[5], // portas
+        selectsForm[6], // carroceria
+        selectsForm[8]  // tração
+    ];
+
+    if (tipoSelect) {
+        tipoSelect.addEventListener("change", () => {
+            if (tipoSelect.value === "Moto") {
+                camposOpcionaisMoto.forEach(s => { if (s) s.value = ""; });
+            }
+        });
+    }
+
     const botaoSalvar = form.querySelector("button");
 
     botaoSalvar.addEventListener("click", async () => {
@@ -145,15 +166,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         /* ==========================
            VALIDAÇÕES
+           Moto: motorização, portas, carroceria e tração são opcionais.
         ========================== */
+        const isMoto = tipo === "Moto";
+
         if (
             !descricao ||
             !versao ||
             !tipo || !marca || !condicao || !cambio ||
-            !motorizacao || !portas || !carroceria ||
-            !combustivel || !tracao || !cor ||
+            !combustivel || !cor ||
             !preco || preco <= 0 ||
-            !anoFabricacao || !anoModelo
+            !anoFabricacao || !anoModelo ||
+            (!isMoto && (!motorizacao || !portas || !carroceria || !tracao))
         ) {
             alert("Preencha corretamente todos os campos obrigatórios.");
             return;

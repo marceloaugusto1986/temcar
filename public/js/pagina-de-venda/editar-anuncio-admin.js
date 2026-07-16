@@ -21,6 +21,22 @@ if (adminEditContext === "admin" && adminEditButton && adminEditForm) {
   });
 }
 
+/* =====================================================
+   MOTO: campos opcionais (motorização, portas,
+   carroceria e tração). Limpa a seleção ao escolher Moto.
+===================================================== */
+const adminTipoSelect = adminEditForm?.querySelector('[name="tipo"]');
+if (adminTipoSelect) {
+  adminTipoSelect.addEventListener("change", () => {
+    if (adminTipoSelect.value === "Moto") {
+      ["motorizacao", "portas", "carroceria", "tracao"].forEach(name => {
+        const field = adminEditForm.querySelector(`[name="${name}"]`);
+        if (field) field.value = "";
+      });
+    }
+  });
+}
+
 async function abrirEdicaoAdmin(id) {
   if (!id) {
     alert("Anúncio inválido");

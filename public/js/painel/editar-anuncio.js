@@ -13,6 +13,22 @@ const previewImagensEdicao = document.getElementById("previewImagensEdicao");
 const inputImagens = formEdicao.querySelector('[name="imagens"]');
 
 /* =====================================================
+   MOTO: campos opcionais (motorização, portas,
+   carroceria e tração). Limpa a seleção ao escolher Moto.
+===================================================== */
+const tipoEdicao = formEdicao.querySelector('[name="tipo"]');
+if (tipoEdicao) {
+  tipoEdicao.addEventListener("change", () => {
+    if (tipoEdicao.value === "Moto") {
+      ["motorizacao", "portas", "carroceria", "tracao"].forEach(name => {
+        const el = formEdicao.querySelector(`[name="${name}"]`);
+        if (el) el.value = "";
+      });
+    }
+  });
+}
+
+/* =====================================================
    ABRIR EDIÇÃO
 ===================================================== */
 async function abrirEdicaoAnuncio(id) {
