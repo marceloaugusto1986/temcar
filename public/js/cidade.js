@@ -526,10 +526,45 @@ function obterTipoEmptyState() {
     }
 }
 
+// Texto institucional/SEO exibido quando a página não tem anúncios.
+// localHtml já vem com preposição + <strong>local</strong> (ex.: "em <strong>Vitória - ES</strong>").
+function conteudoSeoEmptyState(tipoNome, localHtml) {
+    const vocabulario = {
+        "carro": {
+            busca: "carros usados ou carros seminovos",
+            variedade: "hatchs, sedãs, SUVs, picapes, utilitários e carros de diversas marcas e modelos",
+            ideal: "o carro ideal",
+            confira: "os carros usados e seminovos",
+            comprarVender: "comprar ou vender carros"
+        },
+        "moto": {
+            busca: "motos usadas ou motos seminovas",
+            variedade: "motos de rua, esportivas, custom, scooters, trail e de diversas marcas e modelos",
+            ideal: "a moto ideal",
+            confira: "as motos usadas e seminovas",
+            comprarVender: "comprar ou vender motos"
+        },
+        "utilitário": {
+            busca: "utilitários usados ou utilitários seminovos",
+            variedade: "furgões, vans, picapes e utilitários de diversas marcas e modelos",
+            ideal: "o utilitário ideal",
+            confira: "os utilitários usados e seminovos",
+            comprarVender: "comprar ou vender utilitários"
+        }
+    }
+    const v = vocabulario[tipoNome] || vocabulario["carro"]
+
+    return `
+        <p>Se você está procurando ${v.busca} ${localHtml}, o TEMCAR reúne anúncios de veículos de particulares, revendas e concessionárias em um só lugar para facilitar a sua busca.</p>
+        <p>Em nossa plataforma você encontra uma grande variedade de veículos à venda, incluindo ${v.variedade}, com opções para diferentes perfis e faixas de preço. Utilize os filtros de pesquisa para localizar ${v.ideal} por marca, modelo, ano, combustível, câmbio, quilometragem e valor.</p>
+        <p>O TEMCAR foi desenvolvido para tornar a compra e a venda de veículos mais simples e seguras. Compare diferentes ofertas, analise as características de cada anúncio e encontre o veículo que melhor atende às suas necessidades. Seja para adquirir o primeiro veículo, trocar de automóvel ou encontrar uma oportunidade de negócio, você terá acesso a anúncios atualizados e organizados.</p>
+        <p>Confira abaixo ${v.confira} à venda ${localHtml} e descubra excelentes oportunidades para comprar seu próximo veículo com praticidade. No TEMCAR você encontra anúncios de automóveis em diversas cidades do Brasil, conectando compradores e vendedores em um ambiente completo para quem procura ${v.comprarVender}.</p>
+    `
+}
+
 function renderizarCidadeSemAnuncios(container) {
     const tipo = obterTipoEmptyState()
     const localizacao = obterLocalizacaoEmptyState()
-    const textoTitulo = obterTextoSeoEmptyState(localizacao, tipo)
 
     container.classList.remove("overflow-auto")
     container.classList.add("overflow-visible")
@@ -540,9 +575,13 @@ function renderizarCidadeSemAnuncios(container) {
                 <i class="bi ${tipo.icon}"></i>
             </div>
 
-            <p class="cidade-empty-title">
-                ${textoTitulo}
-            </p>
+            <div class="cidade-empty-seo">
+                ${conteudoSeoEmptyState(tipo.nome, `${localizacao.preposicao} <strong>${escaparHtml(localizacao.texto)}</strong>`)}
+            </div>
+
+            <div class="cidade-empty-actions" style="margin-bottom: 22px;">
+                <a class="btn btn-danger" href="/comprar">Comprar veículos</a>
+            </div>
 
             <p class="cidade-empty-promo">
                 <strong>Atenção Particulares e Revendas</strong><br>

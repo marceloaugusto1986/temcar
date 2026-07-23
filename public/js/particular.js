@@ -381,14 +381,25 @@ function atualizarLista() {
    RENDERIZAÇÃO CARDS
 ================================ */
 
+// Texto institucional/SEO exibido quando a página não tem anúncios.
+// localHtml já vem com preposição + <strong>local</strong> (ex.: "em <strong>Vitória - ES</strong>").
+function conteudoSeoEmptyState(localHtml) {
+    return `
+        <p>Se você está procurando carros usados ou carros seminovos ${localHtml}, o TEMCAR reúne anúncios de veículos de particulares, revendas e concessionárias em um só lugar para facilitar a sua busca.</p>
+        <p>Em nossa plataforma você encontra uma grande variedade de veículos à venda, incluindo hatchs, sedãs, SUVs, picapes, utilitários e carros de diversas marcas e modelos, com opções para diferentes perfis e faixas de preço. Utilize os filtros de pesquisa para localizar o carro ideal por marca, modelo, ano, combustível, câmbio, quilometragem e valor.</p>
+        <p>O TEMCAR foi desenvolvido para tornar a compra e a venda de veículos mais simples e seguras. Compare diferentes ofertas, analise as características de cada anúncio e encontre o veículo que melhor atende às suas necessidades. Seja para adquirir o primeiro veículo, trocar de automóvel ou encontrar uma oportunidade de negócio, você terá acesso a anúncios atualizados e organizados.</p>
+        <p>Confira abaixo os carros usados e seminovos à venda ${localHtml} e descubra excelentes oportunidades para comprar seu próximo veículo com praticidade. No TEMCAR você encontra anúncios de automóveis em diversas cidades do Brasil, conectando compradores e vendedores em um ambiente completo para quem procura comprar ou vender carros.</p>
+    `
+}
+
 function renderizarSemResultados(container) {
     const cidade = obterCidadeFiltro()
     const uf = obterUfFiltro()
     const bairro = obterBairroFiltro()
 
-    let textoTitulo = "Carros de Particulares à Venda"
-    if (bairro && cidade) textoTitulo = `Carros de Particulares à venda em <strong>${bairro}, ${cidade} - ${uf}</strong>`
-    else if (cidade) textoTitulo = `Carros de Particulares à venda em <strong>${cidade} - ${uf}</strong>`
+    let localHtml = "no <strong>Brasil</strong>"
+    if (bairro && cidade) localHtml = `em <strong>${bairro}, ${cidade} - ${uf}</strong>`
+    else if (cidade) localHtml = `em <strong>${cidade} - ${uf}</strong>`
 
     document.getElementById("titulo-particular")?.closest("div")?.classList.add("d-none")
 
@@ -398,7 +409,10 @@ function renderizarSemResultados(container) {
                 <div class="cidade-empty-icon">
                     <i class="bi bi-person-fill"></i>
                 </div>
-                <p class="cidade-empty-title">${textoTitulo}</p>
+                <div class="cidade-empty-seo">${conteudoSeoEmptyState(localHtml)}</div>
+                <div class="cidade-empty-actions" style="margin-bottom: 22px;">
+                    <a class="btn btn-danger" href="/comprar">Comprar veículos</a>
+                </div>
                 <p class="cidade-empty-promo">
                     <strong>Atenção Particulares</strong><br>
                     Aproveite nossa promoção de lançamento e anuncie seu veículo gratuitamente até agosto de 2026.
