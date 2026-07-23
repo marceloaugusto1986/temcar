@@ -183,7 +183,7 @@ router.put('/api/editar-perfil-anunciante/:id', async (req, res) => {
           estado: String(item?.estado || '').trim().toUpperCase()
         }))
         .filter(item => item.cidade && /^[A-Z]{2}$/.test(item.estado))
-        .slice(0, 3)
+        .slice(0, 15)
       : [];
 
     await garantirTabelaCidadesRevendas();

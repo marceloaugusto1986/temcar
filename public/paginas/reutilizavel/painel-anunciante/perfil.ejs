@@ -656,7 +656,7 @@ renderizarLogo();
                 </button>
               </div>
             </div>
-            <small class="text-muted d-block mt-2">Escolha até 3 locais.</small>
+            <small class="text-muted d-block mt-2">Escolha até 15 locais.</small>
             <div id="editCidadesAtendimentoLista" class="cidade-atendimento-lista"></div>
           </div>
 
@@ -840,8 +840,8 @@ renderizarLogo();
         const select = document.getElementById('editCidadeAtendimento');
         if (!select || !select.value) return;
 
-        if (cidadesAtendimentoSelecionadas.length >= 3) {
-          alert('Escolha no máximo 3 locais de atuação.');
+        if (cidadesAtendimentoSelecionadas.length >= 15) {
+          alert('Escolha no máximo 15 locais de atuação.');
           return;
         }
 

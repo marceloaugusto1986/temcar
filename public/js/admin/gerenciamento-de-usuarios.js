@@ -435,7 +435,7 @@ async function verUsuario(id) {
           </button>
         </div>
       </div>
-      <small class="text-muted d-block mt-2">Escolha até 3 locais.</small>
+      <small class="text-muted d-block mt-2">Escolha até 15 locais.</small>
 
       <div id="adminCidadesAtendimentoLista" class="mt-3"></div>
 
@@ -632,10 +632,10 @@ function adicionarCidadeAtendimentoAdmin() {
   if (!select || !select.value) return;
 
   const cidade = JSON.parse(select.value);
-  if (usuarioAtualCidadesAtendimento.length >= 3) {
+  if (usuarioAtualCidadesAtendimento.length >= 15) {
     const feedback = document.getElementById('adminCidadesFeedback');
     if (feedback) {
-      feedback.textContent = 'Escolha no máximo 3 locais de atuação.';
+      feedback.textContent = 'Escolha no máximo 15 locais de atuação.';
       feedback.className = 'small text-danger';
     }
     return;

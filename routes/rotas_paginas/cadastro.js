@@ -219,7 +219,7 @@ router.post('/api/usuarios', async (req, res) => {
           estado: String(item?.estado || '').trim().toUpperCase()
         }))
         .filter(item => item.cidade && /^[A-Z]{2}$/.test(item.estado))
-        .slice(0, 3)
+        .slice(0, 15)
       : [];
 
     // 🔹 Criptografa senha

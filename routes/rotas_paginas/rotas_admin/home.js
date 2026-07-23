@@ -252,7 +252,7 @@ router.put('/api/admin/usuarios/:id/cidades-atendimento', checkAuth('private'), 
         estado: String(item?.estado || '').trim().toUpperCase()
       }))
       .filter(item => item.cidade && /^[A-Z]{2}$/.test(item.estado))
-      .slice(0, 3);
+      .slice(0, 15);
 
     const conn = await db.getConnection();
 
