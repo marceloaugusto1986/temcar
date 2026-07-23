@@ -429,6 +429,8 @@ function renderizarCards() {
     const container = document.getElementById("listaCards")
     container.innerHTML = ""
     if (!itens.length) {
+        // Quando não há anúncios, o próprio estado vazio já exibe o texto SEO.
+        renderizarSeoRodape(false)
         renderizarSemResultados(container)
         return
     }
@@ -441,6 +443,43 @@ function renderizarCards() {
         col.appendChild(criarCardAnuncio(item))
         container.appendChild(col)
     })
+
+    // Com anúncios na página, o texto SEO vai visível abaixo da listagem.
+    renderizarSeoRodape(true)
+}
+
+// Texto SEO abaixo da listagem quando a página tem anúncios (visível e indexável).
+function renderizarSeoRodape(temAnuncios) {
+    const rodape = document.getElementById("seo-rodape")
+    if (!rodape) return
+
+    if (!temAnuncios) {
+        rodape.innerHTML = ""
+        return
+    }
+
+    const cidade = obterCidadeFiltro()
+    const uf = obterUfFiltro()
+    const bairro = obterBairroFiltro()
+
+    let prep = "no"
+    let local = "Brasil"
+    let localHtml = "no <strong>Brasil</strong>"
+    if (bairro && cidade) {
+        prep = "em"; local = `${bairro}, ${cidade} - ${uf}`; localHtml = `em <strong>${local}</strong>`
+    } else if (cidade) {
+        prep = "em"; local = `${cidade} - ${uf}`; localHtml = `em <strong>${local}</strong>`
+    }
+
+    rodape.innerHTML = `
+        <h2 class="seo-rodape-titulo">Comprar carros de particulares ${prep} ${local}</h2>
+        <div class="cidade-empty-seo">
+            ${conteudoSeoEmptyState(localHtml)}
+        </div>
+        <div class="cidade-empty-actions" style="margin-top: 16px;">
+            <a class="btn btn-danger" href="/comprar">Veja veículos relacionados</a>
+        </div>
+    `
 }
 
 /* ================================

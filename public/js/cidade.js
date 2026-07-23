@@ -395,6 +395,8 @@ function renderizarLista() {
     container.innerHTML = ""
 
     if (!listaFiltrada.length) {
+        // Quando não há anúncios, o próprio estado vazio já exibe o texto SEO.
+        renderizarSeoRodape(false)
         renderizarCidadeSemAnuncios(container)
         return
     }
@@ -409,6 +411,36 @@ function renderizarLista() {
         col.appendChild(criarCardAnuncio(item))
         container.appendChild(col)
     })
+
+    // Com anúncios na página, o texto SEO vai visível abaixo da listagem.
+    renderizarSeoRodape(true)
+}
+
+// Texto SEO abaixo da listagem quando a página tem anúncios (visível e indexável).
+function renderizarSeoRodape(temAnuncios) {
+    const rodape = document.getElementById("seo-rodape")
+    if (!rodape) return
+
+    if (!temAnuncios) {
+        rodape.innerHTML = ""
+        return
+    }
+
+    const localizacao = obterLocalizacaoEmptyState()
+    const tipo = obterTipoEmptyState()
+    const pluralPorTipo = { "carro": "carros", "moto": "motos", "utilitário": "utilitários" }
+    const plural = pluralPorTipo[tipo.nome] || "veículos"
+    const localHtml = `${localizacao.preposicao} <strong>${escaparHtml(localizacao.texto)}</strong>`
+
+    rodape.innerHTML = `
+        <h2 class="seo-rodape-titulo">Comprar ${plural} ${localizacao.preposicao} ${escaparHtml(localizacao.texto)}</h2>
+        <div class="cidade-empty-seo">
+            ${conteudoSeoEmptyState(tipo.nome, localHtml)}
+        </div>
+        <div class="cidade-empty-actions" style="margin-top: 16px;">
+            <a class="btn btn-danger" href="/comprar">Veja veículos relacionados</a>
+        </div>
+    `
 }
 
 function capitalize(texto) {
