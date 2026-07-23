@@ -411,11 +411,11 @@ function renderizarSemResultados(container) {
                 </div>
                 <div class="cidade-empty-seo">${conteudoSeoEmptyState(localHtml)}</div>
                 <div class="cidade-empty-actions" style="margin-bottom: 22px;">
-                    <a class="btn btn-danger" href="/comprar">Comprar veículos</a>
+                    <a class="btn btn-danger" href="/comprar">Ver veículos disponíveis</a>
                 </div>
                 <p class="cidade-empty-promo">
                     <strong>Atenção Particulares</strong><br>
-                    Aproveite nossa promoção de lançamento e anuncie seu veículo gratuitamente até agosto de 2026.
+                    Aproveite nossa promoção de lançamento e anuncie seu veículo gratuitamente.
                 </p>
                 <div class="cidade-empty-actions">
                     <a class="btn btn-danger" href="/vender">Anunciar grátis</a>

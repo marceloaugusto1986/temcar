@@ -580,12 +580,12 @@ function renderizarCidadeSemAnuncios(container) {
             </div>
 
             <div class="cidade-empty-actions" style="margin-bottom: 22px;">
-                <a class="btn btn-danger" href="/comprar">Comprar veículos</a>
+                <a class="btn btn-danger" href="/comprar">Ver veículos disponíveis</a>
             </div>
 
             <p class="cidade-empty-promo">
                 <strong>Atenção Particulares e Revendas</strong><br>
-                Aproveite nossa promoção de lançamento e anuncie ${tipo.artigo} ${tipo.nome} gratuitamente até agosto de 2026.
+                Aproveite nossa promoção de lançamento e anuncie ${tipo.artigo} ${tipo.nome} gratuitamente.
             </p>
 
             <div class="cidade-empty-actions">

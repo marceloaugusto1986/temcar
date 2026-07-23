@@ -291,7 +291,7 @@ function renderizarSemResultados(container) {
                 <p class="cidade-empty-title">Nenhum veículo encontrado com os filtros selecionados.</p>
                 <p class="cidade-empty-promo">
                     <strong>Atenção Revendas</strong><br>
-                    Aproveite nossa promoção de lançamento e anuncie seus veículos gratuitamente até agosto de 2026.
+                    Aproveite nossa promoção de lançamento e anuncie seus veículos gratuitamente.
                 </p>
                 <div class="cidade-empty-actions">
                     <a class="btn btn-danger" href="/vender">Anunciar grátis</a>
