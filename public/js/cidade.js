@@ -530,6 +530,8 @@ function obterTextoSeoEmptyState(localizacao, tipo) {
     const tipoSeo = dados.tipo || tipo.nome
 
     const textoAntes = trechoAntesCidade
+        .replaceAll("#comprar", "Comprar")
+        .replaceAll("#vender", "Vender")
         .replaceAll("#estado", estado)
         .replaceAll("#bairro", bairro)
         .replaceAll("#veiculo", tipoSeo)

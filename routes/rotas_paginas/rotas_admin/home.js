@@ -1566,6 +1566,8 @@ router.get("/api/seo-dinamico/:pagina", async (req, res) => {
       if (!texto) return texto;
 
       return texto
+        .replaceAll('#comprar', 'Comprar')
+        .replaceAll('#vender', 'Vender')
         .replaceAll('#marca', dados.marca || '')
         .replaceAll('#modelo', dados.versao || '')
         .replaceAll('#veiculo', dados.tipo || '')
@@ -1589,6 +1591,8 @@ router.get("/api/seo-dinamico/:pagina", async (req, res) => {
       if (!texto) return texto;
 
       return texto
+        .replaceAll('#comprar', 'comprar')
+        .replaceAll('#vender', 'vender')
         .replaceAll('#marca', slugifyPlaceholder(dados.marca))
         .replaceAll('#modelo', slugifyPlaceholder(dados.versao))
         .replaceAll('#veiculo', slugifyPlaceholder(dados.tipo))
@@ -1648,6 +1652,8 @@ router.get('/api/seo-anuncio/:id', async (req, res) => {
     const substituir = (texto) => {
       if (!texto) return '';
       return texto
+        .replace(/#comprar/g, 'Comprar')
+        .replace(/#vender/g, 'Vender')
         .replace(/#marca/g, anuncio.marca || '')
         .replace(/#modelo/g, anuncio.versao || '')
         .replace(/#cidade/g, anuncio.cidade || '')

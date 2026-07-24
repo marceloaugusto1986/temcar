@@ -153,8 +153,30 @@ function makeDefaultSeo(pagina, overrides = {}) {
   };
 }
 
-function limparTextoSeo(texto) {
+// Placeholders de ação (#comprar / #vender): valor fixo para exibição e slug para URL.
+const ACAO_SEO = {
+  comprar: { texto: 'Comprar', slug: 'comprar' },
+  vender: { texto: 'Vender', slug: 'vender' }
+};
+
+// Substitui os placeholders de ação pelo texto de exibição.
+function substituirAcoesSeo(texto) {
   return (texto || '')
+    .replaceAll('#comprar', ACAO_SEO.comprar.texto)
+    .replaceAll('#vender', ACAO_SEO.vender.texto);
+}
+
+// Substitui os placeholders de ação pelo slug (usado em URLs canônicas).
+function substituirAcoesSeoUrl(texto) {
+  return (texto || '')
+    .replaceAll('#comprar', ACAO_SEO.comprar.slug)
+    .replaceAll('#vender', ACAO_SEO.vender.slug);
+}
+
+// Todas as substituições de exibição passam por aqui, então os placeholders de
+// ação são resolvidos em um único ponto.
+function limparTextoSeo(texto) {
+  return substituirAcoesSeo(texto)
     .replace(/,\s*,/g, ',')        // token vazio no meio: "Cidade, , Estado" -> "Cidade, Estado"
     .replace(/(^|\s),\s*/g, '$1')  // token vazio no início/após espaço: ", Cidade" / "em , Cidade" -> "Cidade" / "em Cidade"
     .replace(/,\s*$/g, '')         // token vazio no fim: "Bairro, Cidade," -> "Bairro, Cidade"
@@ -230,7 +252,7 @@ async function getSeo(pagina, dadosContexto = {}, fallbackOverrides = {}) {
       if (!texto) return texto;
       const localizacaoSlug = [dados.bairro, dados.cidade, dados.estado].filter(Boolean).map(slugify).join('/');
       const localizacaoCurtaSlug = [dados.cidade, dados.estado].filter(Boolean).map(slugify).join('/');
-      return texto
+      return substituirAcoesSeoUrl(texto)
         .replaceAll('#localizacao_curta', localizacaoCurtaSlug)
         .replaceAll('#localizacao', localizacaoSlug)
         .replaceAll('#marca', slugify(dados.marca))
@@ -452,7 +474,7 @@ async function getSeoCidade(cidade, bairro = '') {
 
     const substituirUrl = (texto) => {
       if (!texto) return '';
-      return texto
+      return substituirAcoesSeoUrl(texto)
         .replace(/#bairro/g, slugify(bairroNome))
         .replace(/#cidade/g, slugify(cidade.nome))
         .replace(/#estado/g, slugify(cidade.estado));
@@ -589,7 +611,7 @@ async function getSeoMarca(tipo, marcaNome, canonical) {
       .replace(/#localizacao_curta/g, '')
       .replace(/#localizacao/g, ''));
 
-    const subUrl = (texto) => !texto ? '' : texto
+    const subUrl = (texto) => !texto ? '' : substituirAcoesSeoUrl(texto)
       .replace(/#tipo/g, tipo)
       .replace(/#marca/g, marcaSlug)
       .replace(/#localizacao_curta/g, '')
@@ -635,7 +657,7 @@ async function getSeoMarcaModelo(tipo, marcaNome, modeloNome, canonical) {
       .replace(/#localizacao_curta/g, '')
       .replace(/#localizacao/g, ''));
 
-    const subUrl = (texto) => !texto ? '' : texto
+    const subUrl = (texto) => !texto ? '' : substituirAcoesSeoUrl(texto)
       .replace(/#tipo/g, tipo)
       .replace(/#marca/g, marcaSlug)
       .replace(/#modelo/g, modeloSlug)
@@ -681,7 +703,7 @@ async function getSeoCarroceria(tipo, carroceriaNome, canonical) {
       .replace(/#localizacao_curta/g, '')
       .replace(/#localizacao/g, ''));
 
-    const subUrl = (texto) => !texto ? '' : texto
+    const subUrl = (texto) => !texto ? '' : substituirAcoesSeoUrl(texto)
       .replace(/#tipo/g, tipo)
       .replace(/#carroceria/g, carroceriaSlug)
       .replace(/#localizacao_curta/g, '')
