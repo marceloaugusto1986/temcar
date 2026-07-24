@@ -17,6 +17,9 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
+      # Sem isto o MySQL pode subir escutando apenas em IPv6 ([::]:3306); o
+      # docker-proxy encaminha para o IPv4 do container e a conexao e recusada.
+      - --bind-address=0.0.0.0
 
 volumes:
   temcar_mysql_data:
