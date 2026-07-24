@@ -166,7 +166,7 @@ async function verUsuario(id) {
       estado: item.estado
     }))
     .filter(item => (item.nome || item.cidade) && item.estado)
-    .slice(0, 3);
+    .slice(0, 15);
 
   document.querySelector('.tabela-usuarios').classList.add('d-none');
   document.querySelector('.visualizar-usuario').classList.remove('d-none');

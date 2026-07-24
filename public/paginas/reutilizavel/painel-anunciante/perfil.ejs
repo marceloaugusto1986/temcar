@@ -752,7 +752,7 @@ renderizarLogo();
           estado: item.estado
         }))
         .filter(item => (item.nome || item.cidade) && item.estado)
-        .slice(0, 3);
+        .slice(0, 15);
 
       function chaveCidadeAtendimento(cidade) {
         return `${cidade.bairro || ''}|${cidade.nome || cidade.cidade}|${cidade.estado}`.toLowerCase();
