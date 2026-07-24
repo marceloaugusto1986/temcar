@@ -1,0 +1,182 @@
+<!--
+    Formulário exclusivo de cadastro de MOTOS.
+    Diferente do formulário de veículos: não tem portas, carroceria,
+    motorização nem tração; no lugar da motorização usa cilindrada.
+    Os ids são sufixados com "Moto" porque este form convive no mesmo
+    DOM com o formulário de veículos.
+-->
+<form id="formCadastroMoto" class="row g-3">
+
+    <input type="hidden" name="tipo" value="Moto">
+
+    <!-- MARCA -->
+    <div class="col-md-4">
+        <label class="form-label">Marca</label>
+        <select class="form-select" name="marca" required>
+            <option value="">Selecione</option>
+            <option>Honda</option>
+            <option>Yamaha</option>
+            <option>Suzuki</option>
+            <option>Kawasaki</option>
+            <option>BMW</option>
+            <option>Harley-Davidson</option>
+            <option>Ducati</option>
+            <option>Triumph</option>
+            <option>Royal Enfield</option>
+            <option>KTM</option>
+            <option>Dafra</option>
+            <option>Haojue</option>
+            <option>Shineray</option>
+            <option>Traxx</option>
+            <option>Bajaj</option>
+            <option>Outra</option>
+        </select>
+    </div>
+
+    <!-- MODELO -->
+    <div class="col-md-4">
+        <label class="form-label">Versão / Modelo</label>
+        <input type="text" class="form-control" name="versao" placeholder="Ex: CG 160 Titan" required>
+    </div>
+
+    <!-- CILINDRADA -->
+    <div class="col-md-4">
+        <label class="form-label">Cilindrada (cc)</label>
+        <select class="form-select" name="cilindrada" required>
+            <option value="">Selecione</option>
+            <option>50</option>
+            <option>110</option>
+            <option>125</option>
+            <option>150</option>
+            <option>160</option>
+            <option>190</option>
+            <option>200</option>
+            <option>250</option>
+            <option>300</option>
+            <option>400</option>
+            <option>500</option>
+            <option>650</option>
+            <option>750</option>
+            <option>900</option>
+            <option>1000</option>
+            <option>Acima de 1000</option>
+        </select>
+    </div>
+
+    <!-- ANOS -->
+    <div class="col-md-3">
+        <label class="form-label">Ano Fabricação</label>
+        <input type="number" class="form-control" name="ano_fabricacao" required>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Ano Modelo</label>
+        <input type="number" class="form-control" name="ano_modelo" required>
+    </div>
+
+    <!-- KM -->
+    <div class="col-md-3">
+        <label class="form-label">KM</label>
+        <input type="number" class="form-control" name="km" required>
+    </div>
+
+    <!-- CONDIÇÃO -->
+    <div class="col-md-3">
+        <label class="form-label">Condição</label>
+        <select class="form-select" name="condicao" required>
+            <option>Novo</option>
+            <option>Usado</option>
+            <option>Seminovo</option>
+        </select>
+    </div>
+
+    <!-- CÂMBIO -->
+    <div class="col-md-4">
+        <label class="form-label">Câmbio</label>
+        <select class="form-select" name="cambio" required>
+            <option>Manual</option>
+            <option>Automático</option>
+            <option>Semi-automático</option>
+        </select>
+    </div>
+
+    <!-- COMBUSTÍVEL -->
+    <div class="col-md-4">
+        <label class="form-label">Combustível</label>
+        <select class="form-select" name="combustivel" required>
+            <option>Gasolina</option>
+            <option>Flex</option>
+            <option>Elétrico</option>
+        </select>
+    </div>
+
+    <!-- COR -->
+    <div class="col-md-4">
+        <label class="form-label">Cor</label>
+        <select class="form-select" name="cor" required>
+            <option>Branco</option>
+            <option>Preto</option>
+            <option>Prata</option>
+            <option>Cinza</option>
+            <option>Grafite</option>
+            <option>Vermelho</option>
+            <option>Azul</option>
+            <option>Verde</option>
+            <option>Amarelo</option>
+            <option>Vinho</option>
+        </select>
+    </div>
+
+    <!-- ACESSÓRIOS -->
+    <div class="col-12">
+        <label class="form-label fw-bold">Acessórios</label>
+        <div class="row">
+            <div class="col-md-3"><label><input type="checkbox" value="Freio ABS"> Freio ABS</label></div>
+            <div class="col-md-3"><label><input type="checkbox" value="Freio CBS"> Freio CBS</label></div>
+            <div class="col-md-3"><label><input type="checkbox" value="Partida elétrica"> Partida elétrica</label></div>
+            <div class="col-md-3"><label><input type="checkbox" value="Painel digital"> Painel digital</label></div>
+            <div class="col-md-3"><label><input type="checkbox" value="Farol de LED"> Farol de LED</label></div>
+            <div class="col-md-3"><label><input type="checkbox" value="Alarme"> Alarme</label></div>
+            <div class="col-md-3"><label><input type="checkbox" value="Bauleto"> Bauleto</label></div>
+            <div class="col-md-3"><label><input type="checkbox" value="Protetor de motor"> Protetor de motor</label></div>
+            <div class="col-md-3"><label><input type="checkbox" value="Manopla aquecida"> Manopla aquecida</label></div>
+            <div class="col-md-3"><label><input type="checkbox" value="Controle de tração"> Controle de tração</label></div>
+        </div>
+    </div>
+
+    <!-- IMAGENS -->
+    <div class="col-12">
+        <label class="form-label">Imagens da moto (máx. 20)</label>
+        <input type="file" class="form-control" id="imagensMoto" accept="image/*" multiple>
+        <small class="text-muted">
+            Você pode adicionar imagens uma por vez ou várias de uma vez.
+        </small>
+    </div>
+
+    <div class="col-12 mt-3">
+        <div id="previewImagensMoto" class="d-flex flex-wrap gap-3"></div>
+    </div>
+
+    <!-- PREÇO -->
+    <div class="col-md-4">
+        <label class="form-label">Preço (R$)</label>
+        <input type="number" class="form-control" id="precoMoto" name="preco" min="0" step="0.01"
+            placeholder="Ex: 15000" required>
+    </div>
+
+    <!-- DESCRIÇÃO -->
+    <div class="col-12">
+        <label class="form-label">Descrição</label>
+        <textarea class="form-control" id="descricaoMoto" name="descricao" rows="4"
+            placeholder="Descreva o estado da moto, revisões, histórico, diferenciais..." required></textarea>
+    </div>
+
+    <!-- BOTÃO FINAL -->
+    <div class="col-12 text-center mt-4">
+        <button type="button" id="salvarMoto" class="btn btn-primary btn-lg px-5"
+            style="background: #C90B0C; color: #fff; border: 1px solid red;">
+            Salvar Moto
+        </button>
+    </div>
+
+</form>

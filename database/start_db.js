@@ -143,6 +143,7 @@ CREATE TABLE IF NOT EXISTS anuncios (
     condicao ENUM('novo', 'usado', 'seminovo'),
     cambio VARCHAR(50),
     motorizacao VARCHAR(20),
+    cilindrada VARCHAR(20),
     portas INT,
     carroceria VARCHAR(50),
     combustivel VARCHAR(50),
@@ -164,6 +165,18 @@ CREATE TABLE IF NOT EXISTS anuncios (
 
         await db.query(criarTabelaDeAnuncios);
 
+        // Migração: cilindrada (cadastro de motos). Em bancos já criados o
+        // CREATE TABLE IF NOT EXISTS acima não adiciona a coluna.
+        const [temCilindrada] = await db.query(`
+          SELECT 1 FROM information_schema.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'anuncios'
+            AND COLUMN_NAME = 'cilindrada'
+          LIMIT 1
+        `);
+        if (!temCilindrada.length) {
+          await db.query(`ALTER TABLE anuncios ADD COLUMN cilindrada VARCHAR(20) NULL AFTER motorizacao`);
+        }
 
         const criarTabelaImagens = `
 CREATE TABLE IF NOT EXISTS anuncios_imagens (

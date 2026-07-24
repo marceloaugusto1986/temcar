@@ -13,19 +13,36 @@ const previewImagensEdicao = document.getElementById("previewImagensEdicao");
 const inputImagens = formEdicao.querySelector('[name="imagens"]');
 
 /* =====================================================
-   MOTO: campos opcionais (motorização, portas,
-   carroceria e tração). Limpa a seleção ao escolher Moto.
+   MOTO x VEÍCULO: alterna os campos exclusivos de cada
+   tipo. Moto usa cilindrada; carro/utilitário usam
+   motorização, portas, carroceria e tração.
 ===================================================== */
 const tipoEdicao = formEdicao.querySelector('[name="tipo"]');
-if (tipoEdicao) {
-  tipoEdicao.addEventListener("change", () => {
-    if (tipoEdicao.value === "Moto") {
-      ["motorizacao", "portas", "carroceria", "tracao"].forEach(name => {
-        const el = formEdicao.querySelector(`[name="${name}"]`);
-        if (el) el.value = "";
-      });
-    }
+
+function alternarCamposPorTipo() {
+  const ehMoto = tipoEdicao && tipoEdicao.value === "Moto";
+
+  formEdicao.querySelectorAll(".campo-moto").forEach(el => {
+    el.classList.toggle("d-none", !ehMoto);
   });
+
+  formEdicao.querySelectorAll(".campo-veiculo").forEach(el => {
+    el.classList.toggle("d-none", ehMoto);
+  });
+
+  // Zera o que não se aplica, para não gravar dado de outro tipo.
+  const limpar = ehMoto
+    ? ["motorizacao", "portas", "carroceria", "tracao"]
+    : ["cilindrada"];
+
+  limpar.forEach(name => {
+    const el = formEdicao.querySelector(`[name="${name}"]`);
+    if (el) el.value = "";
+  });
+}
+
+if (tipoEdicao) {
+  tipoEdicao.addEventListener("change", alternarCamposPorTipo);
 }
 
 /* =====================================================
@@ -99,6 +116,7 @@ function preencherFormulario(a) {
   setSelect("cambio", a.cambio);
   setSelect("motorizacao", String(a.motorizacao));
   setSelect("portas", String(a.portas));
+  setSelect("cilindrada", a.cilindrada ? String(a.cilindrada) : "");
 
   setSelect("carroceria", a.carroceria);
   setSelect("combustivel", a.combustivel);
@@ -109,6 +127,9 @@ function preencherFormulario(a) {
   setTextarea("descricao", a.descricao);
 
   preencherAcessorios(a.acessorios);
+
+  // Mostra os campos certos para o tipo carregado.
+  alternarCamposPorTipo();
 }
 
 /* =====================================================
