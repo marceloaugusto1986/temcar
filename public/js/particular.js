@@ -381,6 +381,127 @@ function atualizarLista() {
    RENDERIZAÇÃO CARDS
 ================================ */
 
+/* ================================
+   BLOCO DE ANÚNCIOS SUGERIDOS
+================================ */
+
+let sugeridosLista = []
+let sugeridosPagina = 1
+let sugeridosTitulo = ""
+let sugeridosContainerId = ""
+const sugeridosPorPagina = 8
+
+// Busca os anúncios mais recentes do site (mesma origem da listagem de /comprar,
+// que já vem ordenada por destaque + mais recentes).
+async function buscarAnunciosRecentes(idsExcluir) {
+    try {
+        const resp = await fetch("/api/veiculos")
+        if (!resp.ok) return []
+        const lista = await resp.json()
+        const excluir = new Set((idsExcluir || []).map(String))
+        return lista.filter(a => !excluir.has(String(a.id)))
+    } catch (erro) {
+        console.error("Erro ao buscar anúncios recentes", erro)
+        return []
+    }
+}
+
+// Carrega os anúncios e desenha o bloco (título + grade + paginação).
+async function preencherBlocoAnuncios(containerId, titulo, idsExcluir) {
+    if (!document.getElementById(containerId)) return
+
+    sugeridosContainerId = containerId
+    sugeridosTitulo = titulo
+    sugeridosPagina = 1
+    sugeridosLista = await buscarAnunciosRecentes(idsExcluir)
+
+    renderizarBlocoSugeridos()
+}
+
+function renderizarBlocoSugeridos() {
+    const container = document.getElementById(sugeridosContainerId)
+    if (!container) return
+
+    if (!sugeridosLista.length) {
+        container.innerHTML = ""
+        return
+    }
+
+    const totalPaginas = Math.ceil(sugeridosLista.length / sugeridosPorPagina)
+    const inicio = (sugeridosPagina - 1) * sugeridosPorPagina
+    const itensPagina = sugeridosLista.slice(inicio, inicio + sugeridosPorPagina)
+
+    // Mesma caixa branca usada na listagem da página /comprar.
+    const caixa = document.createElement("div")
+    caixa.className = "bg-white p-3 rounded"
+    caixa.innerHTML = `<h2 class="bloco-anuncios-titulo">${sugeridosTitulo}</h2>`
+
+    const grid = document.createElement("div")
+    grid.className = "row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3"
+    itensPagina.forEach(item => {
+        const col = document.createElement("div")
+        col.className = "col"
+        col.appendChild(criarCardAnuncio(item))
+        grid.appendChild(col)
+    })
+    caixa.appendChild(grid)
+
+    if (totalPaginas > 1) {
+        const nav = document.createElement("nav")
+        nav.className = "mt-4"
+        nav.innerHTML = `<ul class="pagination justify-content-center">${montarItensPaginacaoSugeridos(totalPaginas)}</ul>`
+        caixa.appendChild(nav)
+    }
+
+    container.innerHTML = ""
+    container.appendChild(caixa)
+}
+
+// Mesma marcação da paginação da listagem principal.
+function montarItensPaginacaoSugeridos(totalPaginas) {
+    let html = `
+        <li class="page-item ${sugeridosPagina === 1 ? "disabled" : ""}">
+            <button class="page-link" onclick="mudarPaginaSugeridos(${sugeridosPagina - 1})">Anterior</button>
+        </li>
+    `
+
+    const inicio = Math.max(1, sugeridosPagina - 2)
+    const fim = Math.min(totalPaginas, sugeridosPagina + 2)
+
+    if (inicio > 1) {
+        html += `<li class="page-item"><button class="page-link" onclick="mudarPaginaSugeridos(1)">1</button></li>`
+        if (inicio > 2) html += `<li class="page-item disabled"><span class="page-link">…</span></li>`
+    }
+
+    for (let i = inicio; i <= fim; i++) {
+        html += `
+            <li class="page-item ${i === sugeridosPagina ? "active" : ""}">
+                <button class="page-link" onclick="mudarPaginaSugeridos(${i})">${i}</button>
+            </li>
+        `
+    }
+
+    if (fim < totalPaginas) {
+        if (fim < totalPaginas - 1) html += `<li class="page-item disabled"><span class="page-link">…</span></li>`
+        html += `<li class="page-item"><button class="page-link" onclick="mudarPaginaSugeridos(${totalPaginas})">${totalPaginas}</button></li>`
+    }
+
+    html += `
+        <li class="page-item ${sugeridosPagina === totalPaginas ? "disabled" : ""}">
+            <button class="page-link" onclick="mudarPaginaSugeridos(${sugeridosPagina + 1})">Próximo</button>
+        </li>
+    `
+
+    return html
+}
+
+function mudarPaginaSugeridos(pagina) {
+    const totalPaginas = Math.ceil(sugeridosLista.length / sugeridosPorPagina)
+    if (pagina < 1 || pagina > totalPaginas) return
+    sugeridosPagina = pagina
+    renderizarBlocoSugeridos()
+}
+
 // Texto institucional/SEO exibido quando a página não tem anúncios.
 // localHtml já vem com preposição + <strong>local</strong> (ex.: "em <strong>Vitória - ES</strong>").
 function conteudoSeoEmptyState(localHtml) {
@@ -397,9 +518,11 @@ function renderizarSemResultados(container) {
     const uf = obterUfFiltro()
     const bairro = obterBairroFiltro()
 
-    let localHtml = "no <strong>Brasil</strong>"
-    if (bairro && cidade) localHtml = `em <strong>${bairro}, ${cidade} - ${uf}</strong>`
-    else if (cidade) localHtml = `em <strong>${cidade} - ${uf}</strong>`
+    let prep = "no"
+    let local = "Brasil"
+    if (bairro && cidade) { prep = "em"; local = `${bairro}, ${cidade} - ${uf}` }
+    else if (cidade) { prep = "em"; local = `${cidade} - ${uf}` }
+    const localHtml = `${prep} <strong>${local}</strong>`
 
     document.getElementById("titulo-particular")?.closest("div")?.classList.add("d-none")
 
@@ -409,10 +532,8 @@ function renderizarSemResultados(container) {
                 <div class="cidade-empty-icon">
                     <i class="bi bi-person-fill"></i>
                 </div>
+                <div id="bloco-recentes-vazio" class="bloco-sugeridos"></div>
                 <div class="cidade-empty-seo">${conteudoSeoEmptyState(localHtml)}</div>
-                <div class="cidade-empty-actions" style="margin-bottom: 22px;">
-                    <a class="btn btn-danger" href="/comprar">Ver veículos disponíveis</a>
-                </div>
                 <p class="cidade-empty-promo">
                     <strong>Atenção Particulares</strong><br>
                     Aproveite nossa promoção de lançamento e anuncie seu veículo gratuitamente.
@@ -423,6 +544,8 @@ function renderizarSemResultados(container) {
             </div>
         </div>
     `
+
+    preencherBlocoAnuncios("bloco-recentes-vazio", `Anúncios recentes ${prep} ${local}`, [])
 }
 
 function renderizarCards() {
@@ -451,10 +574,12 @@ function renderizarCards() {
 // Texto SEO abaixo da listagem quando a página tem anúncios (visível e indexável).
 function renderizarSeoRodape(temAnuncios) {
     const rodape = document.getElementById("seo-rodape")
+    const sugeridos = document.getElementById("bloco-recentes-rodape")
     if (!rodape) return
 
     if (!temAnuncios) {
         rodape.innerHTML = ""
+        if (sugeridos) sugeridos.innerHTML = ""
         return
     }
 
@@ -476,10 +601,10 @@ function renderizarSeoRodape(temAnuncios) {
         <div class="cidade-empty-seo">
             ${conteudoSeoEmptyState(localHtml)}
         </div>
-        <div class="cidade-empty-actions" style="margin-top: 16px;">
-            <a class="btn btn-danger" href="/comprar">Veja veículos relacionados</a>
-        </div>
     `
+
+    // Sugestões acima do texto SEO, sem repetir os anúncios já listados na página.
+    preencherBlocoAnuncios("bloco-recentes-rodape", "Talvez possa lhe interessar", itens.map(v => v.id))
 }
 
 /* ================================
