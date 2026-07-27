@@ -9,17 +9,17 @@
   texto não aparece.
 
   O termo acompanha o tipo da página; /cidade e /particular listam todos
-  os tipos, por isso caem no "Veículos".
+  os tipos, e usam "Carros" por ser o termo de busca principal.
 */
 const filtroChamada = (typeof filtro !== 'undefined' && filtro) ? filtro : {};
 
 const termosChamada = {
   carros: 'Carros usados e seminovos',
   motos: 'Motos usadas e seminovas',
-  utilitarios: 'Utilitários usados e seminovos'
+  utilitarios: 'Carros utilitários usados e seminovos'
 };
 
-const termoChamada = termosChamada[filtroChamada.tipo] || 'Veículos usados e seminovos';
+const termoChamada = termosChamada[filtroChamada.tipo] || 'Carros usados e seminovos';
 
 let localChamada = '';
 
