@@ -164,6 +164,15 @@
 
           <div class="row g-3">
 
+            <!--
+              O conteúdo dos selects de marca, câmbio, combustível e cor, além
+              da lista de acessórios, é montado por editar-anuncio.js conforme o
+              tipo do anúncio (moto x carro/utilitário).
+            -->
+            <div class="col-12">
+              <h5 id="titulo-form-edicao" class="mb-0">Editar anúncio</h5>
+            </div>
+
             <!-- TIPO -->
             <div class="col-md-4">
               <label class="form-label">Tipo</label>
@@ -180,40 +189,6 @@
               <label class="form-label">Marca</label>
               <select class="form-select" name="marca" required>
                 <option value="">Selecione</option>
-                <optgroup label="Carros / Utilitários">
-                  <option>Chevrolet</option>
-                  <option>Volkswagen</option>
-                  <option>Fiat</option>
-                  <option>Ford</option>
-                  <option>Toyota</option>
-                  <option>Hyundai</option>
-                  <option>Renault</option>
-                  <option>Nissan</option>
-                  <option>Jeep</option>
-                  <option>Peugeot</option>
-                  <option>Citroën</option>
-                  <option>Kia</option>
-                  <option>Mercedes-Benz</option>
-                  <option>Audi</option>
-                </optgroup>
-                <optgroup label="Motos">
-                  <option>Honda</option>
-                  <option>Yamaha</option>
-                  <option>Suzuki</option>
-                  <option>Kawasaki</option>
-                  <option>BMW</option>
-                  <option>Harley-Davidson</option>
-                  <option>Ducati</option>
-                  <option>Triumph</option>
-                  <option>Royal Enfield</option>
-                  <option>KTM</option>
-                  <option>Dafra</option>
-                  <option>Haojue</option>
-                  <option>Shineray</option>
-                  <option>Traxx</option>
-                  <option>Bajaj</option>
-                  <option>Outra</option>
-                </optgroup>
               </select>
             </div>
 
@@ -253,11 +228,7 @@
             <!-- CÂMBIO -->
             <div class="col-md-4">
               <label class="form-label">Câmbio</label>
-              <select class="form-select" name="cambio">
-                <option>Manual</option>
-                <option>Automático</option>
-                <option>Automático CVT</option>
-              </select>
+              <select class="form-select" name="cambio"></select>
             </div>
 
             <!-- CILINDRADA (apenas motos) -->
@@ -325,13 +296,7 @@
             <!-- COMBUSTÍVEL -->
             <div class="col-md-4">
               <label class="form-label">Combustível</label>
-              <select class="form-select" name="combustivel">
-                <option>Gasolina</option>
-                <option>Etanol</option>
-                <option>Flex</option>
-                <option>Diesel</option>
-                <option>Elétrico</option>
-              </select>
+              <select class="form-select" name="combustivel"></select>
             </div>
 
             <!-- TRAÇÃO -->
@@ -348,47 +313,18 @@
             <!-- COR -->
             <div class="col-md-4">
               <label class="form-label">Cor</label>
-              <select class="form-select" name="cor">
-                <option>Branco</option>
-                <option>Preto</option>
-                <option>Prata</option>
-                <option>Cinza</option>
-                <option>Grafite</option>
-                <option>Vermelho</option>
-                <option>Azul</option>
-                <option>Vinho</option>
-                <option>Bege</option>
-              </select>
+              <select class="form-select" name="cor"></select>
             </div>
 
             <!-- ACESSÓRIOS -->
             <div class="col-12">
               <label class="form-label fw-bold">Acessórios</label>
-              <div class="row">
-                <div class="col-md-3">
-                  <input type="checkbox" data-acessorio="Ar-condicionado"> Ar-condicionado
-                </div>
-                <div class="col-md-3">
-                  <input type="checkbox" data-acessorio="Direção elétrica"> Direção elétrica
-                </div>
-                <div class="col-md-3">
-                  <input type="checkbox" data-acessorio="Airbag"> Airbag
-                </div>
-                <div class="col-md-3">
-                  <input type="checkbox" data-acessorio="ABS"> ABS
-                </div>
-                <div class="col-md-3">
-                  <input type="checkbox" data-acessorio="Multimídia"> Multimídia
-                </div>
-                <div class="col-md-3">
-                  <input type="checkbox" data-acessorio="Câmera de ré"> Câmera de ré
-                </div>
-              </div>
+              <div class="row" id="acessorios-edicao"></div>
             </div>
 
             <!-- IMAGENS -->
             <div class="col-12">
-              <label class="form-label">Imagens</label>
+              <label class="form-label" id="label-imagens-edicao">Imagens</label>
               <input type="file" class="form-control" name="imagens" multiple>
             </div>
 

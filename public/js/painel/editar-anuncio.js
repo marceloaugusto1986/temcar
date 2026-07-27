@@ -11,16 +11,126 @@ const formEdicao = document.getElementById("form-editar-anuncio");
 const listaAnuncios = document.getElementById("container-editar-excluir-anuncio");
 const previewImagensEdicao = document.getElementById("previewImagensEdicao");
 const inputImagens = formEdicao.querySelector('[name="imagens"]');
+const containerAcessorios = document.getElementById("acessorios-edicao");
+const tituloFormEdicao = document.getElementById("titulo-form-edicao");
+const labelImagensEdicao = document.getElementById("label-imagens-edicao");
 
 /* =====================================================
-   MOTO x VEÍCULO: alterna os campos exclusivos de cada
-   tipo. Moto usa cilindrada; carro/utilitário usam
-   motorização, portas, carroceria e tração.
+   MOTO x VEÍCULO
+   -----------------------------------------------------
+   Editar uma moto tem que mostrar o formulário de moto,
+   e não o de veículos: marcas, câmbio, combustível, cor
+   e acessórios são listas diferentes. As opções abaixo
+   espelham criar-anuncio.ejs e criar-anuncio-moto.ejs.
 ===================================================== */
+const OPCOES_EDICAO = {
+  moto: {
+    marcas: [
+      "Honda", "Yamaha", "Suzuki", "Kawasaki", "BMW", "Harley-Davidson",
+      "Ducati", "Triumph", "Royal Enfield", "KTM", "Dafra", "Haojue",
+      "Shineray", "Traxx", "Bajaj", "Outra"
+    ],
+    cambio: ["Manual", "Automático", "Semi-automático"],
+    combustivel: ["Gasolina", "Flex", "Elétrico"],
+    cores: [
+      "Branco", "Preto", "Prata", "Cinza", "Grafite",
+      "Vermelho", "Azul", "Verde", "Amarelo", "Vinho"
+    ],
+    acessorios: [
+      "Freio ABS", "Freio CBS", "Partida elétrica", "Painel digital",
+      "Farol de LED", "Alarme", "Bauleto", "Protetor de motor",
+      "Manopla aquecida", "Controle de tração"
+    ]
+  },
+  veiculo: {
+    marcas: [
+      "Chevrolet", "Volkswagen", "Fiat", "Ford", "Toyota", "Hyundai",
+      "Renault", "Nissan", "Jeep", "Peugeot", "Citroën", "Kia",
+      "Mercedes-Benz", "Audi"
+    ],
+    cambio: ["Manual", "Automático", "Automático CVT"],
+    combustivel: ["Gasolina", "Etanol", "Flex", "Diesel", "Elétrico"],
+    cores: [
+      "Branco", "Preto", "Prata", "Cinza", "Grafite",
+      "Vermelho", "Azul", "Vinho", "Bege"
+    ],
+    acessorios: [
+      "Ar-condicionado", "Direção elétrica", "Airbag",
+      "ABS", "Multimídia", "Câmera de ré"
+    ]
+  }
+};
+
 const tipoEdicao = formEdicao.querySelector('[name="tipo"]');
 
-function alternarCamposPorTipo() {
-  const ehMoto = tipoEdicao && tipoEdicao.value === "Moto";
+function ehTipoMoto() {
+  return !!tipoEdicao && tipoEdicao.value === "Moto";
+}
+
+function escaparHtml(txt) {
+  return String(txt).replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[c]);
+}
+
+/* Reescreve as opções de um select. O valor atual só sobrevive se
+   existir na nova lista — trocar o tipo não pode deixar marca de
+   carro em moto. Valor legado do anúncio é reposto por setSelect. */
+function preencherSelect(name, opcoes) {
+  const el = formEdicao.querySelector(`[name="${name}"]`);
+  if (!el) return;
+
+  const valorAtual = el.value;
+
+  el.innerHTML =
+    `<option value="">Selecione</option>` +
+    opcoes.map(op => `<option>${escaparHtml(op)}</option>`).join("");
+
+  el.value = opcoes.includes(valorAtual) ? valorAtual : "";
+}
+
+/* Monta os checkboxes de acessórios do tipo, mantendo marcados
+   os que já estavam (inclusive acessórios fora da lista atual). */
+function montarAcessorios(acessorios, marcados = []) {
+  if (!containerAcessorios) return;
+
+  const extras = marcados.filter(item => !acessorios.includes(item));
+
+  containerAcessorios.innerHTML = [...acessorios, ...extras]
+    .map(item => `
+      <div class="col-md-3">
+        <label>
+          <input type="checkbox" data-acessorio="${escaparHtml(item)}"
+            ${marcados.includes(item) ? "checked" : ""}> ${escaparHtml(item)}
+        </label>
+      </div>
+    `)
+    .join("");
+}
+
+function acessoriosMarcados() {
+  return [...formEdicao.querySelectorAll("[data-acessorio]:checked")]
+    .map(cb => cb.dataset.acessorio);
+}
+
+/* Troca o formulário inteiro para o tipo informado.
+   `marcados` só é passado ao carregar um anúncio; na troca manual
+   de tipo aproveitamos o que já estava selecionado. */
+function aplicarTipoNoFormulario(marcados) {
+  const ehMoto = ehTipoMoto();
+  const opcoes = ehMoto ? OPCOES_EDICAO.moto : OPCOES_EDICAO.veiculo;
+
+  if (tituloFormEdicao) {
+    tituloFormEdicao.textContent = ehMoto ? "Editar moto" : "Editar veículo";
+  }
+
+  if (labelImagensEdicao) {
+    labelImagensEdicao.textContent = ehMoto ? "Imagens da moto" : "Imagens";
+  }
 
   formEdicao.querySelectorAll(".campo-moto").forEach(el => {
     el.classList.toggle("d-none", !ehMoto);
@@ -29,6 +139,22 @@ function alternarCamposPorTipo() {
   formEdicao.querySelectorAll(".campo-veiculo").forEach(el => {
     el.classList.toggle("d-none", ehMoto);
   });
+
+  preencherSelect("marca", opcoes.marcas);
+  preencherSelect("cambio", opcoes.cambio);
+  preencherSelect("combustivel", opcoes.combustivel);
+  preencherSelect("cor", opcoes.cores);
+
+  // Na troca manual de tipo descarta os acessórios do tipo anterior;
+  // ao carregar o anúncio, mantém até os que não estão mais na lista.
+  const selecionados = marcados
+    ?? acessoriosMarcados().filter(item => opcoes.acessorios.includes(item));
+
+  montarAcessorios(opcoes.acessorios, selecionados);
+
+  // Cilindrada só é obrigatória (e só existe) para moto.
+  const cilindrada = formEdicao.querySelector('[name="cilindrada"]');
+  if (cilindrada) cilindrada.required = ehMoto;
 
   // Zera o que não se aplica, para não gravar dado de outro tipo.
   const limpar = ehMoto
@@ -42,7 +168,7 @@ function alternarCamposPorTipo() {
 }
 
 if (tipoEdicao) {
-  tipoEdicao.addEventListener("change", alternarCamposPorTipo);
+  tipoEdicao.addEventListener("change", () => aplicarTipoNoFormulario());
 }
 
 /* =====================================================
@@ -105,6 +231,14 @@ function cancelarEdicao() {
 ===================================================== */
 function preencherFormulario(a) {
   setSelect("tipo", a.tipo);
+
+  // Troca o formulário para o tipo do anúncio ANTES de preencher:
+  // é isso que monta as marcas/câmbio/combustível/cor/acessórios
+  // corretos (moto x carro/utilitário).
+  aplicarTipoNoFormulario(normalizarAcessorios(a.acessorios));
+
+  const ehMoto = ehTipoMoto();
+
   setSelect("marca", a.marca);
   setInput("versao", a.versao);
 
@@ -114,22 +248,20 @@ function preencherFormulario(a) {
 
   setSelect("condicao", capitalizar(a.condicao));
   setSelect("cambio", a.cambio);
-  setSelect("motorizacao", String(a.motorizacao));
-  setSelect("portas", String(a.portas));
-  setSelect("cilindrada", a.cilindrada ? String(a.cilindrada) : "");
-
-  setSelect("carroceria", a.carroceria);
   setSelect("combustivel", a.combustivel);
-  setSelect("tracao", a.tracao);
   setSelect("cor", a.cor);
+
+  if (ehMoto) {
+    setSelect("cilindrada", a.cilindrada ? String(a.cilindrada) : "");
+  } else {
+    setSelect("motorizacao", a.motorizacao);
+    setSelect("portas", a.portas);
+    setSelect("carroceria", a.carroceria);
+    setSelect("tracao", a.tracao);
+  }
 
   setInput("preco", a.preco);
   setTextarea("descricao", a.descricao);
-
-  preencherAcessorios(a.acessorios);
-
-  // Mostra os campos certos para o tipo carregado.
-  alternarCamposPorTipo();
 }
 
 /* =====================================================
@@ -149,9 +281,22 @@ function setSelect(name, value) {
   const el = formEdicao.querySelector(`[name="${name}"]`);
   if (!el || value == null) return;
 
-  const val = String(value);
+  const val = String(value).trim();
+
+  if (!val) {
+    el.value = "";
+    return;
+  }
+
   const opt = [...el.options].find(o => o.value === val || o.text === val);
-  el.value = opt ? opt.value : "";
+
+  // Valor gravado que não está na lista (dado legado): vira opção,
+  // senão a edição apagaria silenciosamente o campo.
+  if (!opt) {
+    el.appendChild(new Option(val, val));
+  }
+
+  el.value = opt ? opt.value : val;
 }
 
 function capitalizar(txt) {
@@ -160,29 +305,23 @@ function capitalizar(txt) {
 
 /* =====================================================
    ACESSÓRIOS (ROBUSTO)
+   O banco pode devolver array, JSON em string ou string solta.
 ===================================================== */
-function preencherAcessorios(acessorios) {
-  document
-    .querySelectorAll("[data-acessorio]")
-    .forEach(cb => cb.checked = false);
+function normalizarAcessorios(acessorios) {
+  if (!acessorios) return [];
 
-  if (!acessorios) return;
+  if (Array.isArray(acessorios)) return acessorios;
 
-  let lista = [];
-
-  if (Array.isArray(acessorios)) {
-    lista = acessorios;
-  } else if (typeof acessorios === "string") {
+  if (typeof acessorios === "string") {
     try {
-      lista = JSON.parse(acessorios);
+      const lista = JSON.parse(acessorios);
+      return Array.isArray(lista) ? lista : [String(lista)];
     } catch {
-      lista = [acessorios];
+      return [acessorios];
     }
   }
 
-  document.querySelectorAll("[data-acessorio]").forEach(cb => {
-    cb.checked = lista.includes(cb.dataset.acessorio);
-  });
+  return [];
 }
 
 /* =====================================================
@@ -304,12 +443,7 @@ formEdicao.addEventListener("submit", async e => {
 
   const formData = new FormData(formEdicao);
 
-  const acessorios = [];
-  document
-    .querySelectorAll("[data-acessorio]:checked")
-    .forEach(cb => acessorios.push(cb.dataset.acessorio));
-
-  formData.append("acessorios", JSON.stringify(acessorios));
+  formData.append("acessorios", JSON.stringify(acessoriosMarcados()));
   formData.append("imagensRemovidas", JSON.stringify(imagensRemovidas));
 
   try {
