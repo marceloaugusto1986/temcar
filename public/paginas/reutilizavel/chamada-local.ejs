@@ -1,0 +1,62 @@
+<%
+/*
+  Chamada que aparece logo abaixo do banner (ou da faixa, quando a cidade
+  não tem banner): "Encontre <tipo> usados e seminovos com o melhor preço
+  em <local>".
+
+  Só é renderizada quando a página tem cidade. Nas páginas nacionais
+  (/carros, /motos, /particular) não existe local para citar, então o
+  texto não aparece.
+
+  O termo acompanha o tipo da página; /cidade e /particular listam todos
+  os tipos, por isso caem no "Veículos".
+*/
+const filtroChamada = (typeof filtro !== 'undefined' && filtro) ? filtro : {};
+
+const termosChamada = {
+  carros: 'Carros usados e seminovos',
+  motos: 'Motos usadas e seminovas',
+  utilitarios: 'Utilitários usados e seminovos'
+};
+
+const termoChamada = termosChamada[filtroChamada.tipo] || 'Veículos usados e seminovos';
+
+let localChamada = '';
+
+if (filtroChamada.cidadeNome) {
+  const uf = filtroChamada.ufNome;
+
+  localChamada = filtroChamada.bairroNome
+    ? `${filtroChamada.bairroNome}, ${filtroChamada.cidadeNome}${uf ? ` - ${uf}` : ''}`
+    : `${filtroChamada.cidadeNome}${uf ? `, ${uf}` : ''}`;
+}
+%>
+
+<% if (localChamada) { %>
+<style>
+    .chamada-local {
+        margin: 18px 0 0;
+        font-size: 1.05rem;
+        line-height: 1.45;
+        color: #2b2b2b;
+    }
+
+    .chamada-local strong {
+        color: #C90B0C;
+    }
+
+    @media (max-width: 576px) {
+        .chamada-local {
+            font-size: .95rem;
+            margin-top: 14px;
+        }
+    }
+</style>
+
+<div class="container">
+    <p class="chamada-local">
+        Encontre <%= termoChamada %> com o melhor preço em
+        <strong><%= localChamada %></strong>
+    </p>
+</div>
+<% } %>
