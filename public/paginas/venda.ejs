@@ -118,13 +118,18 @@
                         <form id="form-editar-anuncio-admin" enctype="multipart/form-data"
                             class="bg-white shadow-sm rounded p-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h2 class="h5 m-0">Editar anúncio</h2>
+                                <h2 class="h5 m-0" id="tituloEdicaoAdmin">Editar anúncio</h2>
                                 <button type="button" class="btn btn-outline-secondary btn-sm"
                                     id="btnCancelarEdicaoAdmin">
                                     Cancelar
                                 </button>
                             </div>
 
+                            <!--
+                                Marca, câmbio, combustível, cor e acessórios são montados por
+                                editar-anuncio-admin.js conforme o tipo do anúncio (moto x
+                                carro/utilitário), igual ao painel do anunciante.
+                            -->
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label class="form-label">Tipo</label>
@@ -140,22 +145,6 @@
                                     <label class="form-label">Marca</label>
                                     <select class="form-select" name="marca" required>
                                         <option value="">Selecione</option>
-                                        <option>Chevrolet</option>
-                                        <option>Volkswagen</option>
-                                        <option>Fiat</option>
-                                        <option>Ford</option>
-                                        <option>Honda</option>
-                                        <option>Toyota</option>
-                                        <option>Hyundai</option>
-                                        <option>Renault</option>
-                                        <option>Nissan</option>
-                                        <option>BMW</option>
-                                        <option>Mercedes-Benz</option>
-                                        <option>Audi</option>
-                                        <option>Jeep</option>
-                                        <option>Kia</option>
-                                        <option>Peugeot</option>
-                                        <option>Citroën</option>
                                     </select>
                                 </div>
 
@@ -190,14 +179,34 @@
 
                                 <div class="col-md-4">
                                     <label class="form-label">Câmbio</label>
-                                    <select class="form-select" name="cambio">
-                                        <option>Manual</option>
-                                        <option>Automático</option>
-                                        <option>Automático CVT</option>
+                                    <select class="form-select" name="cambio"></select>
+                                </div>
+
+                                <!-- CILINDRADA (apenas motos) -->
+                                <div class="col-md-4 campo-moto-admin">
+                                    <label class="form-label">Cilindrada (cc)</label>
+                                    <select class="form-select" name="cilindrada">
+                                        <option value="">Selecione</option>
+                                        <option>50</option>
+                                        <option>110</option>
+                                        <option>125</option>
+                                        <option>150</option>
+                                        <option>160</option>
+                                        <option>190</option>
+                                        <option>200</option>
+                                        <option>250</option>
+                                        <option>300</option>
+                                        <option>400</option>
+                                        <option>500</option>
+                                        <option>650</option>
+                                        <option>750</option>
+                                        <option>900</option>
+                                        <option>1000</option>
+                                        <option>Acima de 1000</option>
                                     </select>
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-4 campo-veiculo-admin">
                                     <label class="form-label">Motorização</label>
                                     <select class="form-select" name="motorizacao">
                                         <option value="">Selecione</option>
@@ -211,7 +220,7 @@
                                     </select>
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-4 campo-veiculo-admin">
                                     <label class="form-label">Portas</label>
                                     <select class="form-select" name="portas">
                                         <option value="">Selecione</option>
@@ -221,7 +230,7 @@
                                     </select>
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-4 campo-veiculo-admin">
                                     <label class="form-label">Carroceria</label>
                                     <select class="form-select" name="carroceria">
                                         <option value="">Selecione</option>
@@ -234,16 +243,10 @@
 
                                 <div class="col-md-4">
                                     <label class="form-label">Combustível</label>
-                                    <select class="form-select" name="combustivel">
-                                        <option>Gasolina</option>
-                                        <option>Etanol</option>
-                                        <option>Flex</option>
-                                        <option>Diesel</option>
-                                        <option>Elétrico</option>
-                                    </select>
+                                    <select class="form-select" name="combustivel"></select>
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-4 campo-veiculo-admin">
                                     <label class="form-label">Tração</label>
                                     <select class="form-select" name="tracao">
                                         <option value="">Selecione</option>
@@ -255,47 +258,16 @@
 
                                 <div class="col-md-4">
                                     <label class="form-label">Cor</label>
-                                    <select class="form-select" name="cor">
-                                        <option>Branco</option>
-                                        <option>Preto</option>
-                                        <option>Prata</option>
-                                        <option>Cinza</option>
-                                        <option>Grafite</option>
-                                        <option>Vermelho</option>
-                                        <option>Azul</option>
-                                        <option>Vinho</option>
-                                        <option>Bege</option>
-                                    </select>
+                                    <select class="form-select" name="cor"></select>
                                 </div>
 
                                 <div class="col-12">
                                     <label class="form-label fw-bold">Acessórios</label>
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <input type="checkbox" data-admin-acessorio="Ar-condicionado">
-                                            Ar-condicionado
-                                        </div>
-                                        <div class="col-md-3">
-                                            <input type="checkbox" data-admin-acessorio="Direção elétrica">
-                                            Direção elétrica
-                                        </div>
-                                        <div class="col-md-3">
-                                            <input type="checkbox" data-admin-acessorio="Airbag"> Airbag
-                                        </div>
-                                        <div class="col-md-3">
-                                            <input type="checkbox" data-admin-acessorio="ABS"> ABS
-                                        </div>
-                                        <div class="col-md-3">
-                                            <input type="checkbox" data-admin-acessorio="Multimídia"> Multimídia
-                                        </div>
-                                        <div class="col-md-3">
-                                            <input type="checkbox" data-admin-acessorio="Câmera de ré"> Câmera de ré
-                                        </div>
-                                    </div>
+                                    <div class="row" id="acessoriosEdicaoAdmin"></div>
                                 </div>
 
                                 <div class="col-12">
-                                    <label class="form-label">Imagens</label>
+                                    <label class="form-label" id="labelImagensEdicaoAdmin">Imagens</label>
                                     <input type="file" class="form-control" name="imagens" multiple>
                                 </div>
 

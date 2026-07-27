@@ -22,20 +22,165 @@ if (adminEditContext === "admin" && adminEditButton && adminEditForm) {
 }
 
 /* =====================================================
-   MOTO: campos opcionais (motorização, portas,
-   carroceria e tração). Limpa a seleção ao escolher Moto.
+   MOTO x VEÍCULO
+   -----------------------------------------------------
+   Editar uma moto tem que mostrar o formulário de moto:
+   marcas, câmbio, combustível, cor e acessórios são
+   listas diferentes, e cilindrada substitui motorização,
+   portas, carroceria e tração.
 ===================================================== */
+const OPCOES_EDICAO_ADMIN = {
+  moto: {
+    marcas: [
+      "Honda", "Yamaha", "Suzuki", "Kawasaki", "BMW", "Harley-Davidson",
+      "Ducati", "Triumph", "Royal Enfield", "KTM", "Dafra", "Haojue",
+      "Shineray", "Traxx", "Bajaj", "Outra"
+    ],
+    cambio: ["Manual", "Automático", "Semi-automático"],
+    combustivel: ["Gasolina", "Flex", "Elétrico"],
+    cores: [
+      "Branco", "Preto", "Prata", "Cinza", "Grafite",
+      "Vermelho", "Azul", "Verde", "Amarelo", "Vinho"
+    ],
+    acessorios: [
+      "Freio ABS", "Freio CBS", "Partida elétrica", "Painel digital",
+      "Farol de LED", "Alarme", "Bauleto", "Protetor de motor",
+      "Manopla aquecida", "Controle de tração"
+    ]
+  },
+  veiculo: {
+    marcas: [
+      "Chevrolet", "Volkswagen", "Fiat", "Ford", "Honda", "Toyota",
+      "Hyundai", "Renault", "Nissan", "BMW", "Mercedes-Benz", "Audi",
+      "Jeep", "Kia", "Peugeot", "Citroën"
+    ],
+    cambio: ["Manual", "Automático", "Automático CVT"],
+    combustivel: ["Gasolina", "Etanol", "Flex", "Diesel", "Elétrico"],
+    cores: [
+      "Branco", "Preto", "Prata", "Cinza", "Grafite",
+      "Vermelho", "Azul", "Vinho", "Bege"
+    ],
+    acessorios: [
+      "Ar-condicionado", "Direção elétrica", "Airbag",
+      "ABS", "Multimídia", "Câmera de ré"
+    ]
+  }
+};
+
 const adminTipoSelect = adminEditForm?.querySelector('[name="tipo"]');
-if (adminTipoSelect) {
-  adminTipoSelect.addEventListener("change", () => {
-    if (adminTipoSelect.value === "Moto") {
-      ["motorizacao", "portas", "carroceria", "tracao"].forEach(name => {
-        const field = adminEditForm.querySelector(`[name="${name}"]`);
-        if (field) field.value = "";
-      });
-    }
+const adminAcessoriosContainer = document.getElementById("acessoriosEdicaoAdmin");
+const adminTituloEdicao = document.getElementById("tituloEdicaoAdmin");
+const adminLabelImagens = document.getElementById("labelImagensEdicaoAdmin");
+
+function ehTipoMotoAdmin() {
+  return !!adminTipoSelect && adminTipoSelect.value === "Moto";
+}
+
+function escaparHtmlAdmin(texto) {
+  return String(texto).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+/* Reescreve as opções de um select. O valor atual só sobrevive se
+   existir na nova lista — trocar o tipo não pode deixar marca de
+   carro em moto. Valor legado do anúncio é reposto por setAdminSelect. */
+function preencherSelectAdmin(name, opcoes) {
+  const field = adminEditForm?.querySelector(`[name="${name}"]`);
+  if (!field) return;
+
+  const valorAtual = field.value;
+
+  field.innerHTML =
+    `<option value="">Selecione</option>` +
+    opcoes.map(op => `<option>${escaparHtmlAdmin(op)}</option>`).join("");
+
+  field.value = opcoes.includes(valorAtual) ? valorAtual : "";
+}
+
+/* Monta os checkboxes de acessórios do tipo, mantendo marcados
+   os que já estavam (inclusive acessórios fora da lista atual). */
+function montarAcessoriosAdmin(acessorios, marcados = []) {
+  if (!adminAcessoriosContainer) return;
+
+  const extras = marcados.filter(item => !acessorios.includes(item));
+
+  adminAcessoriosContainer.innerHTML = [...acessorios, ...extras]
+    .map(item => `
+      <div class="col-md-3">
+        <label>
+          <input type="checkbox" data-admin-acessorio="${escaparHtmlAdmin(item)}"
+            ${marcados.includes(item) ? "checked" : ""}> ${escaparHtmlAdmin(item)}
+        </label>
+      </div>
+    `)
+    .join("");
+}
+
+function acessoriosMarcadosAdmin() {
+  return [...adminEditForm.querySelectorAll("[data-admin-acessorio]:checked")]
+    .map(checkbox => checkbox.dataset.adminAcessorio);
+}
+
+/* Troca o formulário inteiro para o tipo informado.
+   `marcados` só é passado ao carregar um anúncio; na troca manual
+   de tipo aproveitamos o que já estava selecionado. */
+function aplicarTipoNoFormularioAdmin(marcados) {
+  if (!adminEditForm) return;
+
+  const ehMoto = ehTipoMotoAdmin();
+  const opcoes = ehMoto ? OPCOES_EDICAO_ADMIN.moto : OPCOES_EDICAO_ADMIN.veiculo;
+
+  if (adminTituloEdicao) {
+    adminTituloEdicao.textContent = ehMoto ? "Editar moto" : "Editar veículo";
+  }
+
+  if (adminLabelImagens) {
+    adminLabelImagens.textContent = ehMoto ? "Imagens da moto" : "Imagens";
+  }
+
+  adminEditForm.querySelectorAll(".campo-moto-admin").forEach(el => {
+    el.classList.toggle("d-none", !ehMoto);
+  });
+
+  adminEditForm.querySelectorAll(".campo-veiculo-admin").forEach(el => {
+    el.classList.toggle("d-none", ehMoto);
+  });
+
+  preencherSelectAdmin("marca", opcoes.marcas);
+  preencherSelectAdmin("cambio", opcoes.cambio);
+  preencherSelectAdmin("combustivel", opcoes.combustivel);
+  preencherSelectAdmin("cor", opcoes.cores);
+
+  // Na troca manual de tipo descarta os acessórios do tipo anterior;
+  // ao carregar o anúncio, mantém até os que não estão mais na lista.
+  const selecionados = marcados
+    ?? acessoriosMarcadosAdmin().filter(item => opcoes.acessorios.includes(item));
+
+  montarAcessoriosAdmin(opcoes.acessorios, selecionados);
+
+  // Zera o que não se aplica, para não gravar dado de outro tipo.
+  const limpar = ehMoto
+    ? ["motorizacao", "portas", "carroceria", "tracao"]
+    : ["cilindrada"];
+
+  limpar.forEach(name => {
+    const field = adminEditForm.querySelector(`[name="${name}"]`);
+    if (field) field.value = "";
   });
 }
+
+if (adminTipoSelect) {
+  adminTipoSelect.addEventListener("change", () => aplicarTipoNoFormularioAdmin());
+}
+
+// Estado inicial, para o form não abrir com os selects vazios
+// enquanto o anúncio ainda está carregando.
+aplicarTipoNoFormularioAdmin([]);
 
 async function abrirEdicaoAdmin(id) {
   if (!id) {
@@ -77,6 +222,12 @@ function cancelarEdicaoAdmin() {
 
 function preencherFormularioAdmin(anuncio) {
   setAdminSelect("tipo", anuncio.tipo);
+
+  // Troca o formulário para o tipo do anúncio ANTES de preencher:
+  // é isso que monta as marcas/câmbio/combustível/cor/acessórios
+  // corretos (moto x carro/utilitário).
+  aplicarTipoNoFormularioAdmin(normalizarAcessoriosAdmin(anuncio.acessorios));
+
   setAdminSelect("marca", anuncio.marca);
   setAdminInput("versao", anuncio.versao);
   setAdminInput("ano_fabricacao", anuncio.ano_fabricacao);
@@ -84,16 +235,21 @@ function preencherFormularioAdmin(anuncio) {
   setAdminInput("km", anuncio.km);
   setAdminSelect("condicao", capitalizarAdmin(anuncio.condicao));
   setAdminSelect("cambio", anuncio.cambio);
-  setAdminSelect("motorizacao", String(anuncio.motorizacao ?? ""));
-  setAdminSelect("portas", String(anuncio.portas ?? ""));
-  setAdminSelect("carroceria", anuncio.carroceria);
   setAdminSelect("combustivel", anuncio.combustivel);
-  setAdminSelect("tracao", anuncio.tracao);
   setAdminSelect("cor", anuncio.cor);
+
+  if (ehTipoMotoAdmin()) {
+    setAdminSelect("cilindrada", anuncio.cilindrada);
+  } else {
+    setAdminSelect("motorizacao", anuncio.motorizacao);
+    setAdminSelect("portas", anuncio.portas);
+    setAdminSelect("carroceria", anuncio.carroceria);
+    setAdminSelect("tracao", anuncio.tracao);
+  }
+
   setAdminInput("preco", anuncio.preco);
   setAdminTextarea("descricao", anuncio.descricao);
   setAdminCheckbox("destaque", anuncio.destaque);
-  preencherAcessoriosAdmin(anuncio.acessorios);
 }
 
 function setAdminCheckbox(name, value) {
@@ -115,40 +271,46 @@ function setAdminSelect(name, value) {
   const field = adminEditForm.querySelector(`[name="${name}"]`);
   if (!field || value == null) return;
 
-  const normalizedValue = String(value);
+  const normalizedValue = String(value).trim();
+
+  if (!normalizedValue) {
+    field.value = "";
+    return;
+  }
+
   const option = [...field.options].find(item => (
     item.value === normalizedValue || item.text === normalizedValue
   ));
 
-  field.value = option ? option.value : "";
+  // Valor gravado que não está na lista (dado legado): vira opção,
+  // senão a edição apagaria silenciosamente o campo.
+  if (!option) {
+    field.appendChild(new Option(normalizedValue, normalizedValue));
+  }
+
+  field.value = option ? option.value : normalizedValue;
 }
 
 function capitalizarAdmin(text) {
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
 }
 
-function preencherAcessoriosAdmin(acessorios) {
-  adminEditForm
-    .querySelectorAll("[data-admin-acessorio]")
-    .forEach(checkbox => checkbox.checked = false);
+/* O banco pode devolver array, JSON em string ou string solta. */
+function normalizarAcessoriosAdmin(acessorios) {
+  if (!acessorios) return [];
 
-  if (!acessorios) return;
+  if (Array.isArray(acessorios)) return acessorios;
 
-  let lista = [];
-
-  if (Array.isArray(acessorios)) {
-    lista = acessorios;
-  } else if (typeof acessorios === "string") {
+  if (typeof acessorios === "string") {
     try {
-      lista = JSON.parse(acessorios);
+      const lista = JSON.parse(acessorios);
+      return Array.isArray(lista) ? lista : [String(lista)];
     } catch {
-      lista = [acessorios];
+      return [acessorios];
     }
   }
 
-  adminEditForm.querySelectorAll("[data-admin-acessorio]").forEach(checkbox => {
-    checkbox.checked = lista.includes(checkbox.dataset.adminAcessorio);
-  });
+  return [];
 }
 
 function renderizarImagensAdmin(imagens) {
@@ -245,14 +407,9 @@ adminEditForm?.addEventListener("submit", async event => {
   }
 
   const formData = new FormData(adminEditForm);
-  const acessorios = [];
-
-  adminEditForm
-    .querySelectorAll("[data-admin-acessorio]:checked")
-    .forEach(checkbox => acessorios.push(checkbox.dataset.adminAcessorio));
 
   formData.set("destaque", adminEditForm.querySelector('[name="destaque"]')?.checked ? "1" : "0");
-  formData.append("acessorios", JSON.stringify(acessorios));
+  formData.append("acessorios", JSON.stringify(acessoriosMarcadosAdmin()));
   formData.append("imagensRemovidas", JSON.stringify(adminEditImagensRemovidas));
 
   try {

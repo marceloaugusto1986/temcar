@@ -171,6 +171,10 @@ if (tipoEdicao) {
   tipoEdicao.addEventListener("change", () => aplicarTipoNoFormulario());
 }
 
+// Estado inicial, para o form não abrir com os selects vazios
+// enquanto o anúncio ainda está carregando.
+aplicarTipoNoFormulario([]);
+
 /* =====================================================
    ABRIR EDIÇÃO
 ===================================================== */
